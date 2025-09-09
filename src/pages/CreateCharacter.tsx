@@ -120,7 +120,7 @@ const CreateCharacter = () => {
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <PawPrint className="h-5 w-5 text-primary" />
-                Character Details
+                Cat Details
               </CardTitle>
               <CardDescription>
                 Fill in the details for your catbot
