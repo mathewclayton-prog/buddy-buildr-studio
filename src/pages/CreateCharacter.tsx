@@ -130,7 +130,7 @@ const CreateCharacter = () => {
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Character Name */}
                 <div className="space-y-2">
-                  <Label htmlFor="name">Character Name *</Label>
+                  <Label htmlFor="name">Cat Name *</Label>
                   <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Luna the Wise" maxLength={50} />
                 </div>
 
