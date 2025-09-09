@@ -5,9 +5,11 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
-import { Bot, Send, ArrowLeft, User, MoreVertical } from "lucide-react";
+import LLMStatus from "@/components/LLMStatus";
+import { Bot, Send, ArrowLeft, User, MoreVertical, Brain } from "lucide-react";
 import { Character, ChatMessage, ChatSession } from "@/types/character";
 import { storageService } from "@/lib/storage";
+import { localLLM } from "@/services/localLLM";
 import { useToast } from "@/hooks/use-toast";
 
 const Chat = () => {
@@ -57,7 +59,21 @@ const Chat = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const generateResponse = (userMessage: string, character: Character): string => {
+  const generateResponse = async (userMessage: string, character: Character): Promise<string> => {
+    // Get conversation history for context
+    const conversationHistory = messages.slice(-6).map(msg => 
+      `${msg.isUser ? 'User' : character.name}: ${msg.content}`
+    );
+
+    try {
+      if (localLLM.isReady()) {
+        return await localLLM.generateResponse(character, userMessage, conversationHistory);
+      }
+    } catch (error) {
+      console.error("LLM generation failed, using fallback:", error);
+    }
+
+    // Fallback to simple responses if LLM not available
     const personality = character.personalityTraits[0]?.toLowerCase() || "friendly";
     
     const responses = {
@@ -112,28 +128,40 @@ const Chat = () => {
     setNewMessage("");
     setIsTyping(true);
 
-    // Simulate AI response delay
-    setTimeout(() => {
-      const aiResponse: ChatMessage = {
-        id: crypto.randomUUID(),
-        content: generateResponse(userMessage.content, character),
-        isUser: false,
-        timestamp: new Date(),
-      };
+    // Generate AI response
+    setTimeout(async () => {
+      try {
+        const responseContent = await generateResponse(userMessage.content, character);
+        
+        const aiResponse: ChatMessage = {
+          id: crypto.randomUUID(),
+          content: responseContent,
+          isUser: false,
+          timestamp: new Date(),
+        };
 
-      const finalMessages = [...updatedMessages, aiResponse];
-      setMessages(finalMessages);
-      setIsTyping(false);
+        const finalMessages = [...updatedMessages, aiResponse];
+        setMessages(finalMessages);
+        setIsTyping(false);
 
-      // Save chat session
-      const session: ChatSession = {
-        id: character.id,
-        characterId: character.id,
-        messages: finalMessages,
-        createdAt: new Date(),
-      };
-      storageService.saveChatSession(session);
-    }, 1000 + Math.random() * 2000);
+        // Save chat session
+        const session: ChatSession = {
+          id: character.id,
+          characterId: character.id,
+          messages: finalMessages,
+          createdAt: new Date(),
+        };
+        storageService.saveChatSession(session);
+      } catch (error) {
+        console.error("Error generating response:", error);
+        setIsTyping(false);
+        toast({
+          title: "Error",
+          description: "Failed to generate response. Please try again.",
+          variant: "destructive",
+        });
+      }
+    }, 1000 + Math.random() * 1000);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -208,9 +236,12 @@ const Chat = () => {
           
           <div className="flex-1">
             <h1 className="font-semibold text-lg">{character.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {character.personalityTraits[0]} • Online
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-sm text-muted-foreground">
+                {character.personalityTraits[0]} • Online
+              </p>
+              <LLMStatus />
+            </div>
           </div>
           
           <Button variant="ghost" size="icon">
