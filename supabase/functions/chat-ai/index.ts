@@ -73,8 +73,18 @@ Instructions:
 
     if (!response.ok) {
       const errorData = await response.text();
-      console.error('OpenAI API error:', response.status, errorData);
-      throw new Error(`OpenAI API error: ${response.status}`);
+      console.error('OpenAI API error details:', {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData,
+        requestBody: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: messages,
+          max_tokens: 150,
+          temperature: 0.7,
+        })
+      });
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();
