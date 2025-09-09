@@ -102,10 +102,12 @@ const Auth = () => {
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden">
-              <img src="/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png" alt="MiCatbot Logo" className="h-10 w-10 object-cover" />
+          <div className="mb-6 flex justify-center">
+            <div className="h-32 w-full max-w-md bg-card rounded-md overflow-hidden shadow-card">
+              <img src="/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png" alt="MiCatbot Hero" className="h-full w-full object-cover" />
             </div>
+          </div>
+          <Link to="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
             <span className="text-2xl font-bold">MiCatbot</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Welcome cat lovers!</h1>
