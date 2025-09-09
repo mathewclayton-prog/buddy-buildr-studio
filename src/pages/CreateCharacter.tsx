@@ -137,7 +137,7 @@ const CreateCharacter = () => {
                 {/* Character Description */}
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
-                  <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Describe your character's background, role, and general characteristics..." rows={4} maxLength={200} />
+                  <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Tell us about your cat's personality, habits, background, family and anything else that would be helpful." rows={4} maxLength={200} />
                   <p className="text-sm text-muted-foreground">
                     {description.length}/200 characters
                   </p>
