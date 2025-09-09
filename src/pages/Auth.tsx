@@ -103,8 +103,8 @@ const Auth = () => {
         {/* Header */}
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="h-10 w-10 gradient-primary rounded-lg flex items-center justify-center">
-              <Bot className="h-6 w-6 text-white" />
+            <div className="h-10 w-10 rounded-lg flex items-center justify-center overflow-hidden">
+              <img src="/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png" alt="MiCatbot Logo" className="h-10 w-10 object-cover" />
             </div>
             <span className="text-2xl font-bold">MiCatbot</span>
           </Link>
