@@ -3,6 +3,7 @@ import Navigation from "@/components/Navigation";
 import { Bot, Plus, Users, Sparkles, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import heroCat from "@/assets/hero-cat.png";
 const Index = () => {
   const {
     user
@@ -14,8 +15,8 @@ const Index = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto animate-fade-in">
           <div className="mb-8 flex justify-center">
-            <div className="h-20 w-20 gradient-hero rounded-2xl flex items-center justify-center animate-float shadow-primary">
-              <Bot className="h-10 w-10 text-white" />
+            <div className="h-32 w-32 rounded-2xl flex items-center justify-center animate-float overflow-hidden">
+              <img src={heroCat} alt="MiCatbot Hero" className="h-32 w-32 object-cover" />
             </div>
           </div>
           
