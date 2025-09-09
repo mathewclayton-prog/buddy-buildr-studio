@@ -64,9 +64,10 @@ Instructions:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: messages,
-        max_completion_tokens: 150,
+        max_tokens: 150,
+        temperature: 0.7,
       }),
     });
 
