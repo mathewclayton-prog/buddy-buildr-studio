@@ -120,7 +120,7 @@ const MyCatbots = () => {
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full overflow-hidden shadow-soft bg-muted">
+            <div className="w-12 h-12 rounded-lg overflow-hidden shadow-soft bg-muted">
               {catbot.avatar_url ? (
                 <img 
                   src={catbot.avatar_url} 

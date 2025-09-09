@@ -44,9 +44,11 @@ const Index = () => {
   const getDefaultAvatar = (catbot: Catbot) => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
-    return <div className={`w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
         <PawPrint className="h-8 w-8 text-white" />
-      </div>;
+      </div>
+    );
   };
   return <div className="min-h-screen bg-background">
       <Navigation />
@@ -127,8 +129,16 @@ const Index = () => {
           // Real catbots from database
           featuredCatbots.map((catbot, index) => <Card key={catbot.id} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-3">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden shadow-soft">
-                      {catbot.avatar_url ? <img src={catbot.avatar_url} alt={`${catbot.name} avatar`} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" /> : getDefaultAvatar(catbot)}
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft">
+                      {catbot.avatar_url ? (
+                        <img 
+                          src={catbot.avatar_url} 
+                          alt={`${catbot.name} avatar`} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                        />
+                      ) : (
+                        getDefaultAvatar(catbot)
+                      )}
                     </div>
                     <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
                   </CardHeader>
@@ -151,7 +161,7 @@ const Index = () => {
             avatar: null
           }].map((catbot, index) => <Card key={index} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-3">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden shadow-soft bg-muted flex items-center justify-center">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft bg-muted flex items-center justify-center">
                       <PawPrint className="h-8 w-8 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>

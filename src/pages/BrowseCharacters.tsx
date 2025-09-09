@@ -70,7 +70,7 @@ const BrowseCharacters = () => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
     return (
-      <div className={`h-14 w-14 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
+      <div className={`h-14 w-14 rounded-lg bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
         <PawPrint className="h-7 w-7 text-white" />
       </div>
     );
@@ -111,7 +111,7 @@ const BrowseCharacters = () => {
               <Card key={i} className="animate-pulse">
                 <CardHeader>
                   <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-muted rounded-full" />
+                    <div className="w-14 h-14 bg-muted rounded-lg" />
                     <div className="space-y-2">
                       <div className="h-4 bg-muted rounded w-20" />
                       <div className="h-3 bg-muted rounded w-16" />
@@ -178,7 +178,7 @@ const BrowseCharacters = () => {
                         <img 
                           src={catbot.avatar_url} 
                           alt={catbot.name} 
-                          className="h-14 w-14 rounded-full object-cover shadow-soft" 
+                          className="h-14 w-14 rounded-lg object-cover shadow-soft" 
                         />
                       ) : (
                         getDefaultAvatar(catbot)
