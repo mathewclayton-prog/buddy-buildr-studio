@@ -3,7 +3,7 @@ import Navigation from "@/components/Navigation";
 import { Bot, Plus, Users, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import heroCat from "@/assets/hero-cat.png";
+import heroCat from "@/assets/hero-cat-new.png";
 const Index = () => {
   const {
     user
