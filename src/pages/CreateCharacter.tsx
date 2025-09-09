@@ -145,7 +145,7 @@ const CreateCharacter = () => {
 
                 {/* Personality Dropdown */}
                 <div className="space-y-2">
-                  <Label htmlFor="personality">Personality *</Label>
+                  <Label htmlFor="personality">Personality Type *</Label>
                   <Select value={personality} onValueChange={setPersonality}>
                     <SelectTrigger className="bg-background">
                       <SelectValue placeholder="Choose a personality type" />
