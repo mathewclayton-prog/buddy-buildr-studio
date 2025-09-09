@@ -304,7 +304,7 @@ const CreateCharacter = () => {
           <p className="text-lg text-muted-foreground">Tell us all about the cat you have in mind.</p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto animate-fade-in">
+        <div className="max-w-2xl mx-auto animate-fade-in">
           {/* Form Section */}
           <Card className="shadow-card">
             <CardHeader>
@@ -519,70 +519,6 @@ const CreateCharacter = () => {
             </CardContent>
           </Card>
 
-          {/* Preview Section */}
-          <div className="space-y-6">
-            <Card className="shadow-card">
-              <CardHeader>
-                <CardTitle>Live Preview</CardTitle>
-                <CardDescription>
-                  See how your character will appear
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Character Card Preview */}
-                <div className="p-6 bg-gradient-secondary rounded-xl border">
-                  <div className="flex items-center gap-4 mb-4">
-                    {getPreviewAvatar()}
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">
-                        {name || "Character Name"}
-                      </h3>
-                      <p className="text-sm text-muted-foreground">
-                        {personality ? `${personality} personality` : "Select a personality"}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-4">
-                    {description || "Character description will appear here..."}
-                  </p>
-                  
-                  <Button variant="chat" size="sm" disabled>
-                    <PawPrint className="h-4 w-4 mr-2" />
-                    Start Chatting
-                  </Button>
-                </div>
-
-                {/* Chat Preview */}
-                <div className="space-y-4">
-                  <h4 className="font-medium">Chat Preview</h4>
-                  <div className="bg-card border rounded-lg p-4 space-y-3">
-                    <div className="flex items-start gap-3">
-                      {getPreviewAvatar()}
-                      <div className="bg-muted rounded-2xl px-4 py-2 max-w-xs">
-                        <p className="text-sm">
-                          {name ? `Hello! I'm ${name}.` : "Hello! I'm your character."} {
-                            personality === "Friendly" ? "I'm excited to chat with you!" :
-                            personality === "Mysterious" ? "There are many secrets to uncover..." :
-                            personality === "Wise" ? "I'm here to share knowledge and wisdom." :
-                            personality === "Playful" ? "Let's have some fun together!" :
-                            personality === "Serious" ? "I'm ready for our conversation." :
-                            "How can I help you today?"
-                          }
-                        </p>
-                      </div>
-                    </div>
-                    
-                    <div className="flex justify-end">
-                      <div className="bg-primary text-primary-foreground rounded-2xl px-4 py-2 max-w-xs">
-                        <p className="text-sm">Hi there! Nice to meet you.</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
 
