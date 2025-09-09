@@ -9,13 +9,13 @@ const Navigation = () => {
     user,
     signOut
   } = useAuth();
-  return <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
+  return <header className="border-b bg-nav-orange backdrop-blur-sm sticky top-0 z-50 shadow-soft text-nav-orange-foreground">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
+        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-nav-orange-foreground">
           <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
             <img src={logoCat} alt="MiCatbot Logo" className="h-8 w-8 object-cover" />
           </div>
-          <span className="text-xl font-bold">MiCatbot</span>
+          <span className="text-xl font-bold text-nav-orange-foreground">MiCatbot</span>
         </Link>
 
         <nav className="flex items-center gap-4">
