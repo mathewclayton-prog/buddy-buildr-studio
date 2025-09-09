@@ -29,7 +29,7 @@ const Navigation = () => {
               <Button variant={location.pathname === "/browse" ? "default" : "ghost"} size="sm" asChild>
                 <Link to="/browse" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
-                  Browse Characters
+                  Meet the Cats
                 </Link>
               </Button>
 
