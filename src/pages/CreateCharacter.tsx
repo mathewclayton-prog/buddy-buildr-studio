@@ -148,7 +148,7 @@ const CreateCharacter = () => {
                   <Label htmlFor="personality">Personality Type *</Label>
                   <Select value={personality} onValueChange={setPersonality}>
                     <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Choose a personality type" />
+                      <SelectValue placeholder="Choose a cat personality" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
                       {PERSONALITY_OPTIONS.map(option => <SelectItem key={option.value} value={option.value} className="hover:bg-accent">
