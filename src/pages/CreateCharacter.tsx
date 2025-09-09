@@ -123,7 +123,7 @@ const CreateCharacter = () => {
                 Character Details
               </CardTitle>
               <CardDescription>
-                Fill in the details to create your AI character
+                Fill in the details for your catbot
               </CardDescription>
             </CardHeader>
             <CardContent>
