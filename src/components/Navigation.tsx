@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, Users, LogOut, User } from "lucide-react";
+import { Bot, Plus, PawPrint, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import logoCat from "@/assets/logo-cat.png";
@@ -29,7 +29,7 @@ const Navigation = () => {
               
               <Button variant={location.pathname === "/browse" ? "default" : "ghost"} size="sm" asChild>
                 <Link to="/browse" className="flex items-center gap-2">
-                  <Users className="h-4 w-4" />
+                  <PawPrint className="h-4 w-4" />
                   Meet the Cats
                 </Link>
               </Button>
@@ -40,7 +40,7 @@ const Navigation = () => {
               </Button>
             </> : <Button variant="default" size="sm" asChild>
               <Link to="/auth" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
+                <PawPrint className="h-4 w-4" />
                 Sign In
               </Link>
             </Button>}
