@@ -3,11 +3,11 @@ import Navigation from "@/components/Navigation";
 import { Bot, Plus, Users, Sparkles, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-
 const Index = () => {
-  const { user } = useAuth();
-  return (
-    <div className="min-h-screen bg-background">
+  const {
+    user
+  } = useAuth();
+  return <div className="min-h-screen bg-background">
       <Navigation />
       
       {/* Hero Section */}
@@ -19,18 +19,12 @@ const Index = () => {
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Create Amazing AI Characters
-          </h1>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create your own catbot</h1>
           
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Build unique AI personalities, craft their stories, and chat with them in real-time. 
-            Bring your imagination to life with our powerful character creation tools.
-          </p>
+          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">Build a purrfect companion or bring your own feline friend to life.</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {user ? (
-              <>
+            {user ? <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/create" className="flex items-center gap-3">
                     <Plus className="h-5 w-5" />
@@ -45,9 +39,7 @@ const Index = () => {
                     Browse Characters
                   </Link>
                 </Button>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/auth" className="flex items-center gap-3">
                     <User className="h-5 w-5" />
@@ -62,8 +54,7 @@ const Index = () => {
                     Browse Characters
                   </Link>
                 </Button>
-              </>
-            )}
+              </>}
           </div>
         </div>
 
@@ -100,8 +91,6 @@ const Index = () => {
           </div>
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
