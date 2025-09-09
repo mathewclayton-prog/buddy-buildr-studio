@@ -111,9 +111,7 @@ const CreateCharacter = () => {
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Cat</h1>
-          <p className="text-lg text-muted-foreground">
-            Design a unique AI personality and start chatting immediately
-          </p>
+          <p className="text-lg text-muted-foreground">Tell us all about the cat you have in mind.</p>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8 max-w-6xl mx-auto animate-fade-in">
