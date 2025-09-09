@@ -72,7 +72,7 @@ const BrowseCharacters = () => {
       <main className="container mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Explore Our Wonderful Cats</h1>
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Talk to our Wonderful Cats</h1>
           <p className="text-lg text-muted-foreground mb-6">
             {loading ? "Loading catbots..." : catbots.length > 0 ? `Discover and chat with ${catbots.length} amazing catbot${catbots.length === 1 ? '' : 's'} created by our community` : "No public catbots available yet. Be the first to share yours!"}
           </p>
