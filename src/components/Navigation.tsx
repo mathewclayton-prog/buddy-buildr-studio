@@ -1,7 +1,9 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, PawPrint, LogOut, User, Home, Settings } from "lucide-react";
+import { Bot, Plus, PawPrint, LogOut, User, Home, Settings, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -9,13 +11,65 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+
 const logoCat = "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png";
 const Navigation = () => {
   const location = useLocation();
-  const {
-    user,
-    signOut
-  } = useAuth();
+  const { user, signOut } = useAuth();
+  const [displayName, setDisplayName] = useState<string>("");
+  const [loading, setLoading] = useState(true);
+
+  // Load user's display name
+  useEffect(() => {
+    if (user) {
+      loadUserProfile();
+    } else {
+      setDisplayName("");
+      setLoading(false);
+    }
+  }, [user]);
+
+  const loadUserProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('display_name')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) throw error;
+
+      // Set display name with fallbacks
+      if (data?.display_name) {
+        setDisplayName(data.display_name);
+      } else if (user.email) {
+        // Fallback to email username (part before @)
+        setDisplayName(user.email.split('@')[0]);
+      } else {
+        setDisplayName("User");
+      }
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      // Fallback to email or "User"
+      if (user.email) {
+        setDisplayName(user.email.split('@')[0]);
+      } else {
+        setDisplayName("User");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Truncate username if too long
+  const getTruncatedName = (name: string) => {
+    if (name.length > 15) {
+      return name.substring(0, 12) + "...";
+    }
+    return name;
+  };
   return <header className="border-b bg-nav-orange backdrop-blur-sm sticky top-0 z-50 shadow-soft text-nav-orange-foreground">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-nav-orange-foreground">
@@ -57,20 +111,27 @@ const Navigation = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant={location.pathname === "/profile" ? "default" : "ghost"} size="sm" className="flex items-center gap-2">
-                    <User className="h-4 w-4" />
-                    Profile
+                  <Button 
+                    variant={location.pathname === "/profile" ? "default" : "ghost"} 
+                    size="sm" 
+                    className="flex items-center gap-2 max-w-[200px]"
+                  >
+                    <User className="h-4 w-4 flex-shrink-0" />
+                    <span className="truncate">
+                      {loading ? "..." : getTruncatedName(displayName)}
+                    </span>
+                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center gap-2">
-                      <Settings className="h-4 w-4" />
-                      Account Settings
+                    <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <User className="h-4 w-4" />
+                      View Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-2">
+                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 cursor-pointer">
                     <LogOut className="h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
