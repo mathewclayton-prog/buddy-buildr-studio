@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Bot, Plus, Users, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import logoCat from "@/assets/logo-cat.png";
 const Navigation = () => {
   const location = useLocation();
   const {
@@ -11,8 +12,8 @@ const Navigation = () => {
   return <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-          <div className="h-8 w-8 gradient-primary rounded-lg flex items-center justify-center">
-            <Bot className="h-5 w-5 text-white" />
+          <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
+            <img src={logoCat} alt="MiCatbot Logo" className="h-8 w-8 object-cover" />
           </div>
           <span className="text-xl font-bold">MiCatbot</span>
         </Link>
