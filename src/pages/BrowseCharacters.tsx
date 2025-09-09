@@ -75,7 +75,8 @@ const BrowseCharacters = () => {
       </div>
     );
   };
-  return <div className="min-h-screen bg-background">
+  return (
+    <div className="min-h-screen bg-background">
       <Navigation />
       
       <main className="container mx-auto px-4 py-12">
@@ -232,6 +233,7 @@ const BrowseCharacters = () => {
           </div>
         )}
       </main>
-    </div>;
+    </div>
+  );
 };
 export default BrowseCharacters;
