@@ -8,18 +8,22 @@ import { Bot, Mail, Lock, User, AlertCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/components/ui/use-toast";
-
 const Auth = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-    displayName: "",
+    displayName: ""
   });
   const [error, setError] = useState("");
-  
-  const { user, signIn, signUp } = useAuth();
-  const { toast } = useToast();
+  const {
+    user,
+    signIn,
+    signUp
+  } = useAuth();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
 
   // Redirect if already authenticated
@@ -28,7 +32,6 @@ const Auth = () => {
       navigate("/");
     }
   }, [user, navigate]);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({
       ...prev,
@@ -36,14 +39,13 @@ const Auth = () => {
     }));
     setError(""); // Clear error when user types
   };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
-    const { error } = await signIn(formData.email, formData.password);
-    
+    const {
+      error
+    } = await signIn(formData.email, formData.password);
     if (error) {
       if (error.message.includes("Invalid login credentials")) {
         setError("Invalid email or password. Please check your credentials.");
@@ -55,20 +57,18 @@ const Auth = () => {
     } else {
       toast({
         title: "Welcome back!",
-        description: "You have successfully signed in.",
+        description: "You have successfully signed in."
       });
     }
-    
     setIsLoading(false);
   };
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
-    const { error } = await signUp(formData.email, formData.password, formData.displayName);
-    
+    const {
+      error
+    } = await signUp(formData.email, formData.password, formData.displayName);
     if (error) {
       if (error.message.includes("User already registered")) {
         setError("An account with this email already exists. Please sign in instead.");
@@ -80,15 +80,12 @@ const Auth = () => {
     } else {
       toast({
         title: "Account created!",
-        description: "Please check your email for a confirmation link.",
+        description: "Please check your email for a confirmation link."
       });
     }
-    
     setIsLoading(false);
   };
-
-  return (
-    <div className="min-h-screen bg-background flex items-center justify-center p-4">
+  return <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
@@ -96,7 +93,7 @@ const Auth = () => {
             <div className="h-10 w-10 gradient-primary rounded-lg flex items-center justify-center">
               <Bot className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold">CharacterAI</span>
+            <span className="text-2xl font-bold">MiCatbot</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Welcome</h1>
           <p className="text-muted-foreground">
@@ -126,16 +123,7 @@ const Auth = () => {
                     <Label htmlFor="signin-email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
+                      <Input id="signin-email" name="email" type="email" placeholder="Enter your email" className="pl-10" value={formData.email} onChange={handleInputChange} required />
                     </div>
                   </div>
                   
@@ -143,25 +131,14 @@ const Auth = () => {
                     <Label htmlFor="signin-password">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signin-password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        className="pl-10"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                      />
+                      <Input id="signin-password" name="password" type="password" placeholder="Enter your password" className="pl-10" value={formData.password} onChange={handleInputChange} required />
                     </div>
                   </div>
 
-                  {error && (
-                    <div className="flex items-center gap-2 text-destructive text-sm">
+                  {error && <div className="flex items-center gap-2 text-destructive text-sm">
                       <AlertCircle className="h-4 w-4" />
                       {error}
-                    </div>
-                  )}
+                    </div>}
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Signing in..." : "Sign In"}
@@ -175,15 +152,7 @@ const Auth = () => {
                     <Label htmlFor="signup-name">Display Name (Optional)</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-name"
-                        name="displayName"
-                        type="text"
-                        placeholder="Enter your display name"
-                        className="pl-10"
-                        value={formData.displayName}
-                        onChange={handleInputChange}
-                      />
+                      <Input id="signup-name" name="displayName" type="text" placeholder="Enter your display name" className="pl-10" value={formData.displayName} onChange={handleInputChange} />
                     </div>
                   </div>
                   
@@ -191,16 +160,7 @@ const Auth = () => {
                     <Label htmlFor="signup-email">Email</Label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-email"
-                        name="email"
-                        type="email"
-                        placeholder="Enter your email"
-                        className="pl-10"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        required
-                      />
+                      <Input id="signup-email" name="email" type="email" placeholder="Enter your email" className="pl-10" value={formData.email} onChange={handleInputChange} required />
                     </div>
                   </div>
                   
@@ -208,26 +168,14 @@ const Auth = () => {
                     <Label htmlFor="signup-password">Password</Label>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="signup-password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password (min. 6 characters)"
-                        className="pl-10"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        required
-                        minLength={6}
-                      />
+                      <Input id="signup-password" name="password" type="password" placeholder="Enter your password (min. 6 characters)" className="pl-10" value={formData.password} onChange={handleInputChange} required minLength={6} />
                     </div>
                   </div>
 
-                  {error && (
-                    <div className="flex items-center gap-2 text-destructive text-sm">
+                  {error && <div className="flex items-center gap-2 text-destructive text-sm">
                       <AlertCircle className="h-4 w-4" />
                       {error}
-                    </div>
-                  )}
+                    </div>}
 
                   <Button type="submit" className="w-full" disabled={isLoading}>
                     {isLoading ? "Creating account..." : "Create Account"}
@@ -244,8 +192,6 @@ const Auth = () => {
           </Link>
         </div>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Auth;
