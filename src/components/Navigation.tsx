@@ -57,7 +57,7 @@ const Navigation = () => {
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="flex items-center gap-2">
+                  <Button variant={location.pathname === "/profile" ? "default" : "ghost"} size="sm" className="flex items-center gap-2">
                     <User className="h-4 w-4" />
                     Profile
                   </Button>
