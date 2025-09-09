@@ -2,10 +2,10 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
-import { Bot, Send, ArrowLeft, User } from "lucide-react";
+import { Bot, Send, ArrowLeft, User, MoreVertical } from "lucide-react";
 import { Character, ChatMessage, ChatSession } from "@/types/character";
 import { storageService } from "@/lib/storage";
 import { useToast } from "@/hooks/use-toast";
@@ -58,14 +58,43 @@ const Chat = () => {
   }, [messages]);
 
   const generateResponse = (userMessage: string, character: Character): string => {
-    const responses = [
-      `As someone who is ${character.personalityTraits.join(", ")}, I find that interesting. ${character.description.includes("wise") || character.personalityTraits.includes("wise") ? "Let me share some wisdom with you." : "Tell me more about that."}`,
-      `That's fascinating! Given my nature as ${character.personalityTraits[0] || "someone unique"}, I'd say ${userMessage.toLowerCase().includes("what") ? "that's a great question" : "I can relate to that"}.`,
-      `*reflects on what you said* Being ${character.personalityTraits.slice(0, 2).join(" and ")}, I think ${userMessage.toLowerCase().includes("how") ? "there are many ways to approach this" : "perspective is everything"}.`,
-      `Interesting perspective! ${character.description.split('.')[0] || "As myself"}, I often think about similar things. What inspired you to ask about this?`,
-    ];
+    const personality = character.personalityTraits[0]?.toLowerCase() || "friendly";
     
-    return responses[Math.floor(Math.random() * responses.length)];
+    const responses = {
+      friendly: [
+        "That's really interesting! I love hearing your thoughts on this. 😊",
+        "Oh, I totally get what you mean! Thanks for sharing that with me.",
+        "That sounds wonderful! I'm always excited to learn new things from you.",
+        "I appreciate you telling me about this. What else would you like to talk about?",
+      ],
+      mysterious: [
+        "Hmm... there's more to this than meets the eye, don't you think? 🌙",
+        "Interesting... that reminds me of something I once discovered in an old tome.",
+        "Perhaps the answer lies hidden in plain sight. What do you truly see?",
+        "The shadows whisper secrets... but are you ready to hear them?",
+      ],
+      wise: [
+        "Ah, this brings to mind an ancient saying: 'Knowledge is the light that guides us.' 🧙‍♀️",
+        "In my experience, the most profound truths are often the simplest ones.",
+        "Consider this perspective: every question contains the seeds of its own answer.",
+        "Wisdom comes not from having all the answers, but from asking the right questions.",
+      ],
+      playful: [
+        "Ooh, that's fun! You know what we should do next? Let's explore this idea more! 🎈",
+        "Haha, you're so creative! I love how your mind works. What other ideas do you have?",
+        "This is awesome! You always come up with the most interesting things to talk about! ✨",
+        "Yay! I'm having so much fun chatting with you. Tell me more, tell me more!",
+      ],
+      serious: [
+        "I understand. This is indeed a matter that requires careful consideration.",
+        "Your point is well-taken. Let me think about this methodically.",
+        "This is an important topic. I appreciate you bringing it to my attention.",
+        "I see the significance of what you're saying. How shall we proceed?",
+      ]
+    };
+    
+    const personalityResponses = responses[personality as keyof typeof responses] || responses.friendly;
+    return personalityResponses[Math.floor(Math.random() * personalityResponses.length)];
   };
 
   const sendMessage = async () => {
@@ -147,86 +176,86 @@ const Chat = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen flex flex-col bg-background">
       <Navigation />
       
-      <main className="container mx-auto px-4 py-6 max-w-4xl">
-        {/* Character Header */}
-        <Card className="mb-6 shadow-card">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button variant="ghost" size="icon" onClick={() => navigate("/browse")}>
-                  <ArrowLeft className="h-4 w-4" />
-                </Button>
-                
-                {character.avatar ? (
-                  <img
-                    src={character.avatar}
-                    alt={character.name}
-                    className="h-12 w-12 rounded-full object-cover shadow-soft"
-                  />
-                ) : (
-                  <div 
-                    className="h-12 w-12 rounded-full flex items-center justify-center shadow-soft"
-                    style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
-                  >
-                    <Bot className="h-6 w-6 text-white" />
-                  </div>
-                )}
-                
-                <div>
-                  <CardTitle className="text-xl">{character.name}</CardTitle>
-                  <p className="text-sm text-muted-foreground">
-                    {character.description.slice(0, 100)}...
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap gap-1">
-                {character.personalityTraits.slice(0, 3).map((trait) => (
-                  <Badge key={trait} variant="secondary" className="text-xs">
-                    {trait}
-                  </Badge>
-                ))}
-              </div>
+      {/* Chat Header - WhatsApp style */}
+      <div className="bg-card border-b shadow-sm px-4 py-3">
+        <div className="flex items-center gap-3 max-w-4xl mx-auto">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => navigate("/browse")}
+            className="hover:bg-accent"
+          >
+            <ArrowLeft className="h-5 w-5" />
+          </Button>
+          
+          {character.avatar ? (
+            <img
+              src={character.avatar}
+              alt={character.name}
+              className="h-10 w-10 rounded-full object-cover"
+            />
+          ) : (
+            <div 
+              className="h-10 w-10 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
+            >
+              <Bot className="h-5 w-5 text-white" />
             </div>
-          </CardHeader>
-        </Card>
+          )}
+          
+          <div className="flex-1">
+            <h1 className="font-semibold text-lg">{character.name}</h1>
+            <p className="text-sm text-muted-foreground">
+              {character.personalityTraits[0]} • Online
+            </p>
+          </div>
+          
+          <Button variant="ghost" size="icon">
+            <MoreVertical className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
 
-        {/* Chat Messages */}
-        <div className="flex flex-col h-[60vh]">
-          <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+      {/* Chat Messages Area */}
+      <div className="flex-1 overflow-hidden">
+        <div className="h-full max-w-4xl mx-auto flex flex-col">
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
             {messages.map((message) => (
               <div
                 key={message.id}
                 className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
               >
-                <div className={`flex items-start gap-3 max-w-[70%] ${message.isUser ? "flex-row-reverse" : ""}`}>
-                  <div className="flex-shrink-0">
-                    {message.isUser ? (
-                      <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center">
-                        <User className="h-4 w-4 text-primary-foreground" />
-                      </div>
-                    ) : character.avatar ? (
-                      <img
-                        src={character.avatar}
-                        alt={character.name}
-                        className="h-8 w-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      getDefaultAvatar(character)
-                    )}
-                  </div>
+                <div className={`flex items-end gap-2 max-w-[70%] ${message.isUser ? "flex-row-reverse" : ""}`}>
+                  {!message.isUser && (
+                    <div className="flex-shrink-0 mb-1">
+                      {character.avatar ? (
+                        <img
+                          src={character.avatar}
+                          alt={character.name}
+                          className="h-6 w-6 rounded-full object-cover"
+                        />
+                      ) : (
+                        <div 
+                          className="h-6 w-6 rounded-full flex items-center justify-center"
+                          style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
+                        >
+                          <Bot className="h-3 w-3 text-white" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   
                   <div
-                    className={`rounded-2xl px-4 py-2 ${
+                    className={`rounded-2xl px-4 py-2 relative ${
                       message.isUser
-                        ? "bg-primary text-primary-foreground"
-                        : "bg-muted text-muted-foreground"
+                        ? "bg-primary text-primary-foreground rounded-br-md"
+                        : "bg-muted text-foreground rounded-bl-md"
                     }`}
                   >
-                    <p className="text-sm">{message.content}</p>
+                    <p className="text-sm leading-relaxed">{message.content}</p>
                     <p className={`text-xs mt-1 opacity-70 ${message.isUser ? "text-right" : ""}`}>
                       {new Date(message.timestamp).toLocaleTimeString([], { 
                         hour: '2-digit', 
@@ -240,23 +269,28 @@ const Chat = () => {
             
             {isTyping && (
               <div className="flex justify-start">
-                <div className="flex items-start gap-3 max-w-[70%]">
-                  <div className="flex-shrink-0">
+                <div className="flex items-end gap-2 max-w-[70%]">
+                  <div className="flex-shrink-0 mb-1">
                     {character.avatar ? (
                       <img
                         src={character.avatar}
                         alt={character.name}
-                        className="h-8 w-8 rounded-full object-cover"
+                        className="h-6 w-6 rounded-full object-cover"
                       />
                     ) : (
-                      getDefaultAvatar(character)
+                      <div 
+                        className="h-6 w-6 rounded-full flex items-center justify-center"
+                        style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
+                      >
+                        <Bot className="h-3 w-3 text-white" />
+                      </div>
                     )}
                   </div>
-                  <div className="bg-muted rounded-2xl px-4 py-3">
+                  <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
                     <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce"></div>
+                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
                     </div>
                   </div>
                 </div>
@@ -266,27 +300,33 @@ const Chat = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message Input */}
-          <div className="flex gap-2">
-            <Input
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder={`Type a message to ${character.name}...`}
-              disabled={isTyping}
-              className="flex-1"
-            />
-            <Button
-              onClick={sendMessage}
-              disabled={!newMessage.trim() || isTyping}
-              size="icon"
-              variant="chat"
-            >
-              <Send className="h-4 w-4" />
-            </Button>
+          {/* Message Input Area - WhatsApp style */}
+          <div className="border-t bg-card p-4">
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 relative">
+                <Input
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder={`Message ${character.name}...`}
+                  disabled={isTyping}
+                  className="rounded-full pl-4 pr-12 py-2 min-h-[44px] bg-background border-border focus:border-primary resize-none"
+                  style={{ paddingRight: '3rem' }}
+                />
+                <Button
+                  onClick={sendMessage}
+                  disabled={!newMessage.trim() || isTyping}
+                  size="icon"
+                  variant="ghost"
+                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-accent"
+                >
+                  <Send className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 };
