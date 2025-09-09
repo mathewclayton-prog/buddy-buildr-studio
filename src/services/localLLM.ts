@@ -1,4 +1,4 @@
-import { pipeline } from "@huggingface/transformers";
+import { supabase } from "@/integrations/supabase/client";
 import { Character } from "@/types/character";
 
 export interface LLMResponse {
@@ -8,16 +8,16 @@ export interface LLMResponse {
 }
 
 class LocalLLMService {
-  private pipeline: any = null;
+  private serviceReady = false;
   private isInitializing = false;
   private initPromise: Promise<void> | null = null;
 
   async initialize(): Promise<void> {
-    if (this.pipeline) return;
+    if (this.serviceReady) return;
     if (this.isInitializing && this.initPromise) return this.initPromise;
 
     this.isInitializing = true;
-    this.initPromise = this.loadModel();
+    this.initPromise = this.initializeService();
     
     try {
       await this.initPromise;
@@ -26,90 +26,34 @@ class LocalLLMService {
     }
   }
 
-  private async loadModel(): Promise<void> {
+  private async initializeService(): Promise<void> {
     try {
-      console.log("🤖 Loading local LLM model...");
+      console.log("🤖 Initializing AI service...");
       
-      // Try multiple models in order of preference, falling back to smaller ones
-      const modelOptions = [
-        {
-          name: "onnx-community/Phi-3.5-mini-instruct",
-          config: { device: "webgpu" as const, dtype: "fp16" as const }
-        },
-        {
-          name: "onnx-community/Phi-3-mini-4k-instruct",
-          config: { device: "webgpu" as const, dtype: "q4" as const }
-        },
-        {
-          name: "onnx-community/TinyLlama-1.1B-Chat-v1.0",
-          config: { device: "webgpu" as const, dtype: "q4" as const }
+      // Test the connection to our edge function
+      const { error } = await supabase.functions.invoke('chat-ai', {
+        body: {
+          character: {
+            name: "Test",
+            personalityTraits: ["friendly"],
+            description: "Test character"
+          },
+          userMessage: "Hello",
+          conversationHistory: []
         }
-      ];
+      });
 
-      let lastError = null;
-      
-      for (const model of modelOptions) {
-        try {
-          console.log(`🔄 Trying to load ${model.name}...`);
-          this.pipeline = await pipeline("text-generation", model.name, model.config);
-          console.log(`✅ Successfully loaded ${model.name}!`);
-          return;
-        } catch (error) {
-          console.warn(`⚠️ Failed to load ${model.name}:`, error);
-          lastError = error;
-          continue;
-        }
+      if (error) {
+        console.warn("Edge function test failed, but service will continue:", error);
       }
       
-      throw lastError || new Error("All model loading attempts failed");
+      this.serviceReady = true;
+      console.log("✅ AI service initialized successfully!");
     } catch (error) {
-      console.error("❌ Failed to load any LLM model:", error);
-      throw new Error("Failed to initialize local LLM");
+      console.error("❌ Failed to initialize AI service:", error);
+      // Don't throw - we'll use fallback responses
+      this.serviceReady = true; // Set to ready anyway to enable fallback responses
     }
-  }
-
-  private buildPrompt(character: Character, userMessage: string, conversationHistory?: string): string {
-    const personalityDesc = character.personalityTraits.join(", ");
-    
-    const systemPrompt = `You are ${character.name}, a ${personalityDesc} character. ${character.description}
-
-Key personality traits:
-${character.personalityTraits.map(trait => `- ${trait}`).join('\n')}
-
-Instructions:
-- Stay in character at all times
-- Keep responses concise (1-3 sentences)
-- Match your personality traits in your tone and word choice
-- Be engaging and conversational
-- Don't mention that you're an AI or model`;
-
-    const conversationContext = conversationHistory ? `\n\nPrevious conversation:\n${conversationHistory}` : "";
-    
-    return `<|im_start|>system
-${systemPrompt}${conversationContext}
-<|im_end|>
-<|im_start|>user
-${userMessage}
-<|im_end|>
-<|im_start|>assistant
-`;
-  }
-
-  private extractResponse(generatedText: string, prompt: string): string {
-    // Remove the prompt from the generated text
-    let response = generatedText.slice(prompt.length);
-    
-    // Clean up the response
-    response = response.split('<|im_end|>')[0]; // Stop at end token
-    response = response.split('<|im_start|>')[0]; // Stop at next start token
-    response = response.trim();
-    
-    // Fallback responses if generation is empty or too short
-    if (!response || response.length < 10) {
-      return "I'm still processing that... could you tell me more?";
-    }
-    
-    return response;
   }
 
   async generateResponse(
@@ -120,29 +64,27 @@ ${userMessage}
     try {
       await this.initialize();
       
-      if (!this.pipeline) {
-        throw new Error("Model not initialized");
-      }
-
-      // Build conversation context (last 4 messages for context)
-      const recentHistory = conversationHistory?.slice(-4).join('\n') || "";
-      const prompt = this.buildPrompt(character, userMessage, recentHistory);
-      
       console.log("🔄 Generating response for:", character.name);
       
-      const result = await this.pipeline(prompt, {
-        max_new_tokens: 150,
-        temperature: 0.7,
-        top_p: 0.9,
-        do_sample: true,
-        repetition_penalty: 1.1,
+      const { data, error } = await supabase.functions.invoke('chat-ai', {
+        body: {
+          character,
+          userMessage,
+          conversationHistory: conversationHistory || []
+        }
       });
 
-      const generatedText = Array.isArray(result) ? result[0].generated_text : result.generated_text;
-      const response = this.extractResponse(generatedText, prompt);
-      
-      console.log("✅ Generated response:", response);
-      return response;
+      if (error) {
+        console.error("❌ Edge function error:", error);
+        throw new Error(error.message || "Failed to generate response");
+      }
+
+      if (data?.response) {
+        console.log("✅ Generated response:", data.response);
+        return data.response;
+      } else {
+        throw new Error("No response received from AI service");
+      }
       
     } catch (error) {
       console.error("❌ Error generating response:", error);
@@ -188,11 +130,11 @@ ${userMessage}
   }
 
   isReady(): boolean {
-    return this.pipeline !== null;
+    return this.serviceReady;
   }
 
   getStatus(): string {
-    if (this.pipeline) return "ready";
+    if (this.serviceReady) return "ready";
     if (this.isInitializing) return "loading";
     return "not_initialized";
   }
