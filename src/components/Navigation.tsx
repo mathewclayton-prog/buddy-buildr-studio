@@ -15,7 +15,7 @@ const Navigation = () => {
           <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
             <img src={logoCat} alt="MiCatbot Logo" className="h-8 w-8 object-cover" />
           </div>
-          <span className="text-xl font-bold text-nav-orange-foreground">MiCatbot</span>
+          <span className="text-xl font-bold text-nav-orange-foreground">MiCat</span>
         </Link>
 
         <nav className="flex items-center gap-4">
