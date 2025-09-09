@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
-import { Bot, Plus, Users } from "lucide-react";
+import { Bot, Plus, Users, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Navigation = () => {
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   return (
     <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50 shadow-soft">
@@ -16,27 +18,52 @@ const Navigation = () => {
         </Link>
 
         <nav className="flex items-center gap-4">
-          <Button
-            variant={location.pathname === "/create" ? "default" : "ghost"}
-            size="sm"
-            asChild
-          >
-            <Link to="/create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create Character
-            </Link>
-          </Button>
-          
-          <Button
-            variant={location.pathname === "/browse" ? "default" : "ghost"}
-            size="sm"
-            asChild
-          >
-            <Link to="/browse" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Browse Characters
-            </Link>
-          </Button>
+          {user ? (
+            <>
+              <Button
+                variant={location.pathname === "/create" ? "default" : "ghost"}
+                size="sm"
+                asChild
+              >
+                <Link to="/create" className="flex items-center gap-2">
+                  <Plus className="h-4 w-4" />
+                  Create Character
+                </Link>
+              </Button>
+              
+              <Button
+                variant={location.pathname === "/browse" ? "default" : "ghost"}
+                size="sm"
+                asChild
+              >
+                <Link to="/browse" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Browse Characters
+                </Link>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={signOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </>
+          ) : (
+            <Button
+              variant="default"
+              size="sm"
+              asChild
+            >
+              <Link to="/auth" className="flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Sign In
+              </Link>
+            </Button>
+          )}
         </nav>
       </div>
     </header>

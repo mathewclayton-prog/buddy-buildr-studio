@@ -1,9 +1,11 @@
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { Bot, Plus, Users, Sparkles } from "lucide-react";
+import { Bot, Plus, Users, Sparkles, User } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Index = () => {
+  const { user } = useAuth();
   return (
     <div className="min-h-screen bg-background">
       <Navigation />
@@ -27,20 +29,41 @@ const Index = () => {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
-              <Link to="/create" className="flex items-center gap-3">
-                <Plus className="h-5 w-5" />
-                Create Character
-                <Sparkles className="h-4 w-4" />
-              </Link>
-            </Button>
-            
-            <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
-              <Link to="/browse" className="flex items-center gap-3">
-                <Users className="h-5 w-5" />
-                Browse Characters
-              </Link>
-            </Button>
+            {user ? (
+              <>
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
+                  <Link to="/create" className="flex items-center gap-3">
+                    <Plus className="h-5 w-5" />
+                    Create Character
+                    <Sparkles className="h-4 w-4" />
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
+                  <Link to="/browse" className="flex items-center gap-3">
+                    <Users className="h-5 w-5" />
+                    Browse Characters
+                  </Link>
+                </Button>
+              </>
+            ) : (
+              <>
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
+                  <Link to="/auth" className="flex items-center gap-3">
+                    <User className="h-5 w-5" />
+                    Get Started
+                    <Sparkles className="h-4 w-4" />
+                  </Link>
+                </Button>
+                
+                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
+                  <Link to="/browse" className="flex items-center gap-3">
+                    <Users className="h-5 w-5" />
+                    Browse Characters
+                  </Link>
+                </Button>
+              </>
+            )}
           </div>
         </div>
 
