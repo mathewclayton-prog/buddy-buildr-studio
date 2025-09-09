@@ -17,14 +17,16 @@ const Navigation = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
   const [displayName, setDisplayName] = useState<string>("");
+  const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
 
-  // Load user's display name
+  // Load user's display name and avatar
   useEffect(() => {
     if (user) {
       loadUserProfile();
     } else {
       setDisplayName("");
+      setAvatarUrl("");
       setLoading(false);
     }
   }, [user]);
@@ -35,7 +37,7 @@ const Navigation = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('display_name')
+        .select('display_name, avatar_url')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -50,6 +52,9 @@ const Navigation = () => {
       } else {
         setDisplayName("User");
       }
+
+      // Set avatar URL
+      setAvatarUrl(data?.avatar_url || "");
     } catch (error) {
       console.error('Error loading user profile:', error);
       // Fallback to email or "User"
@@ -58,6 +63,7 @@ const Navigation = () => {
       } else {
         setDisplayName("User");
       }
+      setAvatarUrl("");
     } finally {
       setLoading(false);
     }
@@ -116,7 +122,15 @@ const Navigation = () => {
                     size="sm" 
                     className="flex items-center gap-2 max-w-[200px]"
                   >
-                    <User className="h-4 w-4 flex-shrink-0" />
+                    {avatarUrl ? (
+                      <img 
+                        src={avatarUrl} 
+                        alt="Profile" 
+                        className="h-5 w-5 rounded-full object-cover flex-shrink-0"
+                      />
+                    ) : (
+                      <User className="h-4 w-4 flex-shrink-0" />
+                    )}
                     <span className="truncate">
                       {loading ? "..." : getTruncatedName(displayName)}
                     </span>

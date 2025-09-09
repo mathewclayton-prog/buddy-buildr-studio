@@ -1,16 +1,20 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, Settings, Shield, Trash2, Camera, LogOut } from "lucide-react";
+import { User, Settings, Shield, Trash2, Camera, LogOut, Upload, X, Loader2 } from "lucide-react";
 import { Navigate } from "react-router-dom";
+import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
+import 'react-image-crop/dist/ReactCrop.css';
+import { uploadAndSetAvatar, deleteImage, validateImageFile } from "@/lib/imageStorage";
 
 interface UserProfile {
   id: string;
@@ -34,6 +38,22 @@ const Profile = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  
+  // Avatar upload states
+  const [showAvatarDialog, setShowAvatarDialog] = useState(false);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imageSrc, setImageSrc] = useState<string>("");
+  const [crop, setCrop] = useState<Crop>({
+    unit: '%',
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0
+  });
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Form states
   const [displayName, setDisplayName] = useState("");
@@ -198,6 +218,152 @@ const Profile = () => {
     }
   };
 
+  // Avatar upload functions
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      toast({
+        title: "Invalid File",
+        description: validation.error,
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setSelectedFile(file);
+    
+    // Create image preview
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result as string);
+      setShowAvatarDialog(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    const size = Math.min(width, height);
+    const x = (width - size) / 2;
+    const y = (height - size) / 2;
+    
+    setCrop({
+      unit: 'px',
+      width: size,
+      height: size,
+      x: x,
+      y: y
+    });
+  }, []);
+
+  const getCroppedCanvas = (image: HTMLImageElement, crop: PixelCrop): HTMLCanvasElement => {
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d')!;
+    
+    // Set canvas to 200x200px
+    canvas.width = 200;
+    canvas.height = 200;
+    
+    // Calculate the scale
+    const scaleX = image.naturalWidth / image.width;
+    const scaleY = image.naturalHeight / image.height;
+    
+    // Draw the cropped image onto the canvas
+    ctx.drawImage(
+      image,
+      crop.x * scaleX,
+      crop.y * scaleY,
+      crop.width * scaleX,
+      crop.height * scaleY,
+      0,
+      0,
+      200,
+      200
+    );
+    
+    return canvas;
+  };
+
+  const handleUploadAvatar = async () => {
+    if (!selectedFile || !completedCrop || !imgRef.current) return;
+
+    setIsUploading(true);
+    try {
+      // Create cropped canvas
+      const canvas = getCroppedCanvas(imgRef.current, completedCrop);
+      
+      // Convert canvas to blob
+      const blob = await new Promise<Blob>((resolve) => {
+        canvas.toBlob((blob) => {
+          resolve(blob!);
+        }, 'image/jpeg', 0.9);
+      });
+
+      // Create file from blob
+      const croppedFile = new File([blob], `avatar-${Date.now()}.jpg`, {
+        type: 'image/jpeg'
+      });
+
+      // Delete old avatar if exists
+      if (profile?.avatar_url) {
+        // Extract path from URL for deletion
+        const urlParts = profile.avatar_url.split('/');
+        const bucketIndex = urlParts.findIndex(part => part === 'images');
+        if (bucketIndex !== -1) {
+          const imagePath = urlParts.slice(bucketIndex + 1).join('/');
+          await deleteImage(imagePath);
+        }
+      }
+
+      // Upload new avatar
+      const result = await uploadAndSetAvatar(croppedFile);
+      
+      if (result.error) {
+        throw new Error(result.error);
+      }
+
+      toast({
+        title: "Success",
+        description: "Profile picture updated successfully"
+      });
+
+      // Reload profile to get updated avatar
+      await loadProfile();
+      
+      // Close dialog and reset states
+      setShowAvatarDialog(false);
+      setSelectedFile(null);
+      setImageSrc("");
+      setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+      setCompletedCrop(null);
+
+    } catch (error: any) {
+      console.error('Avatar upload error:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to upload avatar",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancelUpload = () => {
+    setShowAvatarDialog(false);
+    setSelectedFile(null);
+    setImageSrc("");
+    setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+    setCompletedCrop(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleDeleteAccount = async () => {
     if (deleteConfirmation !== "DELETE") {
       toast({
@@ -303,30 +469,39 @@ const Profile = () => {
               {/* Avatar Section */}
               <div className="flex items-center gap-4">
                 <div className="relative">
-                  <div className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-soft">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-soft overflow-hidden">
                     {profile?.avatar_url ? (
                       <img 
                         src={profile.avatar_url} 
                         alt="Profile" 
-                        className="w-full h-full rounded-full object-cover"
+                        className="w-full h-full object-cover"
                       />
                     ) : (
-                      <User className="h-8 w-8 text-white" />
+                      <User className="h-10 w-10 text-white" />
                     )}
                   </div>
+                </div>
+                <div className="flex-1">
+                  <h3 className="font-medium mb-1">Profile Picture</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Upload a new avatar to personalize your profile. Image will be resized to 200x200px.
+                  </p>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                  />
                   <Button 
-                    size="icon" 
+                    onClick={() => fileInputRef.current?.click()}
                     variant="outline" 
-                    className="absolute -bottom-2 -right-2 h-8 w-8 rounded-full"
+                    size="sm"
+                    className="flex items-center gap-2"
                   >
                     <Camera className="h-4 w-4" />
+                    Change Photo
                   </Button>
-                </div>
-                <div>
-                  <h3 className="font-medium">Profile Picture</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Upload a new avatar to personalize your profile
-                  </p>
                 </div>
               </div>
 
@@ -517,6 +692,65 @@ const Profile = () => {
           </Card>
         </div>
       </main>
+
+      {/* Avatar Upload Dialog */}
+      <Dialog open={showAvatarDialog} onOpenChange={handleCancelUpload}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Crop Your Profile Picture</DialogTitle>
+            <DialogDescription>
+              Adjust the crop area to set your profile picture. The image will be resized to 200x200px.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {imageSrc && (
+            <div className="max-h-96 overflow-hidden">
+              <ReactCrop
+                crop={crop}
+                onChange={setCrop}
+                onComplete={setCompletedCrop}
+                aspect={1}
+                circularCrop
+              >
+                <img
+                  ref={imgRef}
+                  src={imageSrc}
+                  alt="Crop preview"
+                  onLoad={onImageLoad}
+                  className="max-w-full max-h-80 object-contain"
+                />
+              </ReactCrop>
+            </div>
+          )}
+          
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              onClick={handleCancelUpload}
+              disabled={isUploading}
+            >
+              <X className="h-4 w-4 mr-2" />
+              Cancel
+            </Button>
+            <Button
+              onClick={handleUploadAvatar}
+              disabled={isUploading || !completedCrop}
+            >
+              {isUploading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                <>
+                  <Upload className="h-4 w-4 mr-2" />
+                  Upload
+                </>
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
