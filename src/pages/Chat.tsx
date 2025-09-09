@@ -114,17 +114,32 @@ const Chat = () => {
     }
   };
 
-  const getDefaultAvatar = (name: string) => {
+  const getDefaultAvatar = (character: Character) => {
+    if (character.avatarColor) {
+      return (
+        <div 
+          className="h-8 w-8 rounded-full flex items-center justify-center"
+          style={{ backgroundColor: character.avatarColor }}
+        >
+          <Bot className="h-4 w-4 text-white" />
+        </div>
+      );
+    }
+    
     const colors = [
       "from-red-400 to-pink-400",
-      "from-blue-400 to-purple-400",
+      "from-blue-400 to-purple-400", 
       "from-green-400 to-blue-400",
       "from-yellow-400 to-orange-400",
       "from-purple-400 to-pink-400",
       "from-indigo-400 to-purple-400",
     ];
-    const colorIndex = name.charCodeAt(0) % colors.length;
-    return colors[colorIndex];
+    const colorIndex = character.name.charCodeAt(0) % colors.length;
+    return (
+      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
+        <Bot className="h-4 w-4 text-white" />
+      </div>
+    );
   };
 
   if (!character) {
@@ -152,7 +167,10 @@ const Chat = () => {
                     className="h-12 w-12 rounded-full object-cover shadow-soft"
                   />
                 ) : (
-                  <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${getDefaultAvatar(character.name)} flex items-center justify-center`}>
+                  <div 
+                    className="h-12 w-12 rounded-full flex items-center justify-center shadow-soft"
+                    style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
+                  >
                     <Bot className="h-6 w-6 text-white" />
                   </div>
                 )}
@@ -197,9 +215,7 @@ const Chat = () => {
                         className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getDefaultAvatar(character.name)} flex items-center justify-center`}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
+                      getDefaultAvatar(character)
                     )}
                   </div>
                   
@@ -233,9 +249,7 @@ const Chat = () => {
                         className="h-8 w-8 rounded-full object-cover"
                       />
                     ) : (
-                      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${getDefaultAvatar(character.name)} flex items-center justify-center`}>
-                        <Bot className="h-4 w-4 text-white" />
-                      </div>
+                      getDefaultAvatar(character)
                     )}
                   </div>
                   <div className="bg-muted rounded-2xl px-4 py-3">

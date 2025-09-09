@@ -33,7 +33,18 @@ const BrowseCharacters = () => {
     }
   };
 
-  const getDefaultAvatar = (name: string) => {
+  const getDefaultAvatar = (character: Character) => {
+    if (character.avatarColor) {
+      return (
+        <div 
+          className="h-12 w-12 rounded-full flex items-center justify-center shadow-soft"
+          style={{ backgroundColor: character.avatarColor }}
+        >
+          <Bot className="h-6 w-6 text-white" />
+        </div>
+      );
+    }
+    
     const colors = [
       "from-red-400 to-pink-400",
       "from-blue-400 to-purple-400",
@@ -42,8 +53,12 @@ const BrowseCharacters = () => {
       "from-purple-400 to-pink-400",
       "from-indigo-400 to-purple-400",
     ];
-    const colorIndex = name.charCodeAt(0) % colors.length;
-    return colors[colorIndex];
+    const colorIndex = character.name.charCodeAt(0) % colors.length;
+    return (
+      <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
+        <Bot className="h-6 w-6 text-white" />
+      </div>
+    );
   };
 
   return (
@@ -86,9 +101,7 @@ const BrowseCharacters = () => {
                           className="h-12 w-12 rounded-full object-cover shadow-soft"
                         />
                       ) : (
-                        <div className={`h-12 w-12 rounded-full bg-gradient-to-br ${getDefaultAvatar(character.name)} flex items-center justify-center`}>
-                          <Bot className="h-6 w-6 text-white" />
-                        </div>
+                        getDefaultAvatar(character)
                       )}
                       <div>
                         <CardTitle className="text-lg">{character.name}</CardTitle>

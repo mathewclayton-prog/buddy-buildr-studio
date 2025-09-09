@@ -4,6 +4,7 @@ export interface Character {
   description: string;
   personalityTraits: string[];
   avatar?: string;
+  avatarColor?: string;
   createdAt: Date;
 }
 
