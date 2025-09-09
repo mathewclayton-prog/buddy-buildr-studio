@@ -36,7 +36,7 @@ const Index = () => {
                 
                 <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/browse" className="flex items-center gap-3">
-                    <Users className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5" />
                     Meet the Cats
                   </Link>
                 </Button>
@@ -51,7 +51,7 @@ const Index = () => {
                 
                 <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/browse" className="flex items-center gap-3">
-                    <Users className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5" />
                     Meet the Cats
                   </Link>
                 </Button>
