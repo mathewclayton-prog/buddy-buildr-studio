@@ -15,8 +15,8 @@ const Index = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto animate-fade-in">
           <div className="mb-8 flex justify-center">
-            <div className="h-32 w-32 rounded-2xl flex items-center justify-center overflow-hidden">
-              <img src={heroCat} alt="MiCatbot Hero" className="h-32 w-32 object-cover" />
+            <div className="h-48 w-80 rounded-2xl flex items-center justify-center overflow-hidden">
+              <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
             </div>
           </div>
           
