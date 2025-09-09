@@ -59,38 +59,6 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Features Section */}
-        <div className="mt-24 grid md:grid-cols-3 gap-8">
-          <div className="text-center p-6 rounded-xl shadow-card bg-card">
-            <div className="h-12 w-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Plus className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Easy Creation</h3>
-            <p className="text-muted-foreground">
-              Simple form to create characters with personality traits and custom avatars
-            </p>
-          </div>
-          
-          <div className="text-center p-6 rounded-xl shadow-card bg-card">
-            <div className="h-12 w-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Bot className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Smart Conversations</h3>
-            <p className="text-muted-foreground">
-              Chat with your characters using their unique personalities and traits
-            </p>
-          </div>
-          
-          <div className="text-center p-6 rounded-xl shadow-card bg-card">
-            <div className="h-12 w-12 gradient-primary rounded-lg flex items-center justify-center mx-auto mb-4">
-              <Users className="h-6 w-6 text-white" />
-            </div>
-            <h3 className="text-xl font-semibold mb-2">Character Gallery</h3>
-            <p className="text-muted-foreground">
-              Browse and interact with all your created characters in one place
-            </p>
-          </div>
-        </div>
       </main>
     </div>;
 };
