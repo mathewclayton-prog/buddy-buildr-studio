@@ -11,6 +11,7 @@ import { Character, ChatMessage, ChatSession } from "@/types/character";
 import { storageService } from "@/lib/storage";
 import { localLLM } from "@/services/localLLM";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -26,33 +27,66 @@ const Chat = () => {
   useEffect(() => {
     if (!characterId) return;
     
-    const char = storageService.getCharacter(characterId);
-    if (!char) {
-      toast({
-        title: "Character Not Found",
-        description: "The character you're looking for doesn't exist.",
-        variant: "destructive",
-      });
-      navigate("/browse");
-      return;
-    }
+    const loadCharacter = async () => {
+      // First try to get from local storage (for locally created characters)
+      let char = storageService.getCharacter(characterId);
+      
+      // If not found locally, try to fetch from Supabase (for public catbots)
+      if (!char) {
+        try {
+          const { data, error } = await supabase
+            .from('catbots')
+            .select('*')
+            .eq('id', characterId)
+            .single();
+          
+          if (error) throw error;
+          
+          if (data) {
+            // Convert Supabase catbot to Character format
+            char = {
+              id: data.id,
+              name: data.name,
+              description: data.description || '',
+              personalityTraits: data.personality ? [data.personality] : ['friendly'],
+              avatar: data.avatar_url || undefined,
+              createdAt: new Date(data.created_at),
+            };
+          }
+        } catch (error) {
+          console.error('Error fetching catbot:', error);
+        }
+      }
+      
+      if (!char) {
+        toast({
+          title: "Character Not Found",
+          description: "The character you're looking for doesn't exist.",
+          variant: "destructive",
+        });
+        navigate("/browse");
+        return;
+      }
+      
+      setCharacter(char);
+      
+      // Load existing chat session or create initial message
+      const existingSession = storageService.getChatSession(characterId);
+      if (existingSession) {
+        setMessages(existingSession.messages);
+      } else {
+        // Create initial greeting message
+        const greeting: ChatMessage = {
+          id: crypto.randomUUID(),
+          content: `Hello! I'm ${char.name}. ${char.description ? char.description.split('.')[0] : 'Nice to meet you'}. How can I help you today?`,
+          isUser: false,
+          timestamp: new Date(),
+        };
+        setMessages([greeting]);
+      }
+    };
     
-    setCharacter(char);
-    
-    // Load existing chat session or create initial message
-    const existingSession = storageService.getChatSession(characterId);
-    if (existingSession) {
-      setMessages(existingSession.messages);
-    } else {
-      // Create initial greeting message
-      const greeting: ChatMessage = {
-        id: crypto.randomUUID(),
-        content: `Hello! I'm ${char.name}. ${char.description.split('.')[0]}. How can I help you today?`,
-        isUser: false,
-        timestamp: new Date(),
-      };
-      setMessages([greeting]);
-    }
+    loadCharacter();
   }, [characterId, navigate, toast]);
 
   useEffect(() => {
