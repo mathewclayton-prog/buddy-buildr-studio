@@ -47,10 +47,13 @@ Instructions:
     if (conversationHistory && conversationHistory.length > 0) {
       const recentHistory = conversationHistory.slice(-6);
       recentHistory.forEach((msg: any) => {
-        messages.push({
-          role: msg.role === 'user' ? 'user' : 'assistant',
-          content: msg.content
-        });
+        // Only add messages that have content
+        if (msg.content && msg.content.trim() !== '') {
+          messages.push({
+            role: msg.role === 'user' ? 'user' : 'assistant',
+            content: msg.content
+          });
+        }
       });
     }
 
