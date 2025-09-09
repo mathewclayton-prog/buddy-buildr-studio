@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
-import { X, Upload, Sparkles, Bot, Palette } from "lucide-react";
+import { X, Upload, PawPrint, Bot, Palette } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Character } from "@/types/character";
 import { storageService } from "@/lib/storage";
@@ -119,7 +119,7 @@ const CreateCharacter = () => {
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
+                <PawPrint className="h-5 w-5 text-primary" />
                 Character Details
               </CardTitle>
               <CardDescription>
@@ -250,7 +250,7 @@ const CreateCharacter = () => {
                 </p>
                 
                 <Button variant="chat" size="sm" disabled>
-                  <Sparkles className="h-4 w-4 mr-2" />
+                  <PawPrint className="h-4 w-4 mr-2" />
                   Start Chatting
                 </Button>
               </div>
