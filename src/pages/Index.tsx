@@ -4,11 +4,57 @@ import Navigation from "@/components/Navigation";
 import { Bot, Plus, Users, Sparkles, PawPrint, MessageCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+
+interface Catbot {
+  id: string;
+  name: string;
+  description: string | null;
+  personality: string | null;
+  avatar_url: string | null;
+  is_public: boolean;
+  created_at: string;
+}
+
 const heroCat = "/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png";
+
 const Index = () => {
-  const {
-    user
-  } = useAuth();
+  const { user } = useAuth();
+  const [featuredCatbots, setFeaturedCatbots] = useState<Catbot[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    loadFeaturedCatbots();
+  }, []);
+
+  const loadFeaturedCatbots = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('catbots')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false })
+        .limit(8);
+
+      if (error) throw error;
+      setFeaturedCatbots(data || []);
+    } catch (error) {
+      console.error('Error loading featured catbots:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const getDefaultAvatar = (catbot: Catbot) => {
+    const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
+    const colorIndex = catbot.name.charCodeAt(0) % colors.length;
+    return (
+      <div className={`w-16 h-16 mx-auto mb-3 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
+        <PawPrint className="h-8 w-8 text-white" />
+      </div>
+    );
+  };
   return <div className="min-h-screen bg-background">
       <Navigation />
       
@@ -70,78 +116,92 @@ const Index = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
-            {/* Sample Catbot Cards */}
-            {[
-              {
-                name: "Whiskers",
-                description: "A playful orange tabby who loves to share funny stories and chase virtual mice.",
-                avatar: "/lovable-uploads/53bcedde-c15b-42eb-8a6c-d3378963baa2.png"
-              },
-              {
-                name: "Luna",
-                description: "A wise midnight black cat with a passion for stargazing and moonlit adventures.",
-                avatar: "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png"
-              },
-              {
-                name: "Mittens",
-                description: "A fluffy white Persian who enjoys cozy conversations and sharing warm hugs.",
-                avatar: "/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png"
-              },
-              {
-                name: "Shadow",
-                description: "A mysterious gray cat with incredible stories from their nine lives of adventure.",
-                avatar: "/lovable-uploads/53bcedde-c15b-42eb-8a6c-d3378963baa2.png"
-              },
-              {
-                name: "Ginger",
-                description: "An energetic ginger cat who loves to play games and make new friends.",
-                avatar: "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png"
-              },
-              {
-                name: "Smokey",
-                description: "A calm and philosophical cat who enjoys deep conversations about life.",
-                avatar: "/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png"
-              },
-              {
-                name: "Patches",
-                description: "A colorful calico with a bubbly personality and endless curiosity.",
-                avatar: "/lovable-uploads/53bcedde-c15b-42eb-8a6c-d3378963baa2.png"
-              },
-              {
-                name: "Storm",
-                description: "A sleek black cat with lightning-fast wit and storm-chasing stories.",
-                avatar: "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png"
-              }
-            ].map((catbot, index) => (
-              <Card key={index} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
-                <CardHeader className="pb-3">
-                  <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden shadow-soft">
-                    <img 
-                      src={catbot.avatar} 
-                      alt={`${catbot.name} avatar`} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
-                    />
-                  </div>
-                  <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
-                </CardHeader>
-                <CardContent className="pt-0">
-                  <CardDescription className="text-center mb-4 text-sm line-clamp-3">
-                    {catbot.description}
-                  </CardDescription>
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="w-full" 
-                    asChild
-                  >
-                    <Link to={`/chat/${catbot.name.toLowerCase()}`} className="flex items-center gap-2">
-                      <MessageCircle className="h-4 w-4" />
-                      Chat Now
-                    </Link>
-                  </Button>
-                </CardContent>
-              </Card>
-            ))}
+            {loading ? (
+              // Loading skeleton
+              [...Array(8)].map((_, index) => (
+                <Card key={index} className="animate-pulse shadow-card">
+                  <CardHeader className="pb-3">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-muted" />
+                    <div className="h-4 bg-muted rounded w-20 mx-auto" />
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2 mb-4">
+                      <div className="h-3 bg-muted rounded" />
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                    </div>
+                    <div className="h-8 bg-muted rounded" />
+                  </CardContent>
+                </Card>
+              ))
+            ) : featuredCatbots.length > 0 ? (
+              // Real catbots from database
+              featuredCatbots.map((catbot, index) => (
+                <Card key={catbot.id} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="pb-3">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden shadow-soft">
+                      {catbot.avatar_url ? (
+                        <img 
+                          src={catbot.avatar_url} 
+                          alt={`${catbot.name} avatar`} 
+                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
+                        />
+                      ) : (
+                        getDefaultAvatar(catbot)
+                      )}
+                    </div>
+                    <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <CardDescription className="text-center mb-4 text-sm line-clamp-3">
+                      {catbot.description || "A mysterious catbot with lots to share"}
+                    </CardDescription>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full" 
+                      asChild
+                    >
+                      <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
+                        <MessageCircle className="h-4 w-4" />
+                        Chat Now
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            ) : (
+              // Empty state - show sample cards
+              [{
+                name: "Be the first!",
+                description: "Create the first public catbot and it will appear here for everyone to discover.",
+                avatar: null
+              }].map((catbot, index) => (
+                <Card key={index} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
+                  <CardHeader className="pb-3">
+                    <div className="w-16 h-16 mx-auto mb-3 rounded-full overflow-hidden shadow-soft bg-muted flex items-center justify-center">
+                      <PawPrint className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <CardDescription className="text-center mb-4 text-sm line-clamp-3">
+                      {catbot.description}
+                    </CardDescription>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="w-full" 
+                      asChild
+                    >
+                      <Link to="/create" className="flex items-center gap-2">
+                        <Plus className="h-4 w-4" />
+                        Create First
+                      </Link>
+                    </Button>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </div>
 
           <div className="text-center">

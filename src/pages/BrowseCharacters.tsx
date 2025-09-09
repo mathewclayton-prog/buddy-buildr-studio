@@ -4,57 +4,76 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
-import { Bot, MessageCircle, Plus, Trash2, Users, Search, Sparkles } from "lucide-react";
+import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
-import { Character } from "@/types/character";
-import { storageService } from "@/lib/storage";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface Catbot {
+  id: string;
+  name: string;
+  description: string | null;
+  personality: string | null;
+  avatar_url: string | null;
+  is_public: boolean;
+  created_at: string;
+  updated_at: string;
+}
 const BrowseCharacters = () => {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [filteredCharacters, setFilteredCharacters] = useState<Character[]>([]);
+  const [catbots, setCatbots] = useState<Catbot[]>([]);
+  const [filteredCatbots, setFilteredCatbots] = useState<Catbot[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const {
-    toast
-  } = useToast();
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
   useEffect(() => {
-    loadCharacters();
+    loadPublicCatbots();
   }, []);
+
   useEffect(() => {
     if (searchQuery.trim() === "") {
-      setFilteredCharacters(characters);
+      setFilteredCatbots(catbots);
     } else {
-      const filtered = characters.filter(character => character.name.toLowerCase().includes(searchQuery.toLowerCase()) || character.description.toLowerCase().includes(searchQuery.toLowerCase()) || character.personalityTraits.some(trait => trait.toLowerCase().includes(searchQuery.toLowerCase())));
-      setFilteredCharacters(filtered);
+      const filtered = catbots.filter(catbot => 
+        catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (catbot.description && catbot.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
+        (catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()))
+      );
+      setFilteredCatbots(filtered);
     }
-  }, [characters, searchQuery]);
-  const loadCharacters = () => {
-    const stored = storageService.getCharacters();
-    setCharacters(stored);
-    setFilteredCharacters(stored);
-  };
-  const deleteCharacter = (id: string, characterName: string) => {
-    if (confirm(`Are you sure you want to delete ${characterName}?`)) {
-      storageService.deleteCharacter(id);
-      loadCharacters();
+  }, [catbots, searchQuery]);
+
+  const loadPublicCatbots = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('catbots')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCatbots(data || []);
+      setFilteredCatbots(data || []);
+    } catch (error) {
+      console.error('Error loading public catbots:', error);
       toast({
-        title: "Character Deleted",
-        description: `${characterName} has been removed.`
+        title: "Error",
+        description: "Failed to load catbots. Please try again.",
+        variant: "destructive",
       });
+    } finally {
+      setLoading(false);
     }
   };
-  const getDefaultAvatar = (character: Character) => {
-    if (character.avatarColor) {
-      return <div className="h-14 w-14 rounded-full flex items-center justify-center shadow-soft" style={{
-        backgroundColor: character.avatarColor
-      }}>
-          <Bot className="h-7 w-7 text-white" />
-        </div>;
-    }
+
+  const getDefaultAvatar = (catbot: Catbot) => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
-    const colorIndex = character.name.charCodeAt(0) % colors.length;
-    return <div className={`h-14 w-14 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
-        <Bot className="h-7 w-7 text-white" />
-      </div>;
+    const colorIndex = catbot.name.charCodeAt(0) % colors.length;
+    return (
+      <div className={`h-14 w-14 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
+        <PawPrint className="h-7 w-7 text-white" />
+      </div>
+    );
   };
   return <div className="min-h-screen bg-background">
       <Navigation />
@@ -62,87 +81,133 @@ const BrowseCharacters = () => {
       <main className="container mx-auto px-4 py-12">
         {/* Header Section */}
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Chat to a cat</h1>
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Explore Community Cats</h1>
           <p className="text-lg text-muted-foreground mb-6">
-            {characters.length > 0 ? `Discover and chat with your ${characters.length} created character${characters.length === 1 ? '' : 's'}` : "No characters created yet. Start by creating your first character!"}
+            {loading ? "Loading catbots..." : catbots.length > 0 ? `Discover and chat with ${catbots.length} amazing catbot${catbots.length === 1 ? '' : 's'} created by our community` : "No public catbots available yet. Be the first to share yours!"}
           </p>
         </div>
 
         {/* Search Bar */}
-        {characters.length > 0 && <div className="max-w-md mx-auto mb-8 animate-fade-in">
+        {catbots.length > 0 && (
+          <div className="max-w-md mx-auto mb-8 animate-fade-in">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="text" placeholder="Search characters by name, description, or traits..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card shadow-soft" />
+              <Input 
+                type="text" 
+                placeholder="Search catbots by name, description, or personality..." 
+                value={searchQuery} 
+                onChange={(e) => setSearchQuery(e.target.value)} 
+                className="pl-10 bg-card shadow-soft" 
+              />
             </div>
-          </div>}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {loading && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse">
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="w-14 h-14 bg-muted rounded-full" />
+                    <div className="space-y-2">
+                      <div className="h-4 bg-muted rounded w-20" />
+                      <div className="h-3 bg-muted rounded w-16" />
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <div className="h-3 bg-muted rounded" />
+                    <div className="h-3 bg-muted rounded w-3/4" />
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
 
         {/* Empty State */}
-        {characters.length === 0 && <div className="text-center animate-scale-in">
+        {!loading && catbots.length === 0 && (
+          <div className="text-center animate-scale-in">
             <div className="h-24 w-24 gradient-primary rounded-2xl flex items-center justify-center mx-auto mb-6 animate-float">
               <Users className="h-12 w-12 text-white" />
             </div>
+            <h3 className="text-xl font-semibold mb-2">No public catbots yet</h3>
+            <p className="text-muted-foreground mb-6">Be the first to create and share a catbot with the community!</p>
             <Button variant="hero" size="lg" asChild>
               <Link to="/create" className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
-                Create Your First Character
+                Create First Public Catbot
               </Link>
             </Button>
-          </div>}
+          </div>
+        )}
 
         {/* No Results State */}
-        {characters.length > 0 && filteredCharacters.length === 0 && <div className="text-center py-12 animate-fade-in">
+        {!loading && catbots.length > 0 && filteredCatbots.length === 0 && (
+          <div className="text-center py-12 animate-fade-in">
             <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
               <Search className="h-8 w-8 text-muted-foreground" />
             </div>
-            <h3 className="text-lg font-semibold mb-2">No characters found</h3>
+            <h3 className="text-lg font-semibold mb-2">No catbots found</h3>
             <p className="text-muted-foreground mb-4">
-              Try adjusting your search or create a new character
+              Try adjusting your search or browse all available catbots
             </p>
             <Button variant="outline" onClick={() => setSearchQuery("")}>
               Clear Search
             </Button>
-          </div>}
+          </div>
+        )}
 
-        {/* Character Grid */}
-        {filteredCharacters.length > 0 && <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
-            {filteredCharacters.map((character, index) => <Card key={character.id} className="shadow-card hover:shadow-primary transition-all duration-300 group hover-scale animate-fade-in" style={{
-          animationDelay: `${index * 0.1}s`
-        }}>
+        {/* Catbot Grid */}
+        {!loading && filteredCatbots.length > 0 && (
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
+            {filteredCatbots.map((catbot, index) => (
+              <Card 
+                key={catbot.id} 
+                className="shadow-card hover:shadow-primary transition-all duration-300 group hover-scale animate-fade-in" 
+                style={{ animationDelay: `${index * 0.1}s` }}
+              >
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      {character.avatar ? <img src={character.avatar} alt={character.name} className="h-14 w-14 rounded-full object-cover shadow-soft" /> : getDefaultAvatar(character)}
+                      {catbot.avatar_url ? (
+                        <img 
+                          src={catbot.avatar_url} 
+                          alt={catbot.name} 
+                          className="h-14 w-14 rounded-full object-cover shadow-soft" 
+                        />
+                      ) : (
+                        getDefaultAvatar(catbot)
+                      )}
                       <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{character.name}</CardTitle>
+                        <CardTitle className="text-lg truncate">{catbot.name}</CardTitle>
                         <CardDescription className="text-sm">
-                          {character.personalityTraits[0] || "Unique"} personality
+                          {catbot.personality ? `${catbot.personality} personality` : "Unique personality"}
                         </CardDescription>
                       </div>
                     </div>
-                    
-                    <Button variant="ghost" size="icon" onClick={() => deleteCharacter(character.id, character.name)} className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-destructive shrink-0">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
                   </div>
                 </CardHeader>
                 
                 <CardContent className="space-y-4">
                   <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                    {character.description}
+                    {catbot.description || "A mysterious catbot with lots to share"}
                   </p>
                   
-                  {character.personalityTraits.length > 0 && <div className="flex flex-wrap gap-1">
-                      {character.personalityTraits.slice(0, 3).map(trait => <Badge key={trait} variant="secondary" className="text-xs">
-                          {trait}
-                        </Badge>)}
-                      {character.personalityTraits.length > 3 && <Badge variant="outline" className="text-xs">
-                          +{character.personalityTraits.length - 3}
-                        </Badge>}
-                    </div>}
+                  {catbot.personality && (
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {catbot.personality}
+                      </Badge>
+                    </div>
+                  )}
                   
                   <div className="pt-2">
                     <Button variant="hero" className="w-full" asChild>
-                      <Link to={`/chat/${character.id}`} className="flex items-center gap-2">
+                      <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
                         <MessageCircle className="h-4 w-4" />
                         Chat Now
                         <Sparkles className="h-3 w-3" />
@@ -150,18 +215,22 @@ const BrowseCharacters = () => {
                     </Button>
                   </div>
                 </CardContent>
-              </Card>)}
-          </div>}
+              </Card>
+            ))}
+          </div>
+        )}
 
-        {/* Create New Character Button */}
-        {characters.length > 0 && <div className="text-center mt-12 animate-fade-in">
+        {/* Create New Catbot Button */}
+        {!loading && catbots.length > 0 && (
+          <div className="text-center mt-12 animate-fade-in">
             <Button variant="outline" size="lg" asChild className="hover-scale">
               <Link to="/create" className="flex items-center gap-2">
                 <Plus className="h-5 w-5" />
-                Create New Character
+                Create New Catbot
               </Link>
             </Button>
-          </div>}
+          </div>
+        )}
       </main>
     </div>;
 };

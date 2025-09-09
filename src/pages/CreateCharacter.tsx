@@ -4,12 +4,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
-import { X, Upload, PawPrint, Bot, Palette } from "lucide-react";
+import { X, Upload, PawPrint, Bot, Palette, Globe, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Character } from "@/types/character";
-import { storageService } from "@/lib/storage";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 const PERSONALITY_OPTIONS = [{
   value: "Friendly",
@@ -34,12 +35,14 @@ const PERSONALITY_OPTIONS = [{
 }];
 const COLOR_OPTIONS = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#6366F1", "#84CC16"];
 const CreateCharacter = () => {
+  const { user } = useAuth();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [personality, setPersonality] = useState("");
   const [avatar, setAvatar] = useState<string>("");
   const [avatarColor, setAvatarColor] = useState(COLOR_OPTIONS[0]);
   const [avatarType, setAvatarType] = useState<"upload" | "color">("color");
+  const [isPublic, setIsPublic] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const {
@@ -47,6 +50,17 @@ const CreateCharacter = () => {
   } = useToast();
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to create a catbot.",
+        variant: "destructive"
+      });
+      navigate("/auth");
+      return;
+    }
+    
     if (!name.trim() || !description.trim() || !personality) {
       toast({
         title: "Validation Error",
@@ -55,29 +69,38 @@ const CreateCharacter = () => {
       });
       return;
     }
+    
     setIsLoading(true);
     try {
-      const character: Character = {
-        id: crypto.randomUUID(),
+      const catbotData = {
+        user_id: user.id,
         name: name.trim(),
         description: description.trim(),
-        personalityTraits: [personality],
-        avatar: avatarType === "upload" ? avatar : undefined,
-        avatarColor: avatarType === "color" ? avatarColor : undefined,
-        createdAt: new Date()
+        personality: personality,
+        avatar_url: avatarType === "upload" ? avatar : null,
+        is_public: isPublic
       };
-      storageService.saveCharacter(character);
+
+      const { data, error } = await supabase
+        .from('catbots')
+        .insert([catbotData])
+        .select()
+        .single();
+
+      if (error) throw error;
+
       toast({
-        title: "Character Created!",
-        description: `${character.name} has been created successfully.`
+        title: "Catbot Created!",
+        description: `${catbotData.name} has been created successfully.`
       });
 
-      // Redirect to chat with the new character
-      navigate(`/chat/${character.id}`);
+      // Redirect to the new catbot
+      navigate(`/chat/${data.id}`);
     } catch (error) {
+      console.error('Error creating catbot:', error);
       toast({
         title: "Error",
-        description: "Failed to create character. Please try again.",
+        description: "Failed to create catbot. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -207,13 +230,42 @@ const CreateCharacter = () => {
                     </div>}
                 </div>
 
+                {/* Privacy Setting */}
+                <div className="space-y-4">
+                  <Label>Privacy Settings</Label>
+                  <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      {isPublic ? (
+                        <Globe className="h-5 w-5 text-green-500" />
+                      ) : (
+                        <Lock className="h-5 w-5 text-muted-foreground" />
+                      )}
+                      <div>
+                        <div className="font-medium">
+                          {isPublic ? "Public Catbot" : "Private Catbot"}
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          {isPublic 
+                            ? "Visible to everyone in the Explore Cats page and homepage"
+                            : "Only visible to you in your My Cats page"
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    <Switch
+                      checked={isPublic}
+                      onCheckedChange={setIsPublic}
+                    />
+                  </div>
+                </div>
+
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4">
                   <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
                     Cancel
                   </Button>
                   <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !description.trim() || !personality} className="flex-1">
-                    {isLoading ? "Creating..." : "Create Character"}
+                    {isLoading ? "Creating..." : "Create Catbot"}
                   </Button>
                 </div>
               </form>
