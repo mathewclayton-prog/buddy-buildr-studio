@@ -22,8 +22,8 @@ const Navigation = () => {
           {user ? <>
               <Button variant={location.pathname === "/create" ? "default" : "ghost"} size="sm" asChild>
                 <Link to="/create" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Character
+                  <PawPrint className="h-4 w-4" />
+                  Create a Cat
                 </Link>
               </Button>
               
