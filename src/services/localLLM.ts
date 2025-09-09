@@ -30,19 +30,40 @@ class LocalLLMService {
     try {
       console.log("🤖 Loading local LLM model...");
       
-      // Using a small, efficient model for chat
-      this.pipeline = await pipeline(
-        "text-generation",
-        "onnx-community/Qwen2.5-0.5B-Instruct",
+      // Try multiple models in order of preference, falling back to smaller ones
+      const modelOptions = [
         {
-          device: "webgpu", // Falls back to CPU if WebGPU unavailable
-          dtype: "fp16",
+          name: "onnx-community/Phi-3.5-mini-instruct",
+          config: { device: "webgpu" as const, dtype: "fp16" as const }
+        },
+        {
+          name: "onnx-community/Phi-3-mini-4k-instruct",
+          config: { device: "webgpu" as const, dtype: "q4" as const }
+        },
+        {
+          name: "onnx-community/TinyLlama-1.1B-Chat-v1.0",
+          config: { device: "webgpu" as const, dtype: "q4" as const }
         }
-      );
+      ];
+
+      let lastError = null;
       
-      console.log("✅ Local LLM model loaded successfully!");
+      for (const model of modelOptions) {
+        try {
+          console.log(`🔄 Trying to load ${model.name}...`);
+          this.pipeline = await pipeline("text-generation", model.name, model.config);
+          console.log(`✅ Successfully loaded ${model.name}!`);
+          return;
+        } catch (error) {
+          console.warn(`⚠️ Failed to load ${model.name}:`, error);
+          lastError = error;
+          continue;
+        }
+      }
+      
+      throw lastError || new Error("All model loading attempts failed");
     } catch (error) {
-      console.error("❌ Failed to load LLM model:", error);
+      console.error("❌ Failed to load any LLM model:", error);
       throw new Error("Failed to initialize local LLM");
     }
   }
