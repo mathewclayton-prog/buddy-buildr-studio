@@ -22,14 +22,14 @@ const Index = () => {
           
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Own Catbot</h1>
           
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">Build a purrfect companion or bring your own feline friend to life.</p>
+          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {user ? <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/create" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5" />
-                    Create a Cat
+                    <Plus className="h-5 w-5" />
+                    Create Character
                     <Sparkles className="h-4 w-4" />
                   </Link>
                 </Button>
