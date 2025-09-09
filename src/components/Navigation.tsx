@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Bot, Plus, PawPrint, LogOut, User } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import logoCat from "@/assets/logo-cat.png";
+const logoCat = "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png";
 const Navigation = () => {
   const location = useLocation();
   const {
