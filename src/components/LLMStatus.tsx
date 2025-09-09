@@ -15,12 +15,32 @@ const LLMStatus = () => {
       setStatus(localLLM.getStatus());
     };
 
+    // Auto-initialize AI on component mount
+    const initializeAI = async () => {
+      if (localLLM.getStatus() === "not_initialized") {
+        try {
+          await localLLM.initialize();
+          toast({
+            title: "AI Loaded! 🧠",
+            description: "Your catbots now have AI powers!",
+          });
+        } catch (error) {
+          toast({
+            title: "Failed to Load AI",
+            description: "Will use fallback responses instead.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
     // Check status every second while initializing
     const interval = setInterval(checkStatus, 1000);
     checkStatus();
+    initializeAI();
 
     return () => clearInterval(interval);
-  }, []);
+  }, [toast]);
 
   const handleInitialize = async () => {
     setIsInitializing(true);
