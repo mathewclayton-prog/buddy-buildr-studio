@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Navigation from "@/components/Navigation";
-import { Bot, Plus, Users, Sparkles, User } from "lucide-react";
+import { Bot, Plus, Users, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import heroCat from "@/assets/hero-cat.png";
@@ -43,7 +43,7 @@ const Index = () => {
               </> : <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/auth" className="flex items-center gap-3">
-                    <User className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5" />
                     Get Started
                     <Sparkles className="h-4 w-4" />
                   </Link>
