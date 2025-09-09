@@ -64,10 +64,9 @@ Instructions:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-2025-08-07',
         messages: messages,
-        max_tokens: 150,
-        temperature: 0.7,
+        max_completion_tokens: 150,
       }),
     });
 
@@ -92,8 +91,15 @@ Instructions:
   } catch (error) {
     console.error('Error in chat-ai function:', error);
     
-    // Return fallback response based on character personality
-    const character = req.body ? await req.json().then(data => data.character) : null;
+    // Try to get character from the already parsed request
+    let character = null;
+    try {
+      const body = await req.clone().json();
+      character = body.character;
+    } catch (e) {
+      console.error('Failed to parse request for fallback:', e);
+    }
+    
     const fallbackResponse = getFallbackResponse(character);
     
     return new Response(JSON.stringify({ 
