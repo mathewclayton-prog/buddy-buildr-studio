@@ -61,7 +61,7 @@ const Index = () => {
         </div>
 
         {/* Hero Section */}
-        <main className="container mx-auto px-4 py-16">
+        <main className="container mx-auto px-4 pt-8 pb-16">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
           
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Own Catbot</h1>
