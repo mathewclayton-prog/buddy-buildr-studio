@@ -2,17 +2,17 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-slate-900 text-slate-100 py-12 mt-24">
+    <footer className="bg-nav-orange text-nav-orange-foreground py-4 mt-24 border-t">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto items-center">
           {/* Company Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Company</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Company</h3>
+            <ul className="space-y-1">
               <li>
                 <Link 
                   to="/about" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   About
                 </Link>
@@ -20,7 +20,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/contact" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Contact
                 </Link>
@@ -28,7 +28,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/blog" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Blog
                 </Link>
@@ -38,12 +38,12 @@ const Footer = () => {
 
           {/* Legal Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Legal</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Legal</h3>
+            <ul className="space-y-1">
               <li>
                 <Link 
                   to="/terms" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Terms of Service
                 </Link>
@@ -51,7 +51,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/privacy" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Privacy Policy
                 </Link>
@@ -59,7 +59,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/community-guidelines" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Community Guidelines
                 </Link>
@@ -69,12 +69,12 @@ const Footer = () => {
 
           {/* Support Column */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-white">Support</h3>
-            <ul className="space-y-3">
+            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Support</h3>
+            <ul className="space-y-1">
               <li>
                 <Link 
                   to="/help" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Help Center
                 </Link>
@@ -82,7 +82,7 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/faq" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   FAQ
                 </Link>
@@ -90,20 +90,20 @@ const Footer = () => {
               <li>
                 <Link 
                   to="/contact" 
-                  className="text-slate-300 hover:text-white transition-colors duration-200 hover:underline"
+                  className="text-nav-orange-foreground/80 hover:text-nav-orange-foreground transition-colors duration-200 hover:underline text-xs"
                 >
                   Contact Support
                 </Link>
               </li>
             </ul>
           </div>
-        </div>
 
-        {/* Copyright */}
-        <div className="border-t border-slate-700 mt-8 pt-8 text-center">
-          <p className="text-slate-400 text-sm">
-            © 2024 Buddy Builder Studio. All rights reserved.
-          </p>
+          {/* Copyright */}
+          <div className="text-center md:text-right">
+            <p className="text-nav-orange-foreground/60 text-xs">
+              © 2024 Buddy Builder Studio. All rights reserved.
+            </p>
+          </div>
         </div>
       </div>
     </footer>
