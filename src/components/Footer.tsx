@@ -2,13 +2,13 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-nav-orange text-nav-orange-foreground py-4 mt-24 border-t">
+    <footer className="bg-nav-orange text-nav-orange-foreground py-2 mt-24 border-t">
       <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 max-w-6xl mx-auto items-center">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 max-w-6xl mx-auto items-center">
           {/* Company Column */}
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Company</h3>
-            <ul className="space-y-1">
+            <h3 className="text-sm font-semibold mb-1 text-nav-orange-foreground">Company</h3>
+            <ul className="space-y-0.5">
               <li>
                 <Link 
                   to="/about" 
@@ -38,8 +38,8 @@ const Footer = () => {
 
           {/* Legal Column */}
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Legal</h3>
-            <ul className="space-y-1">
+            <h3 className="text-sm font-semibold mb-1 text-nav-orange-foreground">Legal</h3>
+            <ul className="space-y-0.5">
               <li>
                 <Link 
                   to="/terms" 
@@ -69,8 +69,8 @@ const Footer = () => {
 
           {/* Support Column */}
           <div>
-            <h3 className="text-sm font-semibold mb-2 text-nav-orange-foreground">Support</h3>
-            <ul className="space-y-1">
+            <h3 className="text-sm font-semibold mb-1 text-nav-orange-foreground">Support</h3>
+            <ul className="space-y-0.5">
               <li>
                 <Link 
                   to="/help" 
