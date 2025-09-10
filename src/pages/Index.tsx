@@ -16,7 +16,7 @@ interface Catbot {
   is_public: boolean;
   created_at: string;
 }
-const heroCat = "/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png";
+const heroCat = "/lovable-uploads/057d2f0d-a602-456f-b685-1e284a57e2c5.png";
 const Index = () => {
   const {
     user
