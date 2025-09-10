@@ -82,7 +82,13 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      get_catbot_creator_profile: {
+        Args: { catbot_id: string }
+        Returns: {
+          avatar_url: string
+          display_name: string
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
