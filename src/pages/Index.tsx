@@ -47,7 +47,7 @@ const Index = () => {
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
     return (
       <div className={`w-full h-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
-        <PawPrint className="h-8 w-8 text-white" />
+        <PawPrint className="h-12 w-12 text-white" />
       </div>
     );
   };
@@ -117,7 +117,7 @@ const Index = () => {
           // Loading skeleton
           [...Array(8)].map((_, index) => <Card key={index} className="animate-pulse shadow-card">
                   <CardHeader className="pb-3">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-full bg-muted" />
+                    <div className="w-24 h-24 mx-auto mb-3 rounded-full bg-muted" />
                     <div className="h-4 bg-muted rounded w-20 mx-auto" />
                   </CardHeader>
                   <CardContent className="pt-0">
@@ -131,7 +131,7 @@ const Index = () => {
           // Real catbots from database
           featuredCatbots.map((catbot, index) => <Card key={catbot.id} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-3">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft">
+                    <div className="w-24 h-24 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft">
                       {catbot.avatar_url ? (
                         <img 
                           src={catbot.avatar_url} 
@@ -163,8 +163,8 @@ const Index = () => {
             avatar: null
           }].map((catbot, index) => <Card key={index} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300">
                   <CardHeader className="pb-3">
-                    <div className="w-16 h-16 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft bg-muted flex items-center justify-center">
-                      <PawPrint className="h-8 w-8 text-muted-foreground" />
+                    <div className="w-24 h-24 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft bg-muted flex items-center justify-center">
+                      <PawPrint className="h-12 w-12 text-muted-foreground" />
                     </div>
                     <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
                   </CardHeader>
