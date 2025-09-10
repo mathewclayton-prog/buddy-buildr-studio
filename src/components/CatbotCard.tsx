@@ -40,7 +40,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
 
   return (
     <Card 
-      className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-scale animate-fade-in bg-card border-0"
+      className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-scale animate-fade-in bg-card border-0 flex flex-col h-full"
       style={{ animationDelay: `${delay}ms` }}
     >
       {/* Hero Image Section - Flexible height to maintain aspect ratio */}
@@ -63,19 +63,19 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         </div>
       </div>
 
-      {/* Content Section - Compact spacing */}
-      <CardContent className="p-3 space-y-2">
+      {/* Content Section - Compact spacing with flex-grow */}
+      <CardContent className="p-3 flex flex-col flex-1">
         {/* Description - closer to title */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-3">
           {catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
-        {/* Chat Button - closer to description */}
+        {/* Chat Button - aligned at bottom */}
         {variant === 'chat' ? (
           <Button 
             variant="hero" 
             size="sm" 
-            className="w-full mt-2" 
+            className="w-full mt-auto" 
             asChild
           >
             <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
@@ -87,7 +87,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           <Button 
             variant="outline" 
             size="sm" 
-            className="w-full mt-2" 
+            className="w-full mt-auto" 
             asChild
           >
             <Link to="/create" className="flex items-center gap-2">
