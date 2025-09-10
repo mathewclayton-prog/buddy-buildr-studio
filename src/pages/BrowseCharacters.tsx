@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
+import { CatbotCard } from "@/components/CatbotCard";
 import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
@@ -87,22 +88,16 @@ const BrowseCharacters = () => {
           </div>}
 
         {/* Loading State */}
-        {loading && <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <div className="w-14 h-14 bg-muted rounded-full" />
-                    <div className="space-y-2">
-                      <div className="h-4 bg-muted rounded w-20" />
-                      <div className="h-3 bg-muted rounded w-16" />
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
+        {loading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {[...Array(8)].map((_, i) => <Card key={i} className="animate-pulse shadow-card overflow-hidden">
+                <div className="h-32 bg-muted" />
+                <CardContent className="p-3">
+                  <div className="h-4 bg-muted rounded mb-2" />
+                  <div className="space-y-2 mb-3">
                     <div className="h-3 bg-muted rounded" />
                     <div className="h-3 bg-muted rounded w-3/4" />
                   </div>
+                  <div className="h-8 bg-muted rounded" />
                 </CardContent>
               </Card>)}
           </div>}
@@ -137,46 +132,15 @@ const BrowseCharacters = () => {
           </div>}
 
         {/* Catbot Grid */}
-        {!loading && filteredCatbots.length > 0 && <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 animate-fade-in">
-            {filteredCatbots.map((catbot, index) => <Card key={catbot.id} className="shadow-card hover:shadow-primary transition-all duration-300 group hover-scale animate-fade-in" style={{
-          animationDelay: `${index * 0.1}s`
-        }}>
-                <CardHeader className="pb-4">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center gap-3 flex-1">
-                      {catbot.avatar_url ? <img src={catbot.avatar_url} alt={catbot.name} className="h-20 w-20 rounded-full object-cover shadow-soft" /> : getDefaultAvatar(catbot)}
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-lg truncate">{catbot.name}</CardTitle>
-                        <CardDescription className="text-sm">
-                          {catbot.personality ? `${catbot.personality} personality` : "Unique personality"}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </div>
-                </CardHeader>
-                
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                    {catbot.description || "A mysterious catbot with lots to share"}
-                  </p>
-                  
-                  {catbot.personality && <div className="flex flex-wrap gap-1">
-                      <Badge variant="secondary" className="text-xs">
-                        {catbot.personality}
-                      </Badge>
-                    </div>}
-                  
-                  <div className="pt-2">
-                    <Button variant="hero" className="w-full" asChild>
-                      <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        Chat Now
-                        <Sparkles className="h-3 w-3" />
-                      </Link>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>)}
+        {!loading && filteredCatbots.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in">
+            {filteredCatbots.map((catbot, index) => (
+              <CatbotCard 
+                key={catbot.id} 
+                catbot={catbot} 
+                variant="chat"
+                delay={index * 100}
+              />
+            ))}
           </div>}
 
         {/* Create New Catbot Button */}

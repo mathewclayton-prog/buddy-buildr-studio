@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import { CatbotCard } from "@/components/CatbotCard";
 import { Bot, Plus, Users, Sparkles, PawPrint, MessageCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -112,16 +113,14 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
             {loading ?
           // Loading skeleton
-          [...Array(8)].map((_, index) => <Card key={index} className="animate-pulse shadow-card">
-                  <CardHeader className="pb-3">
-                    <div className="w-24 h-24 mx-auto mb-3 rounded-full bg-muted" />
-                    <div className="h-4 bg-muted rounded w-20 mx-auto" />
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2 mb-4">
+          [...Array(8)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden">
+                  <div className="h-32 bg-muted" />
+                  <CardContent className="p-3">
+                    <div className="h-4 bg-muted rounded mb-2" />
+                    <div className="space-y-2 mb-3">
                       <div className="h-3 bg-muted rounded" />
                       <div className="h-3 bg-muted rounded w-3/4" />
                     </div>
@@ -129,57 +128,28 @@ const Index = () => {
                   </CardContent>
                 </Card>) : featuredCatbots.length > 0 ?
           // Real catbots from database
-          featuredCatbots.map((catbot, index) => <Card key={catbot.id} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <div className="w-24 h-24 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft">
-                      {catbot.avatar_url ? (
-                        <img 
-                          src={catbot.avatar_url} 
-                          alt={`${catbot.name} avatar`} 
-                          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
-                        />
-                      ) : (
-                        getDefaultAvatar(catbot)
-                      )}
-                    </div>
-                    <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 flex-1 flex flex-col">
-                    <CardDescription className="text-center mb-4 text-sm line-clamp-3 flex-1">
-                      {catbot.description || "A mysterious catbot with lots to share"}
-                    </CardDescription>
-                    <Button variant="outline" size="sm" className="w-full mt-auto" asChild>
-                      <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
-                        <MessageCircle className="h-4 w-4" />
-                        Chat Now
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>) :
+          featuredCatbots.map((catbot, index) => (
+            <CatbotCard 
+              key={catbot.id} 
+              catbot={catbot} 
+              variant="chat"
+              delay={index * 100}
+            />
+          )) :
           // Empty state - show sample cards
           [{
+            id: "sample",
             name: "Be the first!",
             description: "Create the first public catbot and it will appear here for everyone to discover.",
-            avatar: null
-          }].map((catbot, index) => <Card key={index} className="hover-scale cursor-pointer group shadow-card hover:shadow-lg transition-all duration-300 h-full flex flex-col">
-                  <CardHeader className="pb-3">
-                    <div className="w-24 h-24 mx-auto mb-3 rounded-lg overflow-hidden shadow-soft bg-muted flex items-center justify-center">
-                      <PawPrint className="h-12 w-12 text-muted-foreground" />
-                    </div>
-                    <CardTitle className="text-center text-lg">{catbot.name}</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0 flex-1 flex flex-col">
-                    <CardDescription className="text-center mb-4 text-sm line-clamp-3 flex-1">
-                      {catbot.description}
-                    </CardDescription>
-                    <Button variant="outline" size="sm" className="w-full mt-auto" asChild>
-                      <Link to="/create" className="flex items-center gap-2">
-                        <Plus className="h-4 w-4" />
-                        Create First
-                      </Link>
-                    </Button>
-                  </CardContent>
-                </Card>)}
+            avatar_url: null
+          }].map((catbot, index) => (
+            <CatbotCard 
+              key={catbot.id} 
+              catbot={catbot} 
+              variant="create"
+              delay={index * 100}
+            />
+          ))}
           </div>
 
           <div className="text-center">
