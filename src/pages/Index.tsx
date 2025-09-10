@@ -56,7 +56,7 @@ const Index = () => {
       
       {/* Hero Image */}
       <div className="w-full">
-        <div className="h-48 bg-card rounded-b-md overflow-hidden shadow-card">
+        <div className="h-48 bg-card overflow-hidden shadow-card">
           <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
         </div>
       </div>
