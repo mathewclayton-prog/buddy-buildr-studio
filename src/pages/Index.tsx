@@ -55,7 +55,7 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Image */}
-      <div className="w-full h-48 bg-card overflow-hidden shadow-card">
+      <div className="relative w-screen h-48 bg-card overflow-hidden shadow-card" style={{marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)'}}>
         <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
       </div>
 
