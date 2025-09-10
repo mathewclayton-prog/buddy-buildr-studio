@@ -54,14 +54,16 @@ const Index = () => {
   return <div className="min-h-screen bg-background">
       <Navigation />
       
+      {/* Hero Image */}
+      <div className="container mx-auto px-4">
+        <div className="h-48 bg-card rounded-md overflow-hidden shadow-card">
+          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-cover" />
+        </div>
+      </div>
+
       {/* Hero Section */}
       <main className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto animate-fade-in">
-          <div className="mb-8 flex justify-center">
-            <div className="h-48 w-full max-w-2xl bg-card rounded-md overflow-hidden shadow-card">
-              <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-cover" />
-            </div>
-          </div>
           
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Own Catbot</h1>
           
