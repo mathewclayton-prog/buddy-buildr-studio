@@ -57,7 +57,7 @@ const Index = () => {
         
         {/* Hero Image - Full Page Width */}
         <div className="w-full h-48 bg-card overflow-hidden shadow-card" style={{width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
-          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
+          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-cover" />
         </div>
 
         {/* Hero Section */}
