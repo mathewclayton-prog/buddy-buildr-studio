@@ -155,20 +155,18 @@ const BrowseCharacters = () => {
                   </div>
                 </CardHeader>
                 
-                <CardContent className="flex flex-col h-full space-y-4">
-                  <div className="flex-1 space-y-4">
-                    <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
-                      {catbot.description || "A mysterious catbot with lots to share"}
-                    </p>
-                    
-                    {catbot.personality && <div className="flex flex-wrap gap-1">
-                        <Badge variant="secondary" className="text-xs">
-                          {catbot.personality}
-                        </Badge>
-                      </div>}
-                  </div>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                    {catbot.description || "A mysterious catbot with lots to share"}
+                  </p>
                   
-                  <div className="mt-auto pt-2">
+                  {catbot.personality && <div className="flex flex-wrap gap-1">
+                      <Badge variant="secondary" className="text-xs">
+                        {catbot.personality}
+                      </Badge>
+                    </div>}
+                  
+                  <div className="pt-2">
                     <Button variant="hero" className="w-full" asChild>
                       <Link to={`/chat/${catbot.id}`} className="flex items-center gap-2">
                         <MessageCircle className="h-4 w-4" />
