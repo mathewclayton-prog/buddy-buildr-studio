@@ -55,9 +55,9 @@ const Index = () => {
       <Navigation />
       
       {/* Hero Image */}
-      <div className="container mx-auto px-4">
-        <div className="h-48 bg-card rounded-md overflow-hidden shadow-card">
-          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-cover" />
+      <div className="w-full">
+        <div className="h-48 bg-card rounded-b-md overflow-hidden shadow-card">
+          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
         </div>
       </div>
 
