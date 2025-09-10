@@ -16,42 +16,36 @@ import { useToast } from "@/hooks/use-toast";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
-
-const PERSONALITY_OPTIONS = [
-  {
-    value: "Friendly",
-    label: "Friendly",
-    description: "Warm, welcoming, and approachable"
-  },
-  {
-    value: "Mysterious",
-    label: "Mysterious",
-    description: "Enigmatic and intriguing"
-  },
-  {
-    value: "Wise",
-    label: "Wise",
-    description: "Knowledgeable and thoughtful"
-  },
-  {
-    value: "Playful",
-    label: "Playful",
-    description: "Fun-loving and energetic"
-  },
-  {
-    value: "Serious",
-    label: "Serious",
-    description: "Focused and professional"
-  }
-];
-
+const PERSONALITY_OPTIONS = [{
+  value: "Friendly",
+  label: "Friendly",
+  description: "Warm, welcoming, and approachable"
+}, {
+  value: "Mysterious",
+  label: "Mysterious",
+  description: "Enigmatic and intriguing"
+}, {
+  value: "Wise",
+  label: "Wise",
+  description: "Knowledgeable and thoughtful"
+}, {
+  value: "Playful",
+  label: "Playful",
+  description: "Fun-loving and energetic"
+}, {
+  value: "Serious",
+  label: "Serious",
+  description: "Focused and professional"
+}];
 const COLOR_OPTIONS = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#EC4899", "#6366F1", "#84CC16"];
-
 const CreateCharacter = () => {
-  const { user } = useAuth();
-  const { catbotId } = useParams();
+  const {
+    user
+  } = useAuth();
+  const {
+    catbotId
+  } = useParams();
   const isEditMode = !!catbotId;
-  
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [personality, setPersonality] = useState("");
@@ -60,7 +54,7 @@ const CreateCharacter = () => {
   const [avatarType, setAvatarType] = useState<"upload" | "color">("color");
   const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  
+
   // Image upload states
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -76,9 +70,10 @@ const CreateCharacter = () => {
   const [isUploading, setIsUploading] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
 
   // Load existing catbot data if in edit mode
   useEffect(() => {
@@ -86,16 +81,13 @@ const CreateCharacter = () => {
       loadCatbotData();
     }
   }, [isEditMode, catbotId, user]);
-
   const loadCatbotData = async () => {
     try {
-      const { data, error } = await supabase
-        .from('catbots')
-        .select('*')
-        .eq('id', catbotId)
-        .eq('user_id', user?.id) // Ensure user owns the catbot
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('catbots').select('*').eq('id', catbotId).eq('user_id', user?.id) // Ensure user owns the catbot
+      .single();
       if (error) throw error;
 
       // Populate form with existing data
@@ -103,7 +95,6 @@ const CreateCharacter = () => {
       setDescription(data.description || "");
       setPersonality(data.personality || "");
       setIsPublic(data.is_public);
-      
       if (data.avatar_url) {
         setAvatar(data.avatar_url);
         setAvatarType("upload");
@@ -118,10 +109,8 @@ const CreateCharacter = () => {
       navigate('/create');
     }
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
     if (!user) {
       toast({
         title: "Authentication Required",
@@ -131,7 +120,6 @@ const CreateCharacter = () => {
       navigate("/auth");
       return;
     }
-    
     if (!name.trim() || !description.trim() || !personality) {
       toast({
         title: "Validation Error",
@@ -140,7 +128,6 @@ const CreateCharacter = () => {
       });
       return;
     }
-    
     setIsLoading(true);
     try {
       const catbotData = {
@@ -150,19 +137,13 @@ const CreateCharacter = () => {
         avatar_url: avatarType === "upload" ? avatar : null,
         is_public: isPublic
       };
-
       if (isEditMode) {
         // Update existing catbot
-        const { data, error } = await supabase
-          .from('catbots')
-          .update(catbotData)
-          .eq('id', catbotId)
-          .eq('user_id', user.id)
-          .select()
-          .single();
-
+        const {
+          data,
+          error
+        } = await supabase.from('catbots').update(catbotData).eq('id', catbotId).eq('user_id', user.id).select().single();
         if (error) throw error;
-
         toast({
           title: "Catbot Updated!",
           description: `${catbotData.name} has been updated successfully.`
@@ -176,15 +157,11 @@ const CreateCharacter = () => {
           user_id: user.id,
           ...catbotData
         };
-
-        const { data, error } = await supabase
-          .from('catbots')
-          .insert([newCatbotData])
-          .select()
-          .single();
-
+        const {
+          data,
+          error
+        } = await supabase.from('catbots').insert([newCatbotData]).select().single();
         if (error) throw error;
-
         toast({
           title: "Catbot Created!",
           description: `${catbotData.name} has been created successfully.`
@@ -220,9 +197,8 @@ const CreateCharacter = () => {
       });
       return;
     }
-
     setSelectedFile(file);
-    
+
     // Create image preview
     const reader = new FileReader();
     reader.onload = () => {
@@ -231,13 +207,14 @@ const CreateCharacter = () => {
     };
     reader.readAsDataURL(file);
   };
-
   const onImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
-    const { width, height } = e.currentTarget;
+    const {
+      width,
+      height
+    } = e.currentTarget;
     const size = Math.min(width, height);
     const x = (width - size) / 2;
     const y = (height - size) / 2;
-    
     setCrop({
       unit: 'px',
       width: size,
@@ -246,46 +223,32 @@ const CreateCharacter = () => {
       y: y
     });
   }, []);
-
   const getCroppedCanvas = (image: HTMLImageElement, crop: PixelCrop): HTMLCanvasElement => {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d')!;
-    
+
     // Set canvas to 300x300px for catbot images
     canvas.width = 300;
     canvas.height = 300;
-    
+
     // Calculate the scale
     const scaleX = image.naturalWidth / image.width;
     const scaleY = image.naturalHeight / image.height;
-    
+
     // Draw the cropped image onto the canvas
-    ctx.drawImage(
-      image,
-      crop.x * scaleX,
-      crop.y * scaleY,
-      crop.width * scaleX,
-      crop.height * scaleY,
-      0,
-      0,
-      300,
-      300
-    );
-    
+    ctx.drawImage(image, crop.x * scaleX, crop.y * scaleY, crop.width * scaleX, crop.height * scaleY, 0, 0, 300, 300);
     return canvas;
   };
-
   const handleUploadImage = async () => {
     if (!selectedFile || !completedCrop || !imgRef.current) return;
-
     setIsUploading(true);
     try {
       // Create cropped canvas
       const canvas = getCroppedCanvas(imgRef.current, completedCrop);
-      
+
       // Convert canvas to blob
-      const blob = await new Promise<Blob>((resolve) => {
-        canvas.toBlob((blob) => {
+      const blob = await new Promise<Blob>(resolve => {
+        canvas.toBlob(blob => {
           resolve(blob!);
         }, 'image/jpeg', 0.9);
       });
@@ -297,7 +260,6 @@ const CreateCharacter = () => {
 
       // Upload to Supabase Storage
       const result = await uploadImage(croppedFile, 'catbots');
-      
       if (result.error || !result.data) {
         throw new Error(result.error);
       }
@@ -305,7 +267,6 @@ const CreateCharacter = () => {
       // Set the avatar URL
       setAvatar(result.data.publicUrl);
       setAvatarType("upload");
-
       toast({
         title: "Success",
         description: "Image uploaded successfully"
@@ -313,7 +274,6 @@ const CreateCharacter = () => {
 
       // Close dialog and reset states
       handleCancelUpload();
-
     } catch (error: any) {
       console.error('Image upload error:', error);
       toast({
@@ -325,43 +285,40 @@ const CreateCharacter = () => {
       setIsUploading(false);
     }
   };
-
   const handleCancelUpload = () => {
     setShowImageDialog(false);
     setSelectedFile(null);
     setImageSrc("");
-    setCrop({ unit: '%', width: 100, height: 100, x: 0, y: 0 });
+    setCrop({
+      unit: '%',
+      width: 100,
+      height: 100,
+      x: 0,
+      y: 0
+    });
     setCompletedCrop(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
   };
-
   const handleRemoveImage = () => {
     setAvatar("");
     setAvatarType("color");
   };
-
   const handleAvatarUpload = () => {
     fileInputRef.current?.click();
   };
-
   const getPreviewAvatar = () => {
     if (avatarType === "upload" && avatar) {
       return <img src={avatar} alt="Character preview" className="h-16 w-16 rounded-lg object-cover shadow-soft" />;
     }
-    return (
-      <div 
-        className="h-16 w-16 rounded-lg flex items-center justify-center shadow-soft" 
-        style={{ backgroundColor: avatarColor }}
-      >
+    return <div className="h-16 w-16 rounded-lg flex items-center justify-center shadow-soft" style={{
+      backgroundColor: avatarColor
+    }}>
         <Bot className="h-8 w-8 text-white" />
-      </div>
-    );
+      </div>;
   };
-
-  return (
-    <div className="min-h-screen bg-background">
+  return <div className="min-h-screen bg-background">
       <Navigation />
       
       <main className="container mx-auto px-4 py-12">
@@ -382,35 +339,20 @@ const CreateCharacter = () => {
                 <PawPrint className="h-5 w-5 text-primary" />
                 Cat Details
               </CardTitle>
-              <CardDescription>
-                {isEditMode ? 'Update the details for your catbot' : 'Fill in the details for your catbot'}
-              </CardDescription>
+              
             </CardHeader>
             <CardContent>
               <form onSubmit={handleSubmit} className="space-y-6">
                 {/* Character Name */}
                 <div className="space-y-2">
                   <Label htmlFor="name">Cat Name *</Label>
-                  <Input 
-                    id="name" 
-                    value={name} 
-                    onChange={(e) => setName(e.target.value)} 
-                    placeholder="e.g., Luna the Wise" 
-                    maxLength={50} 
-                  />
+                  <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Luna the Wise" maxLength={50} />
                 </div>
 
                 {/* Character Description */}
                 <div className="space-y-2">
                   <Label htmlFor="description">Description *</Label>
-                  <Textarea 
-                    id="description" 
-                    value={description} 
-                    onChange={(e) => setDescription(e.target.value)} 
-                    placeholder="Tell us about your cat's personality, habits, background, family and anything else that would be helpful." 
-                    rows={4} 
-                    maxLength={200} 
-                  />
+                  <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Tell us about your cat's personality, habits, background, family and anything else that would be helpful." rows={4} maxLength={200} />
                   <p className="text-sm text-muted-foreground">
                     {description.length}/200 characters
                   </p>
@@ -424,14 +366,12 @@ const CreateCharacter = () => {
                       <SelectValue placeholder="Choose a cat personality" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border shadow-lg z-50">
-                      {PERSONALITY_OPTIONS.map((option) => (
-                        <SelectItem key={option.value} value={option.value} className="hover:bg-accent">
+                      {PERSONALITY_OPTIONS.map(option => <SelectItem key={option.value} value={option.value} className="hover:bg-accent">
                           <div>
                             <div className="font-medium">{option.label}</div>
                             <div className="text-sm text-muted-foreground">{option.description}</div>
                           </div>
-                        </SelectItem>
-                      ))}
+                        </SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
@@ -442,89 +382,41 @@ const CreateCharacter = () => {
                   
                   {/* Avatar Type Toggle */}
                   <div className="flex gap-2">
-                    <Button 
-                      type="button" 
-                      variant={avatarType === "color" ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => setAvatarType("color")}
-                    >
+                    <Button type="button" variant={avatarType === "color" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("color")}>
                       <Palette className="h-4 w-4 mr-2" />
                       Color Icon
                     </Button>
-                    <Button 
-                      type="button" 
-                      variant={avatarType === "upload" ? "default" : "outline"} 
-                      size="sm" 
-                      onClick={() => setAvatarType("upload")}
-                    >
+                    <Button type="button" variant={avatarType === "upload" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("upload")}>
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Image
                     </Button>
                   </div>
 
                   {/* Color Picker */}
-                  {avatarType === "color" && (
-                    <div className="space-y-2">
+                  {avatarType === "color" && <div className="space-y-2">
                       <Label>Icon Color</Label>
                       <div className="flex gap-2 flex-wrap">
-                        {COLOR_OPTIONS.map((color) => (
-                          <button 
-                            key={color} 
-                            type="button" 
-                            className={`h-8 w-8 rounded-full border-2 hover:scale-110 transition-transform ${
-                              avatarColor === color 
-                                ? "border-primary ring-2 ring-primary/20" 
-                                : "border-border"
-                            }`}
-                            style={{ backgroundColor: color }}
-                            onClick={() => setAvatarColor(color)}
-                          />
-                        ))}
+                        {COLOR_OPTIONS.map(color => <button key={color} type="button" className={`h-8 w-8 rounded-full border-2 hover:scale-110 transition-transform ${avatarColor === color ? "border-primary ring-2 ring-primary/20" : "border-border"}`} style={{
+                      backgroundColor: color
+                    }} onClick={() => setAvatarColor(color)} />)}
                       </div>
-                    </div>
-                  )}
+                    </div>}
 
                   {/* Image Upload */}
-                  {avatarType === "upload" && (
-                    <div className="space-y-2">
-                      <input 
-                        ref={fileInputRef}
-                        type="file" 
-                        accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" 
-                        onChange={handleFileSelect} 
-                        className="hidden" 
-                      />
+                  {avatarType === "upload" && <div className="space-y-2">
+                      <input ref={fileInputRef} type="file" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" onChange={handleFileSelect} className="hidden" />
                       <div className="flex items-center gap-4">
-                        {avatar ? (
-                          <div className="relative">
-                            <img 
-                              src={avatar} 
-                              alt="Catbot image" 
-                              className="h-20 w-20 rounded-lg object-cover shadow-soft" 
-                            />
-                            <Button 
-                              type="button" 
-                              variant="destructive" 
-                              size="icon" 
-                              className="absolute -top-2 -right-2 h-6 w-6" 
-                              onClick={handleRemoveImage}
-                            >
+                        {avatar ? <div className="relative">
+                            <img src={avatar} alt="Catbot image" className="h-20 w-20 rounded-lg object-cover shadow-soft" />
+                            <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6" onClick={handleRemoveImage}>
                               <X className="h-3 w-3" />
                             </Button>
-                          </div>
-                        ) : (
-                          <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
+                          </div> : <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
                             <Camera className="h-8 w-8 text-muted-foreground" />
-                          </div>
-                        )}
+                          </div>}
                         
                         <div className="flex-1">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={handleAvatarUpload}
-                            className="w-full"
-                          >
+                          <Button type="button" variant="outline" onClick={handleAvatarUpload} className="w-full">
                             <Upload className="h-4 w-4 mr-2" />
                             {avatar ? "Change Image" : "Upload Image"}
                           </Button>
@@ -533,8 +425,7 @@ const CreateCharacter = () => {
                           </p>
                         </div>
                       </div>
-                    </div>
-                  )}
+                    </div>}
                 </div>
 
                 {/* Privacy Setting */}
@@ -542,47 +433,27 @@ const CreateCharacter = () => {
                   <Label>Privacy Settings</Label>
                   <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
                     <div className="flex items-center gap-3">
-                      {isPublic ? (
-                        <Globe className="h-5 w-5 text-green-500" />
-                      ) : (
-                        <Lock className="h-5 w-5 text-muted-foreground" />
-                      )}
+                      {isPublic ? <Globe className="h-5 w-5 text-green-500" /> : <Lock className="h-5 w-5 text-muted-foreground" />}
                       <div>
                         <div className="font-medium">
                           {isPublic ? "Public Catbot" : "Private Catbot"}
                         </div>
                         <div className="text-sm text-muted-foreground">
-                          {isPublic 
-                            ? "Visible to everyone in the Explore Cats page and homepage"
-                            : "Only visible to you in your My Cats page"
-                          }
+                          {isPublic ? "Visible to everyone in the Explore Cats page and homepage" : "Only visible to you in your My Cats page"}
                         </div>
                       </div>
                     </div>
-                    <Switch
-                      checked={isPublic}
-                      onCheckedChange={setIsPublic}
-                    />
+                    <Switch checked={isPublic} onCheckedChange={setIsPublic} />
                   </div>
                 </div>
 
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => navigate("/browse")} 
-                    className="flex-1"
-                  >
+                  <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
                     Cancel
                   </Button>
-                  <Button 
-                    type="submit" 
-                    variant="hero" 
-                    disabled={isLoading || !name.trim() || !description.trim() || !personality} 
-                    className="flex-1"
-                  >
-                    {isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Catbot" : "Create Catbot")}
+                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !description.trim() || !personality} className="flex-1">
+                    {isLoading ? isEditMode ? "Updating..." : "Creating..." : isEditMode ? "Update Catbot" : "Create Catbot"}
                   </Button>
                 </div>
               </form>
@@ -602,55 +473,29 @@ const CreateCharacter = () => {
             </DialogDescription>
           </DialogHeader>
           
-          {imageSrc && (
-            <div className="max-h-96 overflow-hidden">
-              <ReactCrop
-                crop={crop}
-                onChange={setCrop}
-                onComplete={setCompletedCrop}
-                aspect={1}
-              >
-                <img
-                  ref={imgRef}
-                  src={imageSrc}
-                  alt="Crop preview"
-                  onLoad={onImageLoad}
-                  className="max-w-full max-h-80 object-contain"
-                />
+          {imageSrc && <div className="max-h-96 overflow-hidden">
+              <ReactCrop crop={crop} onChange={setCrop} onComplete={setCompletedCrop} aspect={1}>
+                <img ref={imgRef} src={imageSrc} alt="Crop preview" onLoad={onImageLoad} className="max-w-full max-h-80 object-contain" />
               </ReactCrop>
-            </div>
-          )}
+            </div>}
           
           <DialogFooter className="gap-2">
-            <Button
-              variant="outline"
-              onClick={handleCancelUpload}
-              disabled={isUploading}
-            >
+            <Button variant="outline" onClick={handleCancelUpload} disabled={isUploading}>
               <X className="h-4 w-4 mr-2" />
               Cancel
             </Button>
-            <Button
-              onClick={handleUploadImage}
-              disabled={isUploading || !completedCrop}
-            >
-              {isUploading ? (
-                <>
+            <Button onClick={handleUploadImage} disabled={isUploading || !completedCrop}>
+              {isUploading ? <>
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                   Uploading...
-                </>
-              ) : (
-                <>
+                </> : <>
                   <Upload className="h-4 w-4 mr-2" />
                   Upload
-                </>
-              )}
+                </>}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </div>
-  );
+    </div>;
 };
-
 export default CreateCharacter;
