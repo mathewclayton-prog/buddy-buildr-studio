@@ -54,14 +54,12 @@ const Index = () => {
   return <>
       <div className="min-h-screen bg-background">
         <Navigation />
-      </div>
-      
-      {/* Hero Image - Full Page Width */}
-      <div className="w-full h-48 bg-card overflow-hidden shadow-card" style={{width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
-        <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
-      </div>
+        
+        {/* Hero Image - Full Page Width */}
+        <div className="w-full h-48 bg-card overflow-hidden shadow-card" style={{width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
+          <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
+        </div>
 
-      <div className="min-h-screen bg-background">
         {/* Hero Section */}
         <main className="container mx-auto px-4 py-16">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
@@ -194,10 +192,10 @@ const Index = () => {
           </div>
         </section>
 
-      </main>
-      
-      <Footer />
-    </div>
-  </>;
+        </main>
+        
+        <Footer />
+      </div>
+    </>;
 };
 export default Index;
