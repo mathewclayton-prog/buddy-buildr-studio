@@ -62,8 +62,8 @@ const BrowseCharacters = () => {
   const getDefaultAvatar = (catbot: Catbot) => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
-    return <div className={`h-14 w-14 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
-        <PawPrint className="h-7 w-7 text-white" />
+    return <div className={`h-20 w-20 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
+        <PawPrint className="h-10 w-10 text-white" />
       </div>;
   };
   return <div className="min-h-screen bg-background">
@@ -144,7 +144,7 @@ const BrowseCharacters = () => {
                 <CardHeader className="pb-4">
                   <div className="flex items-start justify-between">
                     <div className="flex items-center gap-3 flex-1">
-                      {catbot.avatar_url ? <img src={catbot.avatar_url} alt={catbot.name} className="h-14 w-14 rounded-full object-cover shadow-soft" /> : getDefaultAvatar(catbot)}
+                      {catbot.avatar_url ? <img src={catbot.avatar_url} alt={catbot.name} className="h-20 w-20 rounded-full object-cover shadow-soft" /> : getDefaultAvatar(catbot)}
                       <div className="flex-1 min-w-0">
                         <CardTitle className="text-lg truncate">{catbot.name}</CardTitle>
                         <CardDescription className="text-sm">
