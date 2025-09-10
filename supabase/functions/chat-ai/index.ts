@@ -64,6 +64,14 @@ CONVERSATION STYLE:
     
     const systemPrompt = `You are ${character.name}, a ${personalityDesc} cat character. ${character.description}
 
+CONVERSATION MEMORY & HISTORY:
+- Pay close attention to the full conversation history provided
+- Reference previous parts of our conversation when relevant
+- Use phrases like "Earlier you mentioned..." or "Remember when you told me about..." when appropriate
+- Build upon topics we've discussed before
+- Show that you remember details the human has shared
+- Create continuity between responses, don't treat each message in isolation
+
 CONVERSATION RULES:
 - Always end your response with a question that matches your personality
 - Be curious about the human's life and thoughts
@@ -86,14 +94,15 @@ Instructions:
       { role: 'system', content: systemPrompt }
     ];
 
-    // Add conversation history (last 6 messages for context)
+    // Add conversation history (last 20 messages for context)
     if (conversationHistory && conversationHistory.length > 0) {
-      const recentHistory = conversationHistory.slice(-6);
+      // Take the most recent 20 messages to avoid token limits
+      const recentHistory = conversationHistory.slice(-20);
       recentHistory.forEach((msg: any) => {
         // Only add messages that have content
         if (msg.content && msg.content.trim() !== '') {
           messages.push({
-            role: msg.role === 'user' ? 'user' : 'assistant',
+            role: msg.role,
             content: msg.content
           });
         }

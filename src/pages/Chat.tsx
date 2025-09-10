@@ -106,10 +106,11 @@ const Chat = () => {
   }, [messages]);
 
   const generateResponse = async (userMessage: string, character: Character): Promise<string> => {
-    // Get conversation history for context
-    const conversationHistory = messages.slice(-6).map(msg => 
-      `${msg.isUser ? 'User' : character.name}: ${msg.content}`
-    );
+    // Get conversation history for context (last 20 messages)
+    const conversationHistory = messages.slice(-20).map(msg => ({
+      role: msg.isUser ? 'user' : 'assistant',
+      content: msg.content
+    }));
 
     try {
       if (localLLM.isReady()) {

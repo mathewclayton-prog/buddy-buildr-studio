@@ -59,7 +59,7 @@ class LocalLLMService {
   async generateResponse(
     character: Character, 
     userMessage: string, 
-    conversationHistory?: string[]
+    conversationHistory?: Array<{role: string; content: string}>
   ): Promise<string> {
     try {
       await this.initialize();
