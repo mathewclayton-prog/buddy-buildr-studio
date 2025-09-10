@@ -370,7 +370,7 @@ const CreateCharacter = () => {
             {isEditMode ? 'Edit Your Cat' : 'Create Your Cat'}
           </h1>
           <p className="text-lg text-muted-foreground">
-            {isEditMode ? 'Update the details for your catbot' : 'Tell us all about the cat you have in mind.'}
+            {isEditMode ? 'Update the details of your cat' : 'Tell us all about the cat you have in mind.'}
           </p>
         </div>
 
