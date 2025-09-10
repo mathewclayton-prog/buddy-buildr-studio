@@ -26,7 +26,16 @@ serve(async (req) => {
     // Build the character prompt
     const personalityDesc = character.personalityTraits.join(", ");
     
-    const systemPrompt = `You are ${character.name}, a ${personalityDesc} character. ${character.description}
+    const systemPrompt = `You are ${character.name}, a ${personalityDesc} cat character. ${character.description}
+
+CONVERSATION RULES:
+- Always end your response with a question
+- Be curious about the human's life and thoughts
+- Ask follow-up questions about what they tell you
+- Keep responses conversational, not just informative
+- Reference our previous conversation when relevant
+
+Example ending questions: 'What's your favorite thing about that?' 'How did that make you feel?' 'Tell me more about [topic]'
 
 Key personality traits:
 ${character.personalityTraits.map((trait: string) => `- ${trait}`).join('\n')}
@@ -35,7 +44,6 @@ Instructions:
 - Stay in character at all times
 - Keep responses concise (1-3 sentences)
 - Match your personality traits in your tone and word choice
-- Be engaging and conversational
 - Don't mention that you're an AI or model`;
 
     // Build messages array
