@@ -43,16 +43,18 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-scale animate-fade-in bg-card border-0"
       style={{ animationDelay: `${delay}ms` }}
     >
-      {/* Hero Image Section - 40% of card height */}
-      <div className="relative h-32 overflow-hidden">
+      {/* Hero Image Section - Flexible height to maintain aspect ratio */}
+      <div className="relative overflow-hidden">
         {catbot.avatar_url ? (
           <img 
             src={catbot.avatar_url} 
             alt={`${catbot.name} avatar`} 
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" 
+            className="w-full aspect-[4/3] object-cover group-hover:scale-110 transition-transform duration-500" 
           />
         ) : (
-          getDefaultAvatar()
+          <div className="w-full aspect-[4/3] flex items-center justify-center">
+            {getDefaultAvatar()}
+          </div>
         )}
         
         {/* Overlay Title */}
