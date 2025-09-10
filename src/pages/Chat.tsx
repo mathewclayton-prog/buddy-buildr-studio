@@ -75,10 +75,22 @@ const Chat = () => {
       if (existingSession) {
         setMessages(existingSession.messages);
       } else {
-        // Create initial greeting message
+        // Create personality-specific opening message
+        const personality = char.personalityTraits[0]?.toLowerCase() || "friendly";
+        
+        const openingMessages = {
+          playful: `Hi there! I'm ${char.name} and I love having fun! 🎉 What's the most exciting thing that happened to you today?`,
+          wise: `Greetings, I'm ${char.name}. I enjoy deep conversations and sharing wisdom. 🧙‍♀️ What's been on your mind lately?`,
+          friendly: `Hey friend! I'm ${char.name} and I love meeting new people! 😊 Tell me, what makes you happy?`,
+          mysterious: `*appears from the shadows* Hello... I'm ${char.name}. There are many secrets in this world... 🌙 What mysteries fascinate you?`,
+          serious: `Good day, I'm ${char.name}. I believe in meaningful conversations. What important matter would you like to discuss?`
+        };
+        
+        const openingContent = openingMessages[personality] || openingMessages.friendly;
+        
         const greeting: ChatMessage = {
           id: crypto.randomUUID(),
-          content: `Hello! I'm ${char.name}. ${char.description ? char.description.split('.')[0] : 'Nice to meet you'}. How can I help you today?`,
+          content: openingContent,
           isUser: false,
           timestamp: new Date(),
         };
