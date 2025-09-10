@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,7 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navigation from "@/components/Navigation";
 import { X, Upload, PawPrint, Bot, Palette, Globe, Lock, Camera, Loader2 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -49,13 +49,16 @@ const COLOR_OPTIONS = ["#8B5CF6", "#06B6D4", "#10B981", "#F59E0B", "#EF4444", "#
 
 const CreateCharacter = () => {
   const { user } = useAuth();
+  const { catbotId } = useParams();
+  const isEditMode = !!catbotId;
+  
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [personality, setPersonality] = useState("");
   const [avatar, setAvatar] = useState<string>("");
   const [avatarColor, setAvatarColor] = useState(COLOR_OPTIONS[0]);
   const [avatarType, setAvatarType] = useState<"upload" | "color">("color");
-  const [isPublic, setIsPublic] = useState(false);
+  const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
   // Image upload states
@@ -76,6 +79,45 @@ const CreateCharacter = () => {
   
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // Load existing catbot data if in edit mode
+  useEffect(() => {
+    if (isEditMode && catbotId && user) {
+      loadCatbotData();
+    }
+  }, [isEditMode, catbotId, user]);
+
+  const loadCatbotData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('catbots')
+        .select('*')
+        .eq('id', catbotId)
+        .eq('user_id', user?.id) // Ensure user owns the catbot
+        .single();
+
+      if (error) throw error;
+
+      // Populate form with existing data
+      setName(data.name);
+      setDescription(data.description || "");
+      setPersonality(data.personality || "");
+      setIsPublic(data.is_public);
+      
+      if (data.avatar_url) {
+        setAvatar(data.avatar_url);
+        setAvatarType("upload");
+      }
+    } catch (error) {
+      console.error('Error loading catbot:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load catbot data. Redirecting to create mode.",
+        variant: "destructive"
+      });
+      navigate('/create');
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,7 +144,6 @@ const CreateCharacter = () => {
     setIsLoading(true);
     try {
       const catbotData = {
-        user_id: user.id,
         name: name.trim(),
         description: description.trim(),
         personality: personality,
@@ -110,21 +151,48 @@ const CreateCharacter = () => {
         is_public: isPublic
       };
 
-      const { data, error } = await supabase
-        .from('catbots')
-        .insert([catbotData])
-        .select()
-        .single();
+      if (isEditMode) {
+        // Update existing catbot
+        const { data, error } = await supabase
+          .from('catbots')
+          .update(catbotData)
+          .eq('id', catbotId)
+          .eq('user_id', user.id)
+          .select()
+          .single();
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Catbot Created!",
-        description: `${catbotData.name} has been created successfully.`
-      });
+        toast({
+          title: "Catbot Updated!",
+          description: `${catbotData.name} has been updated successfully.`
+        });
 
-      // Redirect to the new catbot
-      navigate(`/chat/${data.id}`);
+        // Redirect to the updated catbot
+        navigate(`/chat/${data.id}`);
+      } else {
+        // Create new catbot
+        const newCatbotData = {
+          user_id: user.id,
+          ...catbotData
+        };
+
+        const { data, error } = await supabase
+          .from('catbots')
+          .insert([newCatbotData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        toast({
+          title: "Catbot Created!",
+          description: `${catbotData.name} has been created successfully.`
+        });
+
+        // Redirect to the new catbot
+        navigate(`/chat/${data.id}`);
+      }
     } catch (error) {
       console.error('Error creating catbot:', error);
       toast({
@@ -299,9 +367,11 @@ const CreateCharacter = () => {
       <main className="container mx-auto px-4 py-12">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-4 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Create Your Cat
+            {isEditMode ? 'Edit Your Cat' : 'Create Your Cat'}
           </h1>
-          <p className="text-lg text-muted-foreground">Tell us all about the cat you have in mind.</p>
+          <p className="text-lg text-muted-foreground">
+            {isEditMode ? 'Update the details for your catbot' : 'Tell us all about the cat you have in mind.'}
+          </p>
         </div>
 
         <div className="max-w-2xl mx-auto animate-fade-in">
@@ -313,7 +383,7 @@ const CreateCharacter = () => {
                 Cat Details
               </CardTitle>
               <CardDescription>
-                Fill in the details for your catbot
+                {isEditMode ? 'Update the details for your catbot' : 'Fill in the details for your catbot'}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -512,7 +582,7 @@ const CreateCharacter = () => {
                     disabled={isLoading || !name.trim() || !description.trim() || !personality} 
                     className="flex-1"
                   >
-                    {isLoading ? "Creating..." : "Create Catbot"}
+                    {isLoading ? (isEditMode ? "Updating..." : "Creating...") : (isEditMode ? "Update Catbot" : "Create Catbot")}
                   </Button>
                 </div>
               </form>
