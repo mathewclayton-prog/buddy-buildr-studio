@@ -51,17 +51,20 @@ const Index = () => {
       </div>
     );
   };
-  return <div className="min-h-screen bg-background">
-      <Navigation />
+  return <>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+      </div>
       
-      {/* Hero Image */}
-      <div className="relative w-screen h-48 bg-card overflow-hidden shadow-card" style={{marginLeft: 'calc(-50vw + 50%)', marginRight: 'calc(-50vw + 50%)'}}>
+      {/* Hero Image - Full Page Width */}
+      <div className="w-full h-48 bg-card overflow-hidden shadow-card" style={{width: '100vw', marginLeft: 'calc(50% - 50vw)'}}>
         <img src={heroCat} alt="MiCatbot Hero" className="h-full w-full object-contain" />
       </div>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-4 py-16">
-        <div className="text-center max-w-4xl mx-auto animate-fade-in">
+      <div className="min-h-screen bg-background">
+        {/* Hero Section */}
+        <main className="container mx-auto px-4 py-16">
+          <div className="text-center max-w-4xl mx-auto animate-fade-in">
           
           <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Own Catbot</h1>
           
@@ -194,6 +197,7 @@ const Index = () => {
       </main>
       
       <Footer />
-    </div>;
+    </div>
+  </>;
 };
 export default Index;
