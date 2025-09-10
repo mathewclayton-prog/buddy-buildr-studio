@@ -108,7 +108,7 @@ const Auth = () => {
             </div>
           </div>
           <Link to="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
-            <span className="text-2xl font-bold">MiCatbot</span>
+            <span className="text-2xl font-bold">MiCat</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Welcome cat lovers!</h1>
           <p className="text-muted-foreground">
