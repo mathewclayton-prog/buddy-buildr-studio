@@ -6,9 +6,7 @@ import { Link } from "react-router-dom";
 interface Catbot {
   id: string;
   name: string;
-  description?: string | null; // legacy field
   public_profile?: string | null;
-  training_description?: string | null;
   personality?: string | null;
   avatar_url: string | null;
   is_public?: boolean;

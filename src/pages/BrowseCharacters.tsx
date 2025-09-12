@@ -12,9 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Catbot {
   id: string;
   name: string;
-  description?: string | null; // legacy field
   public_profile?: string | null;
-  training_description?: string | null;
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
@@ -45,7 +43,7 @@ const BrowseCharacters = () => {
       const {
         data,
         error
-      } = await supabase.from('catbots').select('*').eq('is_public', true).order('created_at', {
+      } = await supabase.from('catbots').select('id, name, public_profile, personality, avatar_url, created_at, updated_at, is_public').eq('is_public', true).order('created_at', {
         ascending: false
       });
       if (error) throw error;

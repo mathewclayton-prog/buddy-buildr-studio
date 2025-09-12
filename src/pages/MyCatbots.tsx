@@ -15,9 +15,7 @@ import { Link } from "react-router-dom";
 interface Catbot {
   id: string;
   name: string;
-  description?: string | null; // legacy field
   public_profile?: string | null;
-  training_description?: string | null;
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
@@ -41,7 +39,7 @@ const MyCatbots = () => {
     try {
       const { data, error } = await supabase
         .from('catbots')
-        .select('*')
+        .select('id, name, public_profile, personality, avatar_url, created_at, updated_at, is_public')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
