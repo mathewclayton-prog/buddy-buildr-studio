@@ -25,12 +25,12 @@ export const DatabaseSeeder = () => {
       await updateDailyInteractions();
       
       setSeedingStep('Complete!');
-      toast.success('Database seeded successfully! Refresh the page to see the results.');
+      toast.success('Database seeded successfully! Catbots now have interaction data.');
       
-      // Refresh page after a short delay
+      // Refresh page after a short delay to show updated data
       setTimeout(() => {
         window.location.reload();
-      }, 2000);
+      }, 1500);
     } catch (error) {
       console.error('Error seeding database:', error);
       toast.error('Failed to seed database. Check console for details.');
