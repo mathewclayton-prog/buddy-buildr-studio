@@ -93,7 +93,10 @@ export const LikeButton = ({ catbotId, initialLikeCount, className }: LikeButton
     <Button
       variant="ghost"
       size="sm"
-      onClick={toggleLike}
+      onClick={(e) => {
+        e.stopPropagation();
+        toggleLike();
+      }}
       disabled={isLoading}
       className={`flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors ${className}`}
     >
