@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import MemoryIndicator from "@/components/MemoryIndicator";
+import AudioControls from "@/components/AudioControls";
+import VoiceIndicator from "@/components/VoiceIndicator";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -291,11 +293,14 @@ const Chat = () => {
           <div className="flex-1">
             <h1 className="font-semibold text-lg">{character.name}</h1>
             <div className="flex items-center gap-2">
-              <p className="text-sm text-muted-foreground">
-                {character.personalityTraits[0]} • Online
-              </p>
-              <LLMStatus />
-              {user && <MemoryIndicator catbotId={character.id} />}
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-sm text-muted-foreground">
+                  {character.personalityTraits[0]} • Online
+                </p>
+                <VoiceIndicator />
+                <LLMStatus />
+                {user && <MemoryIndicator catbotId={character.id} />}
+              </div>
             </div>
           </div>
           
@@ -342,12 +347,22 @@ const Chat = () => {
                     }`}
                   >
                     <p className="text-sm leading-relaxed">{message.content}</p>
-                    <p className={`text-xs mt-1 opacity-70 ${message.isUser ? "text-right" : ""}`}>
-                      {new Date(message.timestamp).toLocaleTimeString([], { 
-                        hour: '2-digit', 
-                        minute: '2-digit' 
-                      })}
-                    </p>
+                    <div className={`flex items-center justify-between mt-1 ${message.isUser ? "flex-row-reverse" : ""}`}>
+                      <p className={`text-xs opacity-70`}>
+                        {new Date(message.timestamp).toLocaleTimeString([], { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </p>
+                      {!message.isUser && (
+                        <AudioControls
+                          text={message.content}
+                          messageId={message.id}
+                          personality={character.personalityTraits[0]?.toLowerCase() || 'friendly'}
+                          className="ml-2"
+                        />
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

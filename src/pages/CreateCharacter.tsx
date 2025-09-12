@@ -17,6 +17,7 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit } from "@/lib/characterQueries";
+import VoicePreview from "@/components/VoicePreview";
 const PERSONALITY_OPTIONS = [{
   value: "Friendly",
   label: "Friendly",
@@ -476,6 +477,14 @@ const CreateCharacter = () => {
                     </SelectContent>
                   </Select>
                 </div>
+
+                {/* Voice Preview */}
+                {personality && (
+                  <VoicePreview 
+                    personality={personality} 
+                    characterName={name || "Your Cat"}
+                  />
+                )}
 
                 {/* Avatar Section */}
                 <div className="space-y-4">
