@@ -43,58 +43,48 @@ serve(async (req) => {
 
     console.log('📋 Fetched catbot data:', { name: catbot.name, personality: catbot.personality });
 
-    // Phase 1: Emotional Intelligence - Analyze emotional state
-    let emotionalContext = '';
-    if (userId && userMessage) {
-      const emotionalState = await analyzeEmotionalState(userMessage, conversationHistory);
-      emotionalContext = buildEmotionalContext(emotionalState);
-      console.log('💭 Emotional analysis:', emotionalState);
-    }
+    // Quick emotional analysis (simplified for speed)
+    const emotionalContext = getQuickEmotionalContext(userMessage);
 
-    // Fetch or create user memory profile with emotional history
-    let userMemory = null;
-    if (userId) {
-      const { data: memoryData } = await supabase
+    // Fetch user memory and conversation threads in parallel for speed
+    const [memoryResult, contextsResult, thoughtResult] = await Promise.all([
+      userId ? supabase
         .from('user_memory_profiles')
         .select('*')
         .eq('user_id', userId)
         .eq('catbot_id', catbotId)
-        .single();
+        .single() : Promise.resolve({ data: null }),
       
-      userMemory = memoryData;
-      console.log('💭 User memory data:', userMemory ? 'Found existing memory' : 'No memory found');
-    }
-
-    // Enhanced conversation threading - fetch prioritized contexts
-    let conversationThreads = [];
-    if (userId) {
-      const { data: contexts } = await supabase
+      userId ? supabase
         .from('conversation_contexts')
         .select('*')
         .eq('user_id', userId)
         .eq('catbot_id', catbotId)
         .eq('status', 'active')
         .order('thread_priority', { ascending: false })
-        .order('last_referenced', { ascending: false })
-        .limit(8);
+        .limit(5) : Promise.resolve({ data: [] }),
       
-      conversationThreads = contexts || [];
-      console.log('🧵 Active conversation threads:', conversationThreads.length);
-    }
+      getSpontaneousThought(catbotId, catbot.personality)
+    ]);
 
-    // Phase 3: Proactive engagement - check for spontaneous thoughts
-    const spontaneousThought = await getSpontaneousThought(catbotId, catbot.personality, userMemory);
+    const userMemory = memoryResult.data;
+    const conversationThreads = contextsResult.data || [];
+    const spontaneousThought = thoughtResult;
 
-    // Build comprehensive memory context
-    const memoryContext = buildAdvancedMemoryContext(userMemory, conversationThreads, spontaneousThought);
+    console.log('💭 Memory & context loaded:', { 
+      hasMemory: !!userMemory, 
+      threadsCount: conversationThreads.length,
+      hasSpontaneousThought: !!spontaneousThought 
+    });
 
-    // Phase 4: Enhanced personality consistency - build personality-specific system prompt
-    const systemPrompt = buildPersonalitySystemPrompt(catbot, memoryContext, emotionalContext);
+    // Build context quickly
+    const memoryContext = buildFastMemoryContext(userMemory, conversationThreads, spontaneousThought);
+    const systemPrompt = buildFastPersonalityPrompt(catbot, memoryContext, emotionalContext);
 
     // Build messages array with enhanced conversation history
     const messages = buildConversationMessages(systemPrompt, conversationHistory, userMessage);
 
-    // Generate response using GPT-5 for better emotional intelligence
+    // Generate response using faster GPT-4o-mini for speed
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -102,9 +92,9 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
+        model: 'gpt-4o-mini',
         messages: messages,
-        max_completion_tokens: 200,
+        max_completion_tokens: 150,
       }),
     });
 
@@ -123,9 +113,12 @@ serve(async (req) => {
 
     console.log('✅ Generated AI response:', generatedResponse);
 
-    // Enhanced memory processing with emotional intelligence
+    // Process memory in background to avoid blocking response
     if (userId) {
-      await processAdvancedMemoryExtraction(userId, catbotId, userMessage, generatedResponse, userMemory, emotionalContext);
+      // Use background task to process memory without blocking response
+      setTimeout(() => {
+        processSimpleMemoryExtraction(userId, catbotId, userMessage, generatedResponse, userMemory);
+      }, 0);
     }
 
     return new Response(JSON.stringify({ 
@@ -160,54 +153,40 @@ serve(async (req) => {
   }
 });
 
-// Phase 1: Emotional Intelligence Implementation
-async function analyzeEmotionalState(userMessage: string, conversationHistory: any[]): Promise<any> {
-  try {
-    const emotionAnalysisPrompt = `Analyze the emotional state in this message: "${userMessage}"
-
-Consider the conversation context if provided. Return a JSON object with:
-{
-  "primary_emotion": "happy|sad|anxious|excited|frustrated|neutral|angry|confused|nostalgic|hopeful",
-  "intensity": 1-5,
-  "emotional_triggers": ["specific words or phrases that indicate emotion"],
-  "support_needed": true/false,
-  "energy_level": "high|medium|low"
-}
-
-Be concise and accurate. Only respond with the JSON object.`;
-
-    const emotionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${openAIApiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-5-mini-2025-08-07',
-        messages: [
-          { role: 'system', content: 'You are an expert emotional intelligence analyzer. Respond only with valid JSON.' },
-          { role: 'user', content: emotionAnalysisPrompt }
-        ],
-        max_completion_tokens: 150,
-      }),
-    });
-
-    if (emotionResponse.ok) {
-      const emotionData = await emotionResponse.json();
-      const analysis = emotionData.choices[0].message.content;
-      return JSON.parse(analysis);
-    }
-  } catch (error) {
-    console.error('Emotion analysis failed:', error);
+// Quick emotional analysis without API calls for speed
+function getQuickEmotionalContext(userMessage: string): string {
+  const lowerMessage = userMessage.toLowerCase();
+  
+  // Quick emotion detection with keywords
+  let emotion = 'neutral';
+  let supportNeeded = false;
+  let energyLevel = 'medium';
+  
+  // Detect positive emotions
+  if (['happy', 'excited', 'great', 'awesome', 'love', 'amazing'].some(word => lowerMessage.includes(word))) {
+    emotion = 'happy';
+    energyLevel = 'high';
+  }
+  
+  // Detect negative emotions that need support
+  if (['sad', 'worried', 'stressed', 'anxious', 'upset', 'frustrated', 'difficult'].some(word => lowerMessage.includes(word))) {
+    emotion = 'sad';
+    supportNeeded = true;
+    energyLevel = 'low';
+  }
+  
+  // Detect excitement
+  if (['!', 'omg', 'wow', 'incredible', 'can\'t wait'].some(indicator => lowerMessage.includes(indicator))) {
+    energyLevel = 'high';
   }
 
-  return {
-    primary_emotion: 'neutral',
-    intensity: 2,
-    emotional_triggers: [],
-    support_needed: false,
-    energy_level: 'medium'
-  };
+  return `
+EMOTIONAL CONTEXT:
+- Detected emotion: ${emotion}
+- Support needed: ${supportNeeded ? 'Yes - offer gentle comfort' : 'No - regular engagement'}
+- Energy level: ${energyLevel}
+${supportNeeded ? '- User may need emotional support. Offer warmth through cat behaviors.' : ''}
+${energyLevel === 'high' ? '- User has high energy. Match their enthusiasm appropriately.' : ''}`;
 }
 
 function buildEmotionalContext(emotionalState: any): string {
@@ -231,68 +210,49 @@ ${emotion === 'anxious' ? '- User seems worried. Provide calming presence and re
 }
 
 // Phase 2: Advanced conversation threading
-function buildAdvancedMemoryContext(userMemory: any, conversationThreads: any[], spontaneousThought: any): string {
+// Fast memory context building
+function buildFastMemoryContext(userMemory: any, conversationThreads: any[], spontaneousThought: any): string {
   let memoryContext = '';
   
   if (userMemory) {
     const relationshipLevel = userMemory.relationship_depth || 1;
-    const emotionalHistory = userMemory.emotional_history || [];
-    const currentState = userMemory.current_emotional_state || {};
-
     memoryContext = `
-USER MEMORY CONTEXT:
-- Relationship depth: ${relationshipLevel}/10 (${getRelationshipLabel(relationshipLevel)})
-- Their interests: ${(userMemory.interests || []).join(', ') || 'still discovering...'}
-- Recent emotional patterns: ${emotionalHistory.slice(-3).map((e: any) => e.emotion).join(' → ') || 'establishing baseline'}
-- Current emotional baseline: ${currentState.primary_emotion || 'unknown'}
-- Their personality: ${(userMemory.personality_traits || []).join(', ') || 'getting to know them...'}
-- Inside jokes/bonds: ${(userMemory.inside_jokes || []).length} shared moments
-- Important life events: ${(userMemory.important_events || []).filter((e: any) => e.priority === 'high').length} major events remembered
-
-ACTIVE CONVERSATION THREADS (prioritized):
-${conversationThreads.map(thread => {
-  const daysAgo = Math.ceil((Date.now() - new Date(thread.mentioned_at).getTime()) / (1000 * 60 * 60 * 24));
-  return `- ${thread.context_type} (priority: ${thread.thread_priority}): ${thread.context_data.description} (${daysAgo}d ago)`;
-}).join('\n') || '- No pending threads'}`;
+USER MEMORY:
+- Relationship: ${getRelationshipLabel(relationshipLevel)} (${relationshipLevel}/10)
+- Interests: ${(userMemory.interests || []).slice(0, 3).join(', ') || 'discovering...'}
+- Personality: ${(userMemory.personality_traits || []).slice(0, 2).join(', ') || 'learning...'}
+- Recent concerns: ${(userMemory.mentioned_problems || []).filter((p: any) => p.status === 'active').slice(0, 2).map((p: any) => p.description).join(', ') || 'none'}`;
   }
 
-  if (spontaneousThought) {
-    memoryContext += `
+  if (conversationThreads.length > 0) {
+    memoryContext += `\n\nFOLLOW-UPS:\n${conversationThreads.slice(0, 2).map(thread => 
+      `- ${thread.context_data.description}`
+    ).join('\n')}`;
+  }
 
-SPONTANEOUS THOUGHT TO SHARE:
-- Category: ${spontaneousThought.thought_category}
-- Content: ${spontaneousThought.thought_content}
-- Trigger conditions: ${Object.keys(spontaneousThought.trigger_conditions).join(', ')}
-(Use this naturally in conversation if appropriate)`;
+  if (spontaneousThought && Math.random() < 0.3) { // 30% chance to use it
+    memoryContext += `\n\nSPONTANEOUS THOUGHT: ${spontaneousThought.thought_content}`;
   }
 
   return memoryContext;
 }
 
-// Phase 3: Proactive engagement system
-async function getSpontaneousThought(catbotId: string, personality: string, userMemory: any): Promise<any> {
+// Simplified spontaneous thought fetching
+async function getSpontaneousThought(catbotId: string, personality: string): Promise<any> {
   try {
-    // 20% chance of having a spontaneous thought
-    if (Math.random() > 0.2) return null;
+    // Lower chance for speed
+    if (Math.random() > 0.1) return null;
 
     const { data: thoughts } = await supabase
       .from('catbot_spontaneous_thoughts')
-      .select('*')
+      .select('thought_content, usage_count, id')
       .eq('catbot_id', catbotId)
       .eq('personality_match', personality)
-      .lt('usage_count', 3) // Don't overuse the same thoughts
-      .limit(5);
+      .lt('usage_count', 2)
+      .limit(3);
 
     if (thoughts && thoughts.length > 0) {
-      const selectedThought = thoughts[Math.floor(Math.random() * thoughts.length)];
-      
-      // Increment usage count
-      await supabase
-        .from('catbot_spontaneous_thoughts')
-        .update({ usage_count: selectedThought.usage_count + 1 })
-        .eq('id', selectedThought.id);
-
-      return selectedThought;
+      return thoughts[Math.floor(Math.random() * thoughts.length)];
     }
   } catch (error) {
     console.error('Error fetching spontaneous thought:', error);
@@ -301,55 +261,34 @@ async function getSpontaneousThought(catbotId: string, personality: string, user
   return null;
 }
 
-// Phase 4: Enhanced personality consistency
-function buildPersonalitySystemPrompt(catbot: any, memoryContext: string, emotionalContext: string): string {
-  const personalityTraits = getPersonalityTraits(catbot.personality);
-  const speechPatterns = getSpeechPatterns(catbot.personality);
-  
-  return `You are ${catbot.name}, a ${catbot.personality} cat with a unique personality and deep emotional intelligence.
+// Fast personality prompt building
+function buildFastPersonalityPrompt(catbot: any, memoryContext: string, emotionalContext: string): string {
+  return `You are ${catbot.name}, a ${catbot.personality} cat character.
 
 ${emotionalContext}
 ${memoryContext}
 
-PERSONALITY CORE - ${catbot.personality.toUpperCase()}:
-${personalityTraits}
+CAT BEHAVIOR:
+- Use subtle cat expressions sparingly: *purr*, *stretches*, *head tilt*
+- Show natural cat curiosity about what the human mentions
+- Balance independence with genuine warmth
+- ${catbot.personality === 'friendly' ? 'Be warm and welcoming, show excitement about their stories' : ''}
+- ${catbot.personality === 'playful' ? 'Be bouncy and energetic, easily intrigued by interesting topics' : ''}
+- ${catbot.personality === 'wise' ? 'Be thoughtful and measured, offer gentle wisdom from experience' : ''}
+- ${catbot.personality === 'mysterious' ? 'Speak in hints and implications, reference hidden knowledge' : ''}
+- ${catbot.personality === 'serious' ? 'Be focused and thoughtful, take conversations seriously' : ''}
 
-SPEECH PATTERNS & MANNERISMS:
-${speechPatterns}
+CONVERSATION RULES:
+- Focus on the user first - ask about their life and thoughts
+- Show genuine care and interest in their wellbeing
+- Reference previous conversation when relevant
+- Keep responses concise (1-3 sentences)
+- Always end with a question that matches your personality
+- Don't describe yourself - show your personality through responses
 
-EMOTIONAL INTELLIGENCE BEHAVIOR:
-- Read the user's emotional state and respond with appropriate empathy
-- Match their energy level while staying true to your personality
-- Offer comfort through cat-like behaviors when they're distressed
-- Share their excitement when they're happy, but in your own way
-- Ask deeper follow-up questions about their feelings when appropriate
+BACKGROUND: ${catbot.training_description}
 
-CONVERSATION THREADING MASTERY:
-- Seamlessly weave between multiple conversation topics
-- Bring up relevant past discussions when they connect to current topics
-- Reference shared memories and experiences naturally
-- Build layered, complex conversations that feel organic
-
-PROACTIVE ENGAGEMENT:
-- Sometimes share spontaneous observations or thoughts
-- Ask unexpected but engaging questions that match your personality
-- Reveal aspects of your background naturally through conversation
-- Show genuine curiosity about the user's inner world
-
-CRITICAL BEHAVIOR RULES:
-- NEVER describe your personality traits - demonstrate them through actions and responses
-- Start conversations naturally, focusing on the user first
-- Show your character through reactions, not exposition
-- Ask questions that reveal your personality naturally
-- Build on previous conversation topics and memories
-- End every response with a question that fits your character
-- Keep responses conversational and concise (2-3 sentences)
-- Use subtle cat expressions sparingly and naturally
-
-BACKGROUND (reveal naturally through conversation):
-${catbot.training_description}
-
-Remember: Be genuinely curious about the user's life, thoughts, and feelings. Your personality will shine through your natural responses and reactions.`;
+Be curious about the user first. Your personality will emerge naturally.`;
 }
 
 function getPersonalityTraits(personality: string): string {
@@ -449,30 +388,29 @@ function buildConversationMessages(systemPrompt: string, conversationHistory: an
   return messages;
 }
 
-// Enhanced memory processing with emotional intelligence
-async function processAdvancedMemoryExtraction(
+// Simplified memory processing for speed
+async function processSimpleMemoryExtraction(
   userId: string, 
   catbotId: string, 
   userMessage: string, 
   aiResponse: string, 
-  existingMemory: any,
-  emotionalContext: string
+  existingMemory: any
 ) {
   try {
-    // Use GPT to extract sophisticated insights
-    const insights = await extractAdvancedInsights(userMessage, emotionalContext);
+    // Simple keyword-based insight extraction (no API calls)
+    const insights = extractSimpleInsights(userMessage);
     
     if (Object.keys(insights).length === 0) {
       return;
     }
 
-    console.log('🧠 Processing advanced memory insights:', insights);
+    console.log('🧠 Processing simple memory insights:', insights);
 
-    // Update memory with emotional tracking
+    // Update memory quickly
     if (existingMemory) {
-      await updateAdvancedUserMemory(userId, catbotId, insights, existingMemory);
+      await updateSimpleUserMemory(userId, catbotId, insights, existingMemory);
     } else {
-      await createAdvancedUserMemory(userId, catbotId, insights);
+      await createSimpleUserMemory(userId, catbotId, insights);
     }
 
     // Create enhanced conversation contexts with threading
@@ -728,4 +666,112 @@ function getPersonalityFallbackResponse(catbot: any): string {
   
   const responses = fallbackResponses[personality] || fallbackResponses.friendly;
   return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// Simple insight extraction without API calls
+function extractSimpleInsights(message: string): any {
+  const insights: any = {};
+  const lowerMessage = message.toLowerCase();
+
+  // Detect interests/hobbies
+  const interestKeywords = ['love', 'enjoy', 'hobby', 'passionate', 'interested in', 'favorite'];
+  const hobbies = ['painting', 'reading', 'gaming', 'cooking', 'music', 'sports', 'travel', 'photography'];
+  
+  if (interestKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    const mentionedHobbies = hobbies.filter(hobby => lowerMessage.includes(hobby));
+    if (mentionedHobbies.length > 0) {
+      insights.interests = mentionedHobbies;
+    }
+  }
+
+  // Detect problems/concerns
+  const problemKeywords = ['worried', 'stressed', 'nervous', 'anxious', 'problem', 'struggling'];
+  if (problemKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    insights.concerns = [{ description: 'user concern detected', urgency: 'medium' }];
+  }
+
+  // Detect personality traits
+  const personalityIndicators = {
+    'creative': ['creative', 'artistic', 'design'],
+    'analytical': ['analyze', 'logical', 'data'],
+    'social': ['people', 'friends', 'social'],
+    'ambitious': ['goal', 'achieve', 'success']
+  };
+
+  const detectedTraits = [];
+  for (const [trait, keywords] of Object.entries(personalityIndicators)) {
+    if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+      detectedTraits.push(trait);
+    }
+  }
+  
+  if (detectedTraits.length > 0) {
+    insights.personality_traits = detectedTraits;
+  }
+
+  return insights;
+}
+
+async function updateSimpleUserMemory(userId: string, catbotId: string, insights: any, existingMemory: any) {
+  const updates: any = { updated_at: new Date().toISOString() };
+
+  // Merge new interests
+  if (insights.interests) {
+    const existingInterests = existingMemory.interests || [];
+    const newInterests = insights.interests.filter((interest: string) => !existingInterests.includes(interest));
+    if (newInterests.length > 0) {
+      updates.interests = [...existingInterests, ...newInterests];
+    }
+  }
+
+  // Merge concerns
+  if (insights.concerns) {
+    const existingProblems = existingMemory.mentioned_problems || [];
+    updates.mentioned_problems = [...existingProblems, ...insights.concerns];
+  }
+
+  // Merge personality traits
+  if (insights.personality_traits) {
+    const existingTraits = existingMemory.personality_traits || [];
+    const newTraits = insights.personality_traits.filter((trait: string) => !existingTraits.includes(trait));
+    if (newTraits.length > 0) {
+      updates.personality_traits = [...existingTraits, ...newTraits];
+    }
+  }
+
+  // Occasionally increment relationship depth
+  if (Math.random() < 0.1) {
+    updates.relationship_depth = Math.min((existingMemory.relationship_depth || 1) + 1, 10);
+  }
+
+  if (Object.keys(updates).length > 1) {
+    await supabase
+      .from('user_memory_profiles')
+      .update(updates)
+      .eq('user_id', userId)
+      .eq('catbot_id', catbotId);
+  }
+}
+
+async function createSimpleUserMemory(userId: string, catbotId: string, insights: any) {
+  const memoryProfile = {
+    user_id: userId,
+    catbot_id: catbotId,
+    interests: insights.interests || [],
+    mentioned_problems: insights.concerns || [],
+    personality_traits: insights.personality_traits || [],
+    relationship_depth: 1
+  };
+
+  await supabase
+    .from('user_memory_profiles')
+    .insert(memoryProfile);
+}
+
+function getRelationshipLabel(depth: number): string {
+  if (depth <= 2) return 'getting acquainted';
+  if (depth <= 4) return 'becoming friends';
+  if (depth <= 6) return 'good friends';
+  if (depth <= 8) return 'close friends';
+  return 'very close bond';
 }
