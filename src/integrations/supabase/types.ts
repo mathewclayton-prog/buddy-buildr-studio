@@ -22,6 +22,7 @@ export type Database = {
           id: string
           interaction_count: number
           is_public: boolean
+          last_active_at: string | null
           name: string
           personality: string | null
           public_profile: string | null
@@ -36,6 +37,7 @@ export type Database = {
           id?: string
           interaction_count?: number
           is_public?: boolean
+          last_active_at?: string | null
           name: string
           personality?: string | null
           public_profile?: string | null
@@ -50,6 +52,7 @@ export type Database = {
           id?: string
           interaction_count?: number
           is_public?: boolean
+          last_active_at?: string | null
           name?: string
           personality?: string | null
           public_profile?: string | null

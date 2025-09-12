@@ -10,6 +10,7 @@ export interface PublicCharacter {
   avatar_url: string | null;
   is_public: boolean;
   interaction_count: number;
+  last_active_at: string;
   created_at: string;
   updated_at: string;
 }
@@ -47,7 +48,7 @@ export interface CharacterForEdit {
 export async function getPublicCharacters(sortBy: 'newest' | 'popular' | 'oldest' = 'newest'): Promise<PublicCharacter[]> {
   let query = supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count')
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count, last_active_at')
     .eq('is_public', true);
 
   // Apply sorting
@@ -81,7 +82,7 @@ export async function getPublicCharacters(sortBy: 'newest' | 'popular' | 'oldest
 export async function getUserCharacters(userId: string): Promise<PublicCharacter[]> {
   const { data, error } = await supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count')
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count, last_active_at')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 

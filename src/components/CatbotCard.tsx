@@ -1,7 +1,9 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, Plus, PawPrint } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { MessageCircle, Plus, PawPrint, TrendingUp, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
+import { getActivityStatus, isTrending, isNew } from "@/lib/activityHelpers";
 
 interface Catbot {
   id: string;
@@ -12,6 +14,7 @@ interface Catbot {
   avatar_url: string | null;
   is_public?: boolean;
   interaction_count?: number;
+  last_active_at?: string;
   created_at?: string;
 }
 
@@ -19,9 +22,10 @@ interface CatbotCardProps {
   catbot: Catbot;
   variant?: 'chat' | 'create';
   delay?: number;
+  allInteractionCounts?: number[]; // For trending calculation
 }
 
-export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardProps) => {
+export const CatbotCard = ({ catbot, variant = 'chat', delay = 0, allInteractionCounts = [] }: CatbotCardProps) => {
   const getDefaultAvatar = () => {
     const colors = [
       "from-red-400 to-pink-400", 
@@ -59,9 +63,25 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           </div>
         )}
         
-        {/* Overlay Title */}
+        {/* Overlay Title with Badges */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3">
-          <h3 className="text-white font-bold text-lg leading-tight">{catbot.name}</h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="text-white font-bold text-lg leading-tight flex-1">{catbot.name}</h3>
+            <div className="flex flex-col gap-1">
+              {/* Trending Badge */}
+              {catbot.interaction_count !== undefined && isTrending(catbot.interaction_count, allInteractionCounts) && (
+                <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white border-0 text-xs px-2 py-0.5">
+                  🔥 Trending
+                </Badge>
+              )}
+              {/* New Badge */}
+              {catbot.created_at && isNew(catbot.created_at) && (
+                <Badge className="bg-gradient-to-r from-green-500 to-blue-500 text-white border-0 text-xs px-2 py-0.5">
+                  ✨ New
+                </Badge>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 
@@ -72,13 +92,21 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
-        {/* Interaction count */}
-        {catbot.interaction_count !== undefined && (
-          <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
-            <MessageCircle className="h-3 w-3" />
-            {catbot.interaction_count.toLocaleString()} interactions
-          </div>
-        )}
+        {/* Interaction count and activity status */}
+        <div className="space-y-2 mb-3">
+          {catbot.interaction_count !== undefined && (
+            <div className="text-xs text-muted-foreground flex items-center gap-1">
+              <MessageCircle className="h-3 w-3" />
+              {catbot.interaction_count.toLocaleString()} interactions
+            </div>
+          )}
+          {catbot.last_active_at && (
+            <div className="text-xs text-primary flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {getActivityStatus(catbot.last_active_at)}
+            </div>
+          )}
+        </div>
         
         {/* Chat Button - aligned at bottom */}
         {variant === 'chat' ? (

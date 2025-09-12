@@ -53,19 +53,33 @@ Deno.serve(async (req) => {
         const dailyIncrease = calculateDailyIncrease(currentCount);
         const newCount = currentCount + dailyIncrease;
         
+        // Update last_active_at for some bots to show recent activity
+        const shouldUpdateActivity = Math.random() < 0.6; // 60% chance
+        const now = new Date();
+        const hoursAgo = Math.random() * 12; // 0-12 hours ago
+        const newActiveTime = shouldUpdateActivity 
+          ? new Date(now.getTime() - (hoursAgo * 60 * 60 * 1000)).toISOString()
+          : undefined;
+        
         totalIncrease += dailyIncrease;
         
         return {
           id: catbot.id,
-          interaction_count: newCount
+          interaction_count: newCount,
+          last_active_at: newActiveTime
         };
       });
       
       // Update this batch
       for (const update of updates) {
+        const updateData: any = { interaction_count: update.interaction_count };
+        if (update.last_active_at) {
+          updateData.last_active_at = update.last_active_at;
+        }
+        
         const { error: updateError } = await supabase
           .from('catbots')
-          .update({ interaction_count: update.interaction_count })
+          .update(updateData)
           .eq('id', update.id);
         
         if (updateError) {

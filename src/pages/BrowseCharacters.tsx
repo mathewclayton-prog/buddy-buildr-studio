@@ -137,6 +137,7 @@ const BrowseCharacters = () => {
                 catbot={catbot} 
                 variant="chat"
                 delay={index * 100}
+                allInteractionCounts={catbots.map(c => c.interaction_count)}
               />
             ))}
           </div>}
