@@ -62,8 +62,14 @@ class AudioService {
       // Stop any currently playing audio
       this.stopAudio();
 
+      // Normalize and validate base64 content
+      const normalizedContent = this.normalizeBase64(audioContent);
+      if (!this.validateBase64(normalizedContent)) {
+        throw new Error('Invalid base64 audio content');
+      }
+
       // Create audio element
-      const audioBlob = this.base64ToBlob(audioContent, 'audio/mpeg');
+      const audioBlob = this.base64ToBlob(normalizedContent, 'audio/mpeg');
       const audioUrl = URL.createObjectURL(audioBlob);
       
       this.currentAudio = new Audio(audioUrl);
@@ -79,7 +85,16 @@ class AudioService {
       });
       
       this.currentAudio.addEventListener('error', (e) => {
-        console.error('Audio playback error:', e);
+        const audioError = e.target as HTMLAudioElement;
+        const errorCode = audioError.error?.code;
+        const errorMessage = this.getMediaErrorMessage(errorCode);
+        console.error('Audio playback error:', {
+          code: errorCode,
+          message: errorMessage,
+          src: audioError.src,
+          readyState: audioError.readyState,
+          networkState: audioError.networkState
+        });
         this.stopAudio();
       });
 
@@ -131,6 +146,32 @@ class AudioService {
 
   clearCache(): void {
     this.audioCache.clear();
+  }
+
+  private normalizeBase64(base64: string): string {
+    // Remove any whitespace and newlines
+    return base64.replace(/\s/g, '');
+  }
+
+  private validateBase64(base64: string): boolean {
+    try {
+      // Test if the base64 string is valid
+      atob(base64);
+      return true;
+    } catch (error) {
+      console.error('Invalid base64 content:', error);
+      return false;
+    }
+  }
+
+  private getMediaErrorMessage(errorCode?: number): string {
+    switch (errorCode) {
+      case 1: return 'MEDIA_ERR_ABORTED: The operation was aborted';
+      case 2: return 'MEDIA_ERR_NETWORK: A network error occurred';
+      case 3: return 'MEDIA_ERR_DECODE: A decoding error occurred';
+      case 4: return 'MEDIA_ERR_SRC_NOT_SUPPORTED: The audio format is not supported';
+      default: return 'Unknown media error';
+    }
   }
 }
 

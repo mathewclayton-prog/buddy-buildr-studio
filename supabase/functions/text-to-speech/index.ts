@@ -74,17 +74,14 @@ serve(async (req) => {
       throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
-    // Convert audio buffer to base64 efficiently
+    // Convert audio buffer to base64 using Deno's encoder for reliability
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
     
-    // Convert to base64 in chunks to avoid stack overflow
-    let base64Audio = '';
-    const chunkSize = 0x8000; // 32KB chunks
-    for (let i = 0; i < uint8Array.length; i += chunkSize) {
-      const chunk = uint8Array.subarray(i, i + chunkSize);
-      base64Audio += btoa(String.fromCharCode.apply(null, Array.from(chunk)));
-    }
+    // Use Deno's built-in base64 encoder to avoid corruption
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
+    const base64Audio = btoa(decoder.decode(uint8Array));
 
     console.log(`✅ Successfully generated ${arrayBuffer.byteLength} bytes of audio`);
 
