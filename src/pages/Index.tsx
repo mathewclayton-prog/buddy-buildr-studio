@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import { PlatformStats } from "@/components/PlatformStats";
 import { CatbotSection } from "@/components/CatbotSection";
 import { RecentActivityFeed } from "@/components/RecentActivityFeed";
+import { DatabaseSeeder } from "@/components/DatabaseSeeder";
 import { Plus, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -40,6 +41,7 @@ const Index = () => {
   // Activity feed
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  const [showSeeder, setShowSeeder] = useState(false);
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -92,6 +94,9 @@ const Index = () => {
     try {
       const stats = await getPlatformStats();
       setPlatformStats(stats);
+      
+      // Show seeder if no conversations exist
+      setShowSeeder(stats.totalConversations === 0);
     } catch (error) {
       console.error('Error loading platform stats:', error);
     }
@@ -225,6 +230,13 @@ const Index = () => {
 
         {/* Platform Stats */}
         <PlatformStats {...platformStats} />
+
+        {/* Database Seeder (only show if no conversations) */}
+        {showSeeder && (
+          <div className="mb-16">
+            <DatabaseSeeder />
+          </div>
+        )}
 
         {/* Main Content Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
