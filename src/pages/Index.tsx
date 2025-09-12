@@ -38,8 +38,8 @@ const Index = () => {
       const featured = data.slice(0, 6); // Get top 6 most popular
       setFeaturedCatbots(featured);
       
-      // Generate activity feed
-      const activities = generateActivityFeed(data);
+      // Generate activity feed (now async)
+      const activities = await generateActivityFeed(data);
       setActivityFeed(activities);
     } catch (error) {
       console.error('Error loading featured catbots:', error);

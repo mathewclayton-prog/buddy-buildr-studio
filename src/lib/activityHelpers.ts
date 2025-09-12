@@ -1,4 +1,5 @@
 import { formatDistanceToNow } from "date-fns";
+import { getRecentConversations, generateConversationActivity } from "./conversationQueries";
 
 // Helper functions for activity features
 export const getActivityStatus = (lastActiveAt: string): string => {
@@ -37,9 +38,21 @@ export const getRandomOnlineCount = (): number => {
   return Math.floor(Math.random() * 14) + 2; // 2-15 people
 };
 
-// Generate fake activity feed items
-export const generateActivityFeed = (characters: { id: string; name: string; interaction_count: number }[]) => {
+// Generate fake activity feed items (enhanced with real conversations when available)
+export const generateActivityFeed = async (characters: { id: string; name: string; interaction_count: number }[]) => {
   const activities = [];
+  
+  try {
+    // Try to get some real conversation samples for testimonials
+    const conversations = await getRecentConversations(3);
+    if (conversations.length > 0) {
+      const testimonialActivities = generateConversationActivity(conversations);
+      activities.push(...testimonialActivities);
+    }
+  } catch (error) {
+    console.log('Could not fetch real conversations, using fake data');
+  }
+  
   const userNames = [
     "Alex", "Sarah", "Mike", "Emma", "David", "Luna", "Chris", "Maya", 
     "Someone", "A cat lover", "New user", "Visitor"
@@ -52,8 +65,9 @@ export const generateActivityFeed = (characters: { id: string; name: string; int
     "just found"
   ];
 
-  // Add recent chat activities
-  for (let i = 0; i < Math.min(8, characters.length); i++) {
+  // Add fake recent chat activities
+  const numFakeActivities = Math.max(0, 8 - activities.length);
+  for (let i = 0; i < Math.min(numFakeActivities, characters.length); i++) {
     const character = characters[Math.floor(Math.random() * characters.length)];
     const userName = userNames[Math.floor(Math.random() * userNames.length)];
     const activity = activityTypes[Math.floor(Math.random() * activityTypes.length)];
@@ -69,7 +83,7 @@ export const generateActivityFeed = (characters: { id: string; name: string; int
 
   // Add milestone activities for high interaction counts
   const highInteractionBots = characters.filter(c => c.interaction_count > 400);
-  for (let i = 0; i < Math.min(3, highInteractionBots.length); i++) {
+  for (let i = 0; i < Math.min(2, highInteractionBots.length); i++) {
     const character = highInteractionBots[i];
     const milestone = Math.floor(character.interaction_count / 100) * 100;
     if (milestone >= 500) {

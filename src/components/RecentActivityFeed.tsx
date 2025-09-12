@@ -6,7 +6,7 @@ interface ActivityItem {
   id: string;
   text: string;
   timeAgo: string;
-  type: 'chat' | 'milestone';
+  type: 'chat' | 'milestone' | 'testimonial';
 }
 
 interface RecentActivityFeedProps {
@@ -38,11 +38,15 @@ export const RecentActivityFeed = ({ activities, onlineCount }: RecentActivityFe
           >
             <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
               activity.type === 'milestone' 
-                ? 'bg-gradient-to-br from-yellow-400 to-orange-400' 
+                ? 'bg-gradient-to-br from-yellow-400 to-orange-400'
+                : activity.type === 'testimonial'
+                ? 'bg-gradient-to-br from-blue-400 to-purple-400' 
                 : 'bg-gradient-to-br from-primary/20 to-accent/20'
             }`}>
               {activity.type === 'milestone' ? (
                 <Sparkles className="h-4 w-4 text-white" />
+              ) : activity.type === 'testimonial' ? (
+                <MessageCircle className="h-4 w-4 text-white" />
               ) : (
                 <MessageCircle className="h-4 w-4 text-primary" />
               )}
