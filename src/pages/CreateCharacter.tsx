@@ -355,18 +355,32 @@ const CreateCharacter = () => {
                 {/* Public Profile */}
                 <div className="space-y-2">
                   <Label htmlFor="publicProfile">Public Profile *</Label>
-                  <Textarea id="publicProfile" value={publicProfile} onChange={e => setPublicProfile(e.target.value)} placeholder="Brief description that other users see when browsing (max 250 characters)" rows={3} maxLength={250} />
+                  <Textarea 
+                    id="publicProfile" 
+                    value={publicProfile} 
+                    onChange={e => setPublicProfile(e.target.value)} 
+                    placeholder="Write a catchy description that will attract users to chat with your cat. This appears on your cat's card when people browse." 
+                    rows={3} 
+                    maxLength={250} 
+                  />
                   <p className="text-sm text-muted-foreground">
-                    {publicProfile.length}/250 characters
+                    {publicProfile.length}/250 characters - This is what people see when browsing cats
                   </p>
                 </div>
 
-                {/* Training Description */}
+                {/* Personality & History */}
                 <div className="space-y-2">
-                  <Label htmlFor="trainingDescription">AI Training Instructions *</Label>
-                  <Textarea id="trainingDescription" value={trainingDescription} onChange={e => setTrainingDescription(e.target.value)} placeholder="Detailed personality, background, speaking style, and behavior instructions for AI training (max 2000 characters)" rows={6} maxLength={2000} />
+                  <Label htmlFor="trainingDescription">Personality & History *</Label>
+                  <Textarea 
+                    id="trainingDescription" 
+                    value={trainingDescription} 
+                    onChange={e => setTrainingDescription(e.target.value)} 
+                    placeholder="Let us know as much as possible about your cat! Their personality and traits, likes and dislikes, favourite toys and places to sleep. Whether they live with any other pets etc. Also (if you want) mention other members of your family the cat interacts with, how old it is etc. This is private and used to train your cat." 
+                    rows={8} 
+                    maxLength={2000} 
+                  />
                   <p className="text-sm text-muted-foreground">
-                    {trainingDescription.length}/2000 characters - This information is private and used only for AI training
+                    {trainingDescription.length}/2000 characters - Private training instructions
                   </p>
                 </div>
 
