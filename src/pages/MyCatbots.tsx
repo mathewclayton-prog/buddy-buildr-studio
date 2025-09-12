@@ -15,6 +15,7 @@ import { Link } from "react-router-dom";
 interface Catbot {
   id: string;
   name: string;
+  description?: string | null; // legacy field for backward compatibility
   public_profile?: string | null;
   personality: string | null;
   avatar_url: string | null;
@@ -39,7 +40,7 @@ const MyCatbots = () => {
     try {
       const { data, error } = await supabase
         .from('catbots')
-        .select('id, name, public_profile, personality, avatar_url, created_at, updated_at, is_public')
+        .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
         .eq('user_id', user?.id)
         .order('created_at', { ascending: false });
 
@@ -187,7 +188,7 @@ const MyCatbots = () => {
       </CardHeader>
       <CardContent className="pt-0">
         <CardDescription className="mb-4 line-clamp-2">
-          {catbot.public_profile || "No description provided"}
+          {catbot.public_profile || catbot.description || "No description provided"}
         </CardDescription>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

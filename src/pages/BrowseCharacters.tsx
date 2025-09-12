@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 interface Catbot {
   id: string;
   name: string;
+  description?: string | null; // legacy field for backward compatibility
   public_profile?: string | null;
   personality: string | null;
   avatar_url: string | null;
@@ -34,7 +35,7 @@ const BrowseCharacters = () => {
     if (searchQuery.trim() === "") {
       setFilteredCatbots(catbots);
     } else {
-      const filtered = catbots.filter(catbot => catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.public_profile && catbot.public_profile.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filtered = catbots.filter(catbot => catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || (catbot.public_profile || catbot.description) && (catbot.public_profile || catbot.description)!.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()));
       setFilteredCatbots(filtered);
     }
   }, [catbots, searchQuery]);
@@ -43,7 +44,7 @@ const BrowseCharacters = () => {
       const {
         data,
         error
-      } = await supabase.from('catbots').select('id, name, public_profile, personality, avatar_url, created_at, updated_at, is_public').eq('is_public', true).order('created_at', {
+      } = await supabase.from('catbots').select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public').eq('is_public', true).order('created_at', {
         ascending: false
       });
       if (error) throw error;

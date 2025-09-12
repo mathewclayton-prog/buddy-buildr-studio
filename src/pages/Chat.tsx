@@ -36,19 +36,19 @@ const Chat = () => {
         try {
           const { data, error } = await supabase
             .from('catbots')
-            .select('*')
+            .select('id, name, description, public_profile, training_description, personality, avatar_url, created_at')
             .eq('id', characterId)
             .single();
           
           if (error) throw error;
           
           if (data) {
-            // Convert Supabase catbot to Character format
+            // Convert Supabase catbot to Character format with backward compatibility
             char = {
               id: data.id,
               name: data.name,
-              publicProfile: data.public_profile || '',
-              trainingDescription: data.training_description || '',
+              publicProfile: data.public_profile || (data.description ? data.description.substring(0, 250) : ''),
+              trainingDescription: data.training_description || data.description || '',
               personalityTraits: data.personality ? [data.personality] : ['friendly'],
               avatar: data.avatar_url || undefined,
               createdAt: new Date(data.created_at),

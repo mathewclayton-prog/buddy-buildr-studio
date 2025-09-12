@@ -87,14 +87,14 @@ const CreateCharacter = () => {
       const {
         data,
         error
-      } = await supabase.from('catbots').select('*').eq('id', catbotId).eq('user_id', user?.id) // Ensure user owns the catbot
+      } = await supabase.from('catbots').select('id, name, description, public_profile, training_description, personality, avatar_url, is_public').eq('id', catbotId).eq('user_id', user?.id) // Ensure user owns the catbot
       .single();
       if (error) throw error;
 
-      // Populate form with existing data
+      // Populate form with existing data, handling backward compatibility
       setName(data.name);
-      setPublicProfile(data.public_profile || data.description || ""); // fallback to legacy description
-      setTrainingDescription(data.training_description || data.description || ""); // fallback to legacy description
+      setPublicProfile(data.public_profile || (data.description ? data.description.substring(0, 250) : "")); // Use legacy description if no public_profile
+      setTrainingDescription(data.training_description || data.description || ""); // Use legacy description if no training_description
       setPersonality(data.personality || "");
       setIsPublic(data.is_public);
       if (data.avatar_url) {
