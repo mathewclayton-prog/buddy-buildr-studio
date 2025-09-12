@@ -17,6 +17,7 @@ import MemoryIndicator from "@/components/MemoryIndicator";
 import AudioControls from "@/components/AudioControls";
 import VoiceIndicator from "@/components/VoiceIndicator";
 import VoiceInput from "@/components/VoiceInput";
+import VoiceConversation from "@/components/VoiceConversation";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -28,6 +29,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [voiceMode, setVoiceMode] = useState<'text' | 'voice' | 'realtime'>('text');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -227,6 +229,28 @@ const Chat = () => {
     sendMessage(transcribedText);
   };
 
+  const handleConversationUpdate = (transcription: string, isUser: boolean) => {
+    const newMessage: ChatMessage = {
+      id: crypto.randomUUID(),
+      content: transcription,
+      isUser,
+      timestamp: new Date(),
+    };
+
+    setMessages(prev => [...prev, newMessage]);
+
+    // Save to session if we have a character
+    if (character) {
+      const session: ChatSession = {
+        id: character.id,
+        characterId: character.id,
+        messages: [...messages, newMessage],
+        createdAt: new Date(),
+      };
+      storageService.saveChatSession(session);
+    }
+  };
+
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -309,6 +333,30 @@ const Chat = () => {
                 {user && <MemoryIndicator catbotId={character.id} />}
               </div>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              variant={voiceMode === 'text' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setVoiceMode('text')}
+            >
+              Text
+            </Button>
+            <Button
+              variant={voiceMode === 'voice' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setVoiceMode('voice')}
+            >
+              Voice
+            </Button>
+            <Button
+              variant={voiceMode === 'realtime' ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setVoiceMode('realtime')}
+            >
+              Live
+            </Button>
           </div>
           
           <Button variant="ghost" size="icon">
@@ -417,36 +465,50 @@ const Chat = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Message Input Area - WhatsApp style */}
-          <div className="border-t bg-card p-4">
-            <div className="flex gap-3 items-end">
-              <VoiceInput 
-                onTranscription={handleVoiceTranscription}
-                disabled={isTyping}
-                className="flex-shrink-0"
+          {/* Voice Conversation Mode */}
+          {voiceMode === 'realtime' && (
+            <div className="border-t bg-card p-4">
+              <VoiceConversation
+                character={character}
+                onConversationUpdate={handleConversationUpdate}
               />
-              <div className="flex-1 relative">
-                <Input
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  placeholder={`Message ${character.name}...`}
-                  disabled={isTyping}
-                  className="rounded-full pl-4 pr-12 py-2 min-h-[44px] bg-background border-border focus:border-primary resize-none"
-                  style={{ paddingRight: '3rem' }}
-                />
-                <Button
-                  onClick={() => sendMessage()}
-                  disabled={!newMessage.trim() || isTyping}
-                  size="icon"
-                  variant="ghost"
-                  className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-accent"
-                >
-                  <Send className="h-4 w-4" />
-                </Button>
+            </div>
+          )}
+
+          {/* Message Input Area - WhatsApp style */}
+          {(voiceMode === 'text' || voiceMode === 'voice') && (
+            <div className="border-t bg-card p-4">
+              <div className="flex gap-3 items-end">
+                {voiceMode === 'voice' && (
+                  <VoiceInput 
+                    onTranscription={handleVoiceTranscription}
+                    disabled={isTyping}
+                    className="flex-shrink-0"
+                  />
+                )}
+                <div className="flex-1 relative">
+                  <Input
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyPress={handleKeyPress}
+                    placeholder={`Message ${character.name}...`}
+                    disabled={isTyping}
+                    className="rounded-full pl-4 pr-12 py-2 min-h-[44px] bg-background border-border focus:border-primary resize-none"
+                    style={{ paddingRight: '3rem' }}
+                  />
+                  <Button
+                    onClick={() => sendMessage()}
+                    disabled={!newMessage.trim() || isTyping}
+                    size="icon"
+                    variant="ghost"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-8 w-8 rounded-full hover:bg-accent"
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

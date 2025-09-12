@@ -11,3 +11,9 @@ verify_jwt = false
 
 [functions.speech-to-text]
 verify_jwt = false
+
+[functions.create-elevenlabs-agent]
+verify_jwt = false
+
+[functions.get-elevenlabs-url]
+verify_jwt = false
