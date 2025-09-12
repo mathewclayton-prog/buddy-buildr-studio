@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-
+import { encode as base64Encode } from "https://deno.land/std@0.168.0/encoding/base64.ts";
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -74,14 +74,10 @@ serve(async (req) => {
       throw new Error(`ElevenLabs API error: ${response.status} - ${errorText}`);
     }
 
-    // Convert audio buffer to base64 using Deno's encoder for reliability
+    // Convert audio buffer to base64 reliably using Deno std encoder
     const arrayBuffer = await response.arrayBuffer();
     const uint8Array = new Uint8Array(arrayBuffer);
-    
-    // Use Deno's built-in base64 encoder to avoid corruption
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
-    const base64Audio = btoa(decoder.decode(uint8Array));
+    const base64Audio = base64Encode(uint8Array);
 
     console.log(`✅ Successfully generated ${arrayBuffer.byteLength} bytes of audio`);
 
