@@ -1,50 +1,166 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { CatbotCard } from "@/components/CatbotCard";
+import { PlatformStats } from "@/components/PlatformStats";
+import { CatbotSection } from "@/components/CatbotSection";
 import { RecentActivityFeed } from "@/components/RecentActivityFeed";
-import { Plus, Users, Sparkles, PawPrint, ArrowRight } from "lucide-react";
+import { Plus, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { getPublicCharacters, type PublicCharacter } from "@/lib/characterQueries";
+import { 
+  getPlatformStats, 
+  getMostPopularThisWeek, 
+  getRecentlyCreated, 
+  getStaffPicks, 
+  getQuickStartBots 
+} from "@/lib/platformStats";
 import { generateActivityFeed, getRandomOnlineCount } from "@/lib/activityHelpers";
+import type { PublicCharacter } from "@/lib/characterQueries";
 
 const heroCat = "/lovable-uploads/057d2f0d-a602-456f-b685-1e284a57e2c5.png";
 
 const Index = () => {
   const { user } = useAuth();
-  const [featuredCatbots, setFeaturedCatbots] = useState<PublicCharacter[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Platform stats
+  const [platformStats, setPlatformStats] = useState({
+    totalUsers: 1247,
+    totalConversations: 15429,
+    totalCatbots: 67,
+    activeNow: 12
+  });
+
+  // Catbot sections
+  const [popularCatbots, setPopularCatbots] = useState<PublicCharacter[]>([]);
+  const [recentCatbots, setRecentCatbots] = useState<PublicCharacter[]>([]);
+  const [staffPicksCatbots, setStaffPicksCatbots] = useState<PublicCharacter[]>([]);
+  const [starterCatbots, setStarterCatbots] = useState<PublicCharacter[]>([]);
+  
+  // Activity feed
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
+  
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [sectionsLoading, setSectionsLoading] = useState({
+    popular: true,
+    recent: true,
+    staff: true,
+    starter: true
+  });
 
   useEffect(() => {
-    loadFeaturedCatbots();
+    loadAllData();
   }, []);
 
   useEffect(() => {
-    // Update online count every 30 seconds
+    // Update online count and stats periodically
     const updateOnlineCount = () => setOnlineCount(getRandomOnlineCount());
     updateOnlineCount();
-    const interval = setInterval(updateOnlineCount, 30000);
-    return () => clearInterval(interval);
+    
+    const onlineInterval = setInterval(updateOnlineCount, 30000); // Every 30 seconds
+    const statsInterval = setInterval(loadPlatformStats, 120000); // Every 2 minutes
+    
+    return () => {
+      clearInterval(onlineInterval);
+      clearInterval(statsInterval);
+    };
   }, []);
 
-  const loadFeaturedCatbots = async () => {
+  const loadAllData = async () => {
+    setLoading(true);
+    
+    // Load platform stats first
+    await loadPlatformStats();
+    
+    // Load all catbot sections in parallel
+    await Promise.all([
+      loadPopularCatbots(),
+      loadRecentCatbots(),
+      loadStaffPicks(),
+      loadStarterCatbots()
+    ]);
+    
+    // Load activity feed last (can use data from other sections)
+    await loadActivityFeed();
+    
+    setLoading(false);
+  };
+
+  const loadPlatformStats = async () => {
     try {
-      const data = await getPublicCharacters('popular');
-      const featured = data.slice(0, 6); // Get top 6 most popular
-      setFeaturedCatbots(featured);
+      const stats = await getPlatformStats();
+      setPlatformStats(stats);
+    } catch (error) {
+      console.error('Error loading platform stats:', error);
+    }
+  };
+
+  const loadPopularCatbots = async () => {
+    try {
+      setSectionsLoading(prev => ({ ...prev, popular: true }));
+      const data = await getMostPopularThisWeek(6);
+      setPopularCatbots(data);
+    } catch (error) {
+      console.error('Error loading popular catbots:', error);
+    } finally {
+      setSectionsLoading(prev => ({ ...prev, popular: false }));
+    }
+  };
+
+  const loadRecentCatbots = async () => {
+    try {
+      setSectionsLoading(prev => ({ ...prev, recent: true }));
+      const data = await getRecentlyCreated(6);
+      setRecentCatbots(data);
+    } catch (error) {
+      console.error('Error loading recent catbots:', error);
+    } finally {
+      setSectionsLoading(prev => ({ ...prev, recent: false }));
+    }
+  };
+
+  const loadStaffPicks = async () => {
+    try {
+      setSectionsLoading(prev => ({ ...prev, staff: true }));
+      const data = await getStaffPicks(6);
+      setStaffPicksCatbots(data);
+    } catch (error) {
+      console.error('Error loading staff picks:', error);
+    } finally {
+      setSectionsLoading(prev => ({ ...prev, staff: false }));
+    }
+  };
+
+  const loadStarterCatbots = async () => {
+    try {
+      setSectionsLoading(prev => ({ ...prev, starter: true }));
+      const data = await getQuickStartBots(4);
+      setStarterCatbots(data);
+    } catch (error) {
+      console.error('Error loading starter catbots:', error);
+    } finally {
+      setSectionsLoading(prev => ({ ...prev, starter: false }));
+    }
+  };
+
+  const loadActivityFeed = async () => {
+    try {
+      // Combine all catbots for activity generation
+      const allCatbots = [
+        ...popularCatbots,
+        ...recentCatbots,
+        ...staffPicksCatbots,
+        ...starterCatbots
+      ].filter((bot, index, self) => 
+        index === self.findIndex(b => b.id === bot.id) // Remove duplicates
+      );
       
-      // Generate activity feed (now async)
-      const activities = await generateActivityFeed(data);
+      const activities = await generateActivityFeed(allCatbots);
       setActivityFeed(activities);
     } catch (error) {
-      console.error('Error loading featured catbots:', error);
-    } finally {
-      setLoading(false);
+      console.error('Error loading activity feed:', error);
     }
   };
 
@@ -68,7 +184,7 @@ const Index = () => {
             Bring your own feline friend to life or build a purrfect companion.
           </p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
             {user ? (
               <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
@@ -107,81 +223,59 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Platform Stats */}
+        <PlatformStats {...platformStats} />
+
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-12 mb-16">
-          {/* Featured Catbots - Left Side (2/3 width) */}
-          <div className="lg:col-span-2">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl md:text-4xl font-bold mb-4 text-nav-orange">🔥 Trending Cats</h2>
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Meet our most popular catbots that everyone is talking to
-              </p>
-            </div>
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
+          {/* Main Content - Left Side (3/4 width) */}
+          <div className="lg:col-span-3">
+            {/* Quick Start Section */}
+            <CatbotSection
+              title="Quick Start"
+              subtitle="Perfect for first-time cat chatters - friendly and easy to talk to"
+              catbots={starterCatbots}
+              loading={sectionsLoading.starter}
+              sectionType="starter"
+              showMore={false}
+            />
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-              {loading ? (
-                // Loading skeleton
-                [...Array(6)].map((_, index) => (
-                  <Card key={index} className="animate-pulse shadow-card overflow-hidden">
-                    <div className="h-32 bg-muted" />
-                    <CardContent className="p-3">
-                      <div className="h-4 bg-muted rounded mb-2" />
-                      <div className="space-y-2 mb-3">
-                        <div className="h-3 bg-muted rounded" />
-                        <div className="h-3 bg-muted rounded w-3/4" />
-                      </div>
-                      <div className="h-8 bg-muted rounded" />
-                    </CardContent>
-                  </Card>
-                ))
-              ) : featuredCatbots.length > 0 ? (
-                // Real catbots from database
-                featuredCatbots.map((catbot, index) => (
-                  <CatbotCard 
-                    key={catbot.id} 
-                    catbot={catbot} 
-                    variant="chat"
-                    delay={index * 100}
-                    allInteractionCounts={featuredCatbots.map(c => c.interaction_count)}
-                  />
-                ))
-              ) : (
-                // Empty state - show sample cards
-                [{
-                  id: "sample",
-                  name: "Be the first!",
-                  public_profile: "Create the first public catbot and it will appear here for everyone to discover.",
-                  avatar_url: null,
-                  interaction_count: 0,
-                  created_at: new Date().toISOString(),
-                  last_active_at: new Date().toISOString()
-                } as PublicCharacter].map((catbot, index) => (
-                  <CatbotCard 
-                    key={catbot.id} 
-                    catbot={catbot} 
-                    variant="create"
-                    delay={index * 100}
-                  />
-                ))
-              )}
-            </div>
+            {/* Most Popular This Week */}
+            <CatbotSection
+              title="Most Popular This Week"
+              subtitle="Trending cats everyone is talking to right now"
+              catbots={popularCatbots}
+              loading={sectionsLoading.popular}
+              sectionType="popular"
+            />
 
-            <div className="text-center">
-              <Button variant="outline" size="lg" asChild className="px-8">
-                <Link to="/browse" className="flex items-center gap-2">
-                  View All Catbots
-                  <ArrowRight className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
+            {/* Staff Picks */}
+            <CatbotSection
+              title="Staff Picks"
+              subtitle="Handpicked by our team for exceptional quality and charm"
+              catbots={staffPicksCatbots}
+              loading={sectionsLoading.staff}
+              sectionType="staff"
+            />
+
+            {/* Recently Created */}
+            <CatbotSection
+              title="Recently Created"
+              subtitle="Fresh faces in our cat community - be among the first to meet them"
+              catbots={recentCatbots}
+              loading={sectionsLoading.recent}
+              sectionType="recent"
+            />
           </div>
 
-          {/* Activity Feed - Right Side (1/3 width) */}
+          {/* Activity Feed - Right Side (1/4 width) */}
           <div className="lg:col-span-1">
-            <RecentActivityFeed 
-              activities={activityFeed} 
-              onlineCount={onlineCount}
-            />
+            <div className="sticky top-8">
+              <RecentActivityFeed 
+                activities={activityFeed} 
+                onlineCount={onlineCount}
+              />
+            </div>
           </div>
         </div>
       </main>
