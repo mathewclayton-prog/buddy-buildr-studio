@@ -55,7 +55,8 @@ class LocalLLMService {
   async generateResponse(
     catbotId: string, 
     userMessage: string, 
-    conversationHistory?: Array<{role: string; content: string}>
+    conversationHistory?: Array<{role: string; content: string}>,
+    userId?: string
   ): Promise<string> {
     try {
       await this.initialize();
@@ -66,7 +67,8 @@ class LocalLLMService {
         body: {
           catbotId,
           userMessage,
-          conversationHistory: conversationHistory || []
+          conversationHistory: conversationHistory || [],
+          userId
         }
       });
 

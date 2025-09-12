@@ -12,11 +12,14 @@ import { storageService } from "@/lib/storage";
 import { localLLM } from "@/services/localLLM";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import MemoryIndicator from "@/components/MemoryIndicator";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user } = useAuth();
   
   const [character, setCharacter] = useState<Character | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -115,7 +118,7 @@ const Chat = () => {
 
     try {
       if (localLLM.isReady()) {
-        return await localLLM.generateResponse(character.id, userMessage, conversationHistory);
+        return await localLLM.generateResponse(character.id, userMessage, conversationHistory, user?.id);
       }
     } catch (error) {
       console.error("LLM generation failed, using fallback:", error);
@@ -289,6 +292,7 @@ const Chat = () => {
                 {character.personalityTraits[0]} • Online
               </p>
               <LLMStatus />
+              {user && <MemoryIndicator catbotId={character.id} />}
             </div>
           </div>
           

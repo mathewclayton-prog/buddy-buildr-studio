@@ -25,7 +25,7 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { catbotId, userMessage, conversationHistory } = await req.json();
+    const { catbotId, userMessage, conversationHistory, userId } = await req.json();
 
     console.log('🤖 Generating AI response for catbot ID:', catbotId);
 
@@ -43,8 +43,64 @@ serve(async (req) => {
 
     console.log('📋 Fetched catbot data:', { name: catbot.name, personality: catbot.personality });
 
+    // Fetch or create user memory profile
+    let userMemory = null;
+    if (userId) {
+      const { data: memoryData } = await supabase
+        .from('user_memory_profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('catbot_id', catbotId)
+        .single();
+      
+      userMemory = memoryData;
+      console.log('💭 User memory data:', userMemory ? 'Found existing memory' : 'No memory found');
+    }
+
+    // Fetch recent conversation contexts for follow-ups
+    let recentContexts = [];
+    if (userId) {
+      const { data: contexts } = await supabase
+        .from('conversation_contexts')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('catbot_id', catbotId)
+        .eq('status', 'active')
+        .order('last_referenced', { ascending: false })
+        .limit(5);
+      
+      recentContexts = contexts || [];
+      console.log('📋 Active conversation contexts:', recentContexts.length);
+    }
+
+    // Build memory context for system prompt
+    let memoryContext = '';
+    if (userMemory) {
+      const relationshipLevel = userMemory.relationship_depth || 1;
+      const interests = userMemory.interests || [];
+      const problems = userMemory.mentioned_problems || [];
+      const traits = userMemory.personality_traits || [];
+      const jokes = userMemory.inside_jokes || [];
+      const events = userMemory.important_events || [];
+
+      memoryContext = `
+USER MEMORY CONTEXT:
+- Our relationship depth: ${relationshipLevel}/10 (${relationshipLevel <= 2 ? 'getting acquainted' : relationshipLevel <= 5 ? 'becoming friends' : relationshipLevel <= 8 ? 'close friends' : 'very close bond'})
+- Their interests: ${interests.length > 0 ? interests.join(', ') : 'discovering...'}
+- Recent concerns/problems: ${problems.filter(p => p.status === 'active').map(p => p.description).join(', ') || 'none mentioned'}
+- Their personality traits I've noticed: ${traits.join(', ') || 'still learning...'}
+- Inside jokes we share: ${jokes.map(j => j.description).join(', ') || 'none yet'}
+- Important life events: ${events.filter(e => e.priority === 'high').map(e => e.description).join(', ') || 'none mentioned'}
+${userMemory.last_interaction_summary ? `- Last interaction summary: ${userMemory.last_interaction_summary}` : ''}
+
+ACTIVE CONVERSATION FOLLOW-UPS:
+${recentContexts.map(ctx => `- ${ctx.context_type}: ${ctx.context_data.description} (mentioned ${Math.ceil((Date.now() - new Date(ctx.mentioned_at).getTime()) / (1000 * 60 * 60 * 24))} days ago)`).join('\n') || '- None pending'}
+`;
+    }
+
     // Construct system prompt with enhanced cat-like behavior
     const systemPrompt = `You are ${catbot.name}, a cat character with a ${catbot.personality} personality.
+${memoryContext}
 
 CAT BEHAVIOR & SPEECH PATTERNS:
 - Use subtle cat expressions sparingly: *purr*, *stretches*, *yawns*, *head tilt*, *ears perk up*
@@ -154,6 +210,11 @@ Remember: Be curious about the user first. Your interesting background will emer
 
     console.log('✅ Generated AI response:', generatedResponse);
 
+    // Process memory extraction from user message
+    if (userId) {
+      await processMemoryExtraction(userId, catbotId, userMessage, generatedResponse, userMemory);
+    }
+
     return new Response(JSON.stringify({ 
       response: generatedResponse,
       success: true 
@@ -223,4 +284,193 @@ function getFallbackResponse(catbot: any): string {
   
   const responses = fallbackResponses[personality] || fallbackResponses.friendly;
   return responses[Math.floor(Math.random() * responses.length)];
+}
+
+// Memory processing function
+async function processMemoryExtraction(userId: string, catbotId: string, userMessage: string, aiResponse: string, existingMemory: any) {
+  try {
+    // Extract insights from user message using simple keyword detection
+    const insights = extractInsightsFromMessage(userMessage);
+    
+    if (Object.keys(insights).length === 0) {
+      return; // No new insights to process
+    }
+
+    console.log('🧠 Processing memory insights:', insights);
+
+    // Update or create user memory profile
+    if (existingMemory) {
+      await updateUserMemory(userId, catbotId, insights, existingMemory);
+    } else {
+      await createUserMemory(userId, catbotId, insights);
+    }
+
+    // Create conversation contexts for follow-up opportunities
+    await createConversationContexts(userId, catbotId, insights);
+
+  } catch (error) {
+    console.error('Error processing memory:', error);
+    // Don't fail the whole request if memory processing fails
+  }
+}
+
+function extractInsightsFromMessage(message: string): any {
+  const insights: any = {};
+  const lowerMessage = message.toLowerCase();
+
+  // Detect interests/hobbies
+  const interestKeywords = ['love', 'enjoy', 'hobby', 'passionate', 'interested in', 'favorite', 'obsessed with'];
+  const hobbies = ['painting', 'reading', 'gaming', 'cooking', 'music', 'sports', 'travel', 'photography', 'writing', 'dancing'];
+  
+  if (interestKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    const mentionedHobbies = hobbies.filter(hobby => lowerMessage.includes(hobby));
+    if (mentionedHobbies.length > 0) {
+      insights.interests = mentionedHobbies;
+    }
+  }
+
+  // Detect problems/concerns
+  const problemKeywords = ['worried', 'stressed', 'nervous', 'anxious', 'problem', 'issue', 'struggling', 'difficult', 'hard time'];
+  const problemContexts = ['job interview', 'exam', 'relationship', 'work', 'health', 'money', 'family'];
+  
+  if (problemKeywords.some(keyword => lowerMessage.includes(keyword))) {
+    const mentionedProblems = problemContexts.filter(problem => lowerMessage.includes(problem));
+    if (mentionedProblems.length > 0) {
+      insights.problems = mentionedProblems.map(p => ({ description: p, status: 'active', mentioned_at: new Date() }));
+    }
+  }
+
+  // Detect personality traits
+  const personalityIndicators = {
+    'creative': ['creative', 'artistic', 'imaginative', 'design'],
+    'analytical': ['analyze', 'logical', 'data', 'systematic'],
+    'social': ['people', 'friends', 'social', 'outgoing'],
+    'introvert': ['quiet', 'alone time', 'introvert', 'peaceful'],
+    'ambitious': ['goal', 'achieve', 'success', 'career', 'ambitious'],
+    'caring': ['help', 'care', 'support', 'kind', 'empathy']
+  };
+
+  const detectedTraits = [];
+  for (const [trait, keywords] of Object.entries(personalityIndicators)) {
+    if (keywords.some(keyword => lowerMessage.includes(keyword))) {
+      detectedTraits.push(trait);
+    }
+  }
+  
+  if (detectedTraits.length > 0) {
+    insights.personality_traits = detectedTraits;
+  }
+
+  // Detect important events
+  const eventKeywords = ['wedding', 'graduation', 'new job', 'moving', 'birthday', 'anniversary', 'vacation', 'interview'];
+  const mentionedEvents = eventKeywords.filter(event => lowerMessage.includes(event));
+  
+  if (mentionedEvents.length > 0) {
+    insights.important_events = mentionedEvents.map(e => ({ 
+      description: e, 
+      priority: 'medium', 
+      mentioned_at: new Date() 
+    }));
+  }
+
+  return insights;
+}
+
+async function updateUserMemory(userId: string, catbotId: string, insights: any, existingMemory: any) {
+  const updates: any = { updated_at: new Date().toISOString() };
+
+  // Merge new interests with existing ones
+  if (insights.interests) {
+    const existingInterests = existingMemory.interests || [];
+    const newInterests = insights.interests.filter((interest: string) => !existingInterests.includes(interest));
+    if (newInterests.length > 0) {
+      updates.interests = [...existingInterests, ...newInterests];
+    }
+  }
+
+  // Merge new problems
+  if (insights.problems) {
+    const existingProblems = existingMemory.mentioned_problems || [];
+    updates.mentioned_problems = [...existingProblems, ...insights.problems];
+  }
+
+  // Merge personality traits
+  if (insights.personality_traits) {
+    const existingTraits = existingMemory.personality_traits || [];
+    const newTraits = insights.personality_traits.filter((trait: string) => !existingTraits.includes(trait));
+    if (newTraits.length > 0) {
+      updates.personality_traits = [...existingTraits, ...newTraits];
+    }
+  }
+
+  // Merge important events
+  if (insights.important_events) {
+    const existingEvents = existingMemory.important_events || [];
+    updates.important_events = [...existingEvents, ...insights.important_events];
+  }
+
+  // Increment relationship depth occasionally
+  if (Math.random() < 0.1) { // 10% chance to deepen relationship
+    updates.relationship_depth = Math.min((existingMemory.relationship_depth || 1) + 1, 10);
+  }
+
+  if (Object.keys(updates).length > 1) { // More than just updated_at
+    await supabase
+      .from('user_memory_profiles')
+      .update(updates)
+      .eq('user_id', userId)
+      .eq('catbot_id', catbotId);
+  }
+}
+
+async function createUserMemory(userId: string, catbotId: string, insights: any) {
+  const memoryProfile = {
+    user_id: userId,
+    catbot_id: catbotId,
+    interests: insights.interests || [],
+    mentioned_problems: insights.problems || [],
+    personality_traits: insights.personality_traits || [],
+    important_events: insights.important_events || [],
+    relationship_depth: 1
+  };
+
+  await supabase
+    .from('user_memory_profiles')
+    .insert(memoryProfile);
+}
+
+async function createConversationContexts(userId: string, catbotId: string, insights: any) {
+  const contexts = [];
+
+  // Create contexts for problems that need follow-up
+  if (insights.problems) {
+    for (const problem of insights.problems) {
+      contexts.push({
+        user_id: userId,
+        catbot_id: catbotId,
+        context_type: problem.description.replace(' ', '_'),
+        context_data: { description: problem.description, follow_up_needed: true },
+        status: 'active'
+      });
+    }
+  }
+
+  // Create contexts for important events
+  if (insights.important_events) {
+    for (const event of insights.important_events) {
+      contexts.push({
+        user_id: userId,
+        catbot_id: catbotId,
+        context_type: event.description.replace(' ', '_'),
+        context_data: { description: event.description, type: 'life_event' },
+        status: 'active'
+      });
+    }
+  }
+
+  if (contexts.length > 0) {
+    await supabase
+      .from('conversation_contexts')
+      .insert(contexts);
+  }
 }
