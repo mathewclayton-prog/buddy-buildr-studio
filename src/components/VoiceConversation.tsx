@@ -54,23 +54,26 @@ Instructions:
         description: "Voice conversation ended",
       });
     },
-    onMessage: (message) => {
+    onMessage: (message: any) => {
       console.log('Conversation message:', message);
       
-      // Handle different message types
-      if (message.type === 'user_transcript' && message.transcript) {
-        // User speech transcription
-        onConversationUpdate?.(message.transcript, true);
-      } else if (message.type === 'agent_response' && message.text) {
-        // Agent text response
-        onConversationUpdate?.(message.text, false);
+      // Handle different message types based on ElevenLabs Conversational AI format
+      if (message && typeof message === 'object') {
+        // Handle user transcription
+        if (message.source === 'user' && message.message) {
+          onConversationUpdate?.(message.message, true);
+        }
+        // Handle agent response
+        else if (message.source === 'ai' && message.message) {
+          onConversationUpdate?.(message.message, false);
+        }
       }
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Voice conversation error:', error);
       toast({
         title: "Voice Error",
-        description: error.message || "An error occurred during the conversation",
+        description: typeof error === 'string' ? error : (error?.message || "An error occurred during the conversation"),
         variant: "destructive",
       });
     },
@@ -87,23 +90,38 @@ Instructions:
 
   const startConversation = async () => {
     try {
+      console.log('🎙️ Starting voice conversation...');
+      
       // Request microphone permission first
       await navigator.mediaDevices.getUserMedia({ audio: true });
+      console.log('✅ Microphone access granted');
       
-      // For now, we'll use a placeholder agent ID
-      // In production, this would be dynamically created or retrieved
-      const agentId = "your-elevenlabs-agent-id"; // This needs to be configured
+      // Create a dynamic agent for this character
+      console.log('🤖 Creating ElevenLabs agent for character:', character.name);
       
-      const id = await conversation.startSession({ agentId });
-      setConversationId(id);
-      
-      // Set initial volume
-      await conversation.setVolume({ volume });
-    } catch (error) {
-      console.error('Error starting conversation:', error);
+      // For now, show a helpful error message since we need ElevenLabs setup
       toast({
-        title: "Cannot Start Conversation",
-        description: "Please ensure microphone access is granted and try again.",
+        title: "Voice Chat Setup Required",
+        description: "ElevenLabs Conversational AI setup is needed. This feature requires an ElevenLabs API key and agent configuration.",
+        variant: "destructive",
+      });
+      
+      console.log('❌ ElevenLabs setup required');
+      
+      // TODO: Implement actual agent creation and session start
+      // const agentId = await createAgent({
+      //   name: character.name,
+      //   prompt: characterPrompt
+      // });
+      // const id = await conversation.startSession({ agentId });
+      // setConversationId(id);
+      // await conversation.setVolume({ volume });
+      
+    } catch (error) {
+      console.error('❌ Error starting conversation:', error);
+      toast({
+        title: "Cannot Start Conversation", 
+        description: error.message || "Please ensure microphone access is granted and try again.",
         variant: "destructive",
       });
     }
@@ -224,6 +242,14 @@ Instructions:
           <p className="text-xs text-muted-foreground text-center">
             Having a voice conversation with {character.name}. 
             Speak naturally - no need to wait for pauses!
+          </p>
+        </div>
+      )}
+      
+      {!isConnected && (
+        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+          <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
+            ⚠️ Live voice chat requires ElevenLabs Conversational AI setup with API key and agent configuration.
           </p>
         </div>
       )}
