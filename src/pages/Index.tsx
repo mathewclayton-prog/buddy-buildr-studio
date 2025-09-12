@@ -12,10 +12,14 @@ interface Catbot {
   id: string;
   name: string;
   description: string | null;
+  public_profile?: string | null;
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
   created_at: string;
+  like_count?: number;
+  interaction_count?: number;
+  tags?: string[];
 }
 const heroCat = "/lovable-uploads/057d2f0d-a602-456f-b685-1e284a57e2c5.png";
 const Index = () => {
@@ -32,7 +36,7 @@ const Index = () => {
       const {
         data,
         error
-      } = await supabase.from('catbots').select('*').eq('is_public', true).order('created_at', {
+      } = await supabase.from('catbots').select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags').eq('is_public', true).order('created_at', {
         ascending: false
       }).limit(60);
       if (error) throw error;

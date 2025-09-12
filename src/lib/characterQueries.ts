@@ -11,6 +11,9 @@ export interface PublicCharacter {
   is_public: boolean;
   created_at: string;
   updated_at: string;
+  like_count: number;
+  interaction_count: number;
+  tags: string[];
 }
 
 // Interface for chat functionality (includes training data)
@@ -46,7 +49,7 @@ export interface CharacterForEdit {
 export async function getPublicCharacters(): Promise<PublicCharacter[]> {
   const { data, error } = await supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags')
     .eq('is_public', true)
     .order('created_at', { ascending: false });
 
@@ -65,7 +68,7 @@ export async function getPublicCharacters(): Promise<PublicCharacter[]> {
 export async function getUserCharacters(userId: string): Promise<PublicCharacter[]> {
   const { data, error } = await supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 

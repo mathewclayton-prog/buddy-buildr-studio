@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import { CatbotCard } from "@/components/CatbotCard";
+import { TagFilter } from "@/components/TagFilter";
 import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +14,8 @@ const BrowseCharacters = () => {
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [filteredCatbots, setFilteredCatbots] = useState<PublicCharacter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const {
     toast
@@ -21,18 +24,37 @@ const BrowseCharacters = () => {
     loadPublicCatbots();
   }, []);
   useEffect(() => {
-    if (searchQuery.trim() === "") {
-      setFilteredCatbots(catbots);
-    } else {
-      const filtered = catbots.filter(catbot => catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || (catbot.public_profile || catbot.description) && (catbot.public_profile || catbot.description)!.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()));
-      setFilteredCatbots(filtered);
+    let filtered = catbots;
+
+    // Filter by search query
+    if (searchQuery.trim() !== "") {
+      filtered = filtered.filter(catbot => 
+        catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        (catbot.public_profile || catbot.description) && 
+        (catbot.public_profile || catbot.description)!.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  }, [catbots, searchQuery]);
+
+    // Filter by selected tags
+    if (selectedTags.length > 0) {
+      filtered = filtered.filter(catbot => 
+        catbot.tags && catbot.tags.some(tag => selectedTags.includes(tag))
+      );
+    }
+
+    setFilteredCatbots(filtered);
+  }, [catbots, searchQuery, selectedTags]);
   const loadPublicCatbots = async () => {
     try {
       const data = await getPublicCharacters();
       setCatbots(data);
       setFilteredCatbots(data);
+      
+      // Extract all available tags
+      const allTags = data.flatMap(catbot => catbot.tags || []);
+      const uniqueTags = Array.from(new Set(allTags)).sort();
+      setAvailableTags(uniqueTags);
     } catch (error) {
       console.error('Error loading public catbots:', error);
       toast({
@@ -63,13 +85,32 @@ const BrowseCharacters = () => {
           </p>
         </div>
 
-        {/* Search Bar */}
-        {catbots.length > 0 && <div className="max-w-md mx-auto mb-8 animate-fade-in">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="text" placeholder="Search catbots by name, description, or personality..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card shadow-soft" />
+        {/* Search and Filter Bar */}
+        {catbots.length > 0 && (
+          <div className="max-w-4xl mx-auto mb-8 animate-fade-in space-y-4">
+            <div className="max-w-md mx-auto">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  type="text" 
+                  placeholder="Search catbots by name, description, or personality..." 
+                  value={searchQuery} 
+                  onChange={e => setSearchQuery(e.target.value)} 
+                  className="pl-10 bg-card shadow-soft" 
+                />
+              </div>
             </div>
-          </div>}
+            
+            {/* Tag Filter */}
+            <div className="flex justify-center">
+              <TagFilter
+                availableTags={availableTags}
+                selectedTags={selectedTags}
+                onTagsChange={setSelectedTags}
+              />
+            </div>
+          </div>
+        )}
 
         {/* Loading State */}
         {loading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">

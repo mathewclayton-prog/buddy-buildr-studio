@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      catbot_likes: {
+        Row: {
+          catbot_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          catbot_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          catbot_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       catbot_spontaneous_thoughts: {
         Row: {
           catbot_id: string | null
@@ -67,9 +88,11 @@ export type Database = {
           interaction_count: number
           is_public: boolean
           last_active_at: string | null
+          like_count: number
           name: string
           personality: string | null
           public_profile: string | null
+          tags: string[] | null
           training_description: string | null
           updated_at: string
           user_id: string
@@ -82,9 +105,11 @@ export type Database = {
           interaction_count?: number
           is_public?: boolean
           last_active_at?: string | null
+          like_count?: number
           name: string
           personality?: string | null
           public_profile?: string | null
+          tags?: string[] | null
           training_description?: string | null
           updated_at?: string
           user_id: string
@@ -97,9 +122,11 @@ export type Database = {
           interaction_count?: number
           is_public?: boolean
           last_active_at?: string | null
+          like_count?: number
           name?: string
           personality?: string | null
           public_profile?: string | null
+          tags?: string[] | null
           training_description?: string | null
           updated_at?: string
           user_id?: string

@@ -1,7 +1,10 @@
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Plus, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
+import { LikeButton } from "@/components/LikeButton";
+import { StatsDisplay } from "@/components/StatsDisplay";
 
 interface Catbot {
   id: string;
@@ -12,6 +15,9 @@ interface Catbot {
   avatar_url: string | null;
   is_public?: boolean;
   created_at?: string;
+  like_count?: number;
+  interaction_count?: number;
+  tags?: string[];
 }
 
 interface CatbotCardProps {
@@ -67,9 +73,37 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       {/* Content Section - Compact spacing with flex-grow */}
       <CardContent className="p-3 flex flex-col flex-1">
         {/* Description - closer to title */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-3">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-2">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
+        
+        {/* Tags */}
+        {catbot.tags && catbot.tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 mb-2">
+            {catbot.tags.slice(0, 3).map(tag => (
+              <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
+                {tag}
+              </Badge>
+            ))}
+            {catbot.tags.length > 3 && (
+              <Badge variant="outline" className="text-xs px-1 py-0">
+                +{catbot.tags.length - 3}
+              </Badge>
+            )}
+          </div>
+        )}
+        
+        {/* Stats and Like Button */}
+        <div className="flex items-center justify-between mb-3">
+          <StatsDisplay 
+            likeCount={catbot.like_count || 0}
+            interactionCount={catbot.interaction_count || 0}
+          />
+          <LikeButton 
+            catbotId={catbot.id}
+            initialLikeCount={catbot.like_count || 0}
+          />
+        </div>
         
         {/* Chat Button - aligned at bottom */}
         {variant === 'chat' ? (
