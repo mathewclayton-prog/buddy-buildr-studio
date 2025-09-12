@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useConversation } from '@11labs/react';
+import { useConversation } from '@elevenlabs/react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Phone, PhoneOff, Volume2, VolumeX, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/components/ui/use-toast';
+import { useElevenLabsAgent } from '@/hooks/useElevenLabsAgent';
 import { CharacterForChat } from '@/types/character';
 
 interface VoiceConversationProps {
@@ -19,10 +20,12 @@ const VoiceConversation: React.FC<VoiceConversationProps> = ({
   className = ""
 }) => {
   const { toast } = useToast();
+  const { createAgent, getSignedUrl, isLoading } = useElevenLabsAgent();
   const [isConnected, setIsConnected] = useState(false);
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [volume, setVolume] = useState(0.8);
   const [isMuted, setIsMuted] = useState(false);
+  const [isCreatingAgent, setIsCreatingAgent] = useState(false);
 
   // Create character-specific prompt
   const characterPrompt = `You are ${character.name}, a virtual cat companion. ${character.trainingDescription}
@@ -57,15 +60,22 @@ Instructions:
     onMessage: (message: any) => {
       console.log('Conversation message:', message);
       
-      // Handle different message types based on ElevenLabs Conversational AI format
+      // Handle different message types from ElevenLabs
       if (message && typeof message === 'object') {
-        // Handle user transcription
-        if (message.source === 'user' && message.message) {
-          onConversationUpdate?.(message.message, true);
+        // Handle user speech transcription
+        if (message.type === 'user_transcript' && message.transcript) {
+          onConversationUpdate?.(message.transcript, true);
         }
-        // Handle agent response
-        else if (message.source === 'ai' && message.message) {
-          onConversationUpdate?.(message.message, false);
+        // Handle agent responses
+        else if (message.type === 'agent_response' && message.text) {
+          onConversationUpdate?.(message.text, false);
+        }
+        // Handle conversation messages
+        else if (message.user_transcript) {
+          onConversationUpdate?.(message.user_transcript, true);
+        }
+        else if (message.agent_response) {
+          onConversationUpdate?.(message.agent_response, false);
         }
       }
     },
@@ -90,6 +100,7 @@ Instructions:
 
   const startConversation = async () => {
     try {
+      setIsCreatingAgent(true);
       console.log('🎙️ Starting voice conversation...');
       
       // Request microphone permission first
@@ -99,31 +110,49 @@ Instructions:
       // Create a dynamic agent for this character
       console.log('🤖 Creating ElevenLabs agent for character:', character.name);
       
-      // For now, show a helpful error message since we need ElevenLabs setup
-      toast({
-        title: "Voice Chat Setup Required",
-        description: "ElevenLabs Conversational AI setup is needed. This feature requires an ElevenLabs API key and agent configuration.",
-        variant: "destructive",
+      const agent = await createAgent({
+        name: character.name,
+        prompt: characterPrompt,
+        voice_id: 'Charlotte' // Default to Charlotte voice
       });
       
-      console.log('❌ ElevenLabs setup required');
+      if (!agent) {
+        throw new Error('Failed to create ElevenLabs agent');
+      }
       
-      // TODO: Implement actual agent creation and session start
-      // const agentId = await createAgent({
-      //   name: character.name,
-      //   prompt: characterPrompt
-      // });
-      // const id = await conversation.startSession({ agentId });
-      // setConversationId(id);
-      // await conversation.setVolume({ volume });
+      console.log('✅ Agent created with ID:', agent.id);
       
-    } catch (error) {
+      // Get signed URL for the agent
+      console.log('🔗 Getting signed URL for agent...');
+      const signedUrl = await getSignedUrl(agent.id);
+      
+      if (!signedUrl) {
+        throw new Error('Failed to get signed URL for conversation');
+      }
+      
+      console.log('✅ Signed URL obtained, starting session...');
+      
+      // Start the conversation session using the agent ID  
+      const id = await conversation.startSession({ 
+        agentId: agent.id,
+        connectionType: 'websocket'
+      });
+      setConversationId(id);
+      
+      // Set initial volume
+      await conversation.setVolume({ volume });
+      
+      console.log('🎉 Voice conversation started successfully!');
+      
+    } catch (error: any) {
       console.error('❌ Error starting conversation:', error);
       toast({
         title: "Cannot Start Conversation", 
-        description: error.message || "Please ensure microphone access is granted and try again.",
+        description: error?.message || "Please ensure microphone access is granted and try again.",
         variant: "destructive",
       });
+    } finally {
+      setIsCreatingAgent(false);
     }
   };
 
@@ -199,11 +228,21 @@ Instructions:
         {!isConnected ? (
           <Button
             onClick={startConversation}
+            disabled={isLoading || isCreatingAgent}
             className="bg-primary hover:bg-primary/90 text-primary-foreground"
             size="lg"
           >
-            <Phone className="h-4 w-4 mr-2" />
-            Start Voice Chat
+            {isCreatingAgent ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Creating Agent...
+              </>
+            ) : (
+              <>
+                <Phone className="h-4 w-4 mr-2" />
+                Start Voice Chat
+              </>
+            )}
           </Button>
         ) : (
           <div className="flex items-center gap-4">
@@ -246,13 +285,6 @@ Instructions:
         </div>
       )}
       
-      {!isConnected && (
-        <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
-          <p className="text-xs text-yellow-800 dark:text-yellow-200 text-center">
-            ⚠️ Live voice chat requires ElevenLabs Conversational AI setup with API key and agent configuration.
-          </p>
-        </div>
-      )}
     </Card>
   );
 };
