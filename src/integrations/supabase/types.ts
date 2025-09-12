@@ -14,6 +14,50 @@ export type Database = {
   }
   public: {
     Tables: {
+      catbot_spontaneous_thoughts: {
+        Row: {
+          catbot_id: string | null
+          created_at: string | null
+          id: string
+          personality_match: string | null
+          thought_category: string | null
+          thought_content: string | null
+          trigger_conditions: Json | null
+          updated_at: string | null
+          usage_count: number | null
+        }
+        Insert: {
+          catbot_id?: string | null
+          created_at?: string | null
+          id?: string
+          personality_match?: string | null
+          thought_category?: string | null
+          thought_content?: string | null
+          trigger_conditions?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Update: {
+          catbot_id?: string | null
+          created_at?: string | null
+          id?: string
+          personality_match?: string | null
+          thought_category?: string | null
+          thought_content?: string | null
+          trigger_conditions?: Json | null
+          updated_at?: string | null
+          usage_count?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "catbot_spontaneous_thoughts_catbot_id_fkey"
+            columns: ["catbot_id"]
+            isOneToOne: false
+            referencedRelation: "catbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       catbots: {
         Row: {
           avatar_url: string | null
@@ -146,7 +190,10 @@ export type Database = {
           id: string
           last_referenced: string | null
           mentioned_at: string
+          revival_triggers: Json | null
           status: string | null
+          thread_connections: Json | null
+          thread_priority: number | null
           user_id: string
         }
         Insert: {
@@ -156,7 +203,10 @@ export type Database = {
           id?: string
           last_referenced?: string | null
           mentioned_at?: string
+          revival_triggers?: Json | null
           status?: string | null
+          thread_connections?: Json | null
+          thread_priority?: number | null
           user_id: string
         }
         Update: {
@@ -166,7 +216,10 @@ export type Database = {
           id?: string
           last_referenced?: string | null
           mentioned_at?: string
+          revival_triggers?: Json | null
           status?: string | null
+          thread_connections?: Json | null
+          thread_priority?: number | null
           user_id?: string
         }
         Relationships: [
@@ -210,6 +263,8 @@ export type Database = {
         Row: {
           catbot_id: string
           created_at: string
+          current_emotional_state: Json | null
+          emotional_history: Json | null
           id: string
           important_events: Json | null
           inside_jokes: Json | null
@@ -224,6 +279,8 @@ export type Database = {
         Insert: {
           catbot_id: string
           created_at?: string
+          current_emotional_state?: Json | null
+          emotional_history?: Json | null
           id?: string
           important_events?: Json | null
           inside_jokes?: Json | null
@@ -238,6 +295,8 @@ export type Database = {
         Update: {
           catbot_id?: string
           created_at?: string
+          current_emotional_state?: Json | null
+          emotional_history?: Json | null
           id?: string
           important_events?: Json | null
           inside_jokes?: Json | null
