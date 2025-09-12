@@ -78,7 +78,7 @@ const Index = () => {
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/create" className="flex items-center gap-3">
                     <Plus className="h-5 w-5" />
-                    Create Character
+                    Create Catbot
                     <Sparkles className="h-4 w-4" />
                   </Link>
                 </Button>
