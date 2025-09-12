@@ -3,6 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Play, Pause, Volume2, VolumeX } from "lucide-react";
 import { audioService } from "@/services/audioService";
 import { useToast } from "@/hooks/use-toast";
+import AudioWaveform from "./AudioWaveform";
+import AudioRipple from "./AudioRipple";
 
 interface AudioControlsProps {
   text: string;
@@ -94,26 +96,38 @@ const AudioControls = ({ text, messageId, personality = 'friendly', className }:
   }, [hasAudio, audioData, isGenerating]);
 
   return (
-    <div className={`flex items-center gap-1 ${className}`}>
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={handlePlayPause}
-        disabled={isGenerating}
-        className="h-6 w-6 p-0 hover:bg-accent/50 rounded-full"
-        title={isPlaying ? "Pause" : "Play audio"}
-      >
-        {isGenerating ? (
-          <div className="h-3 w-3 border border-muted-foreground border-t-transparent rounded-full animate-spin" />
-        ) : isPlaying ? (
-          <Pause className="h-3 w-3" />
-        ) : (
-          <Play className="h-3 w-3" />
-        )}
-      </Button>
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div className="relative">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handlePlayPause}
+          disabled={isGenerating}
+          className="h-6 w-6 p-0 hover:bg-accent/50 rounded-full relative z-10"
+          title={isPlaying ? "Pause" : "Play audio"}
+        >
+          {isGenerating ? (
+            <div className="h-3 w-3 border border-muted-foreground border-t-transparent rounded-full animate-spin" />
+          ) : isPlaying ? (
+            <Pause className="h-3 w-3" />
+          ) : (
+            <Play className="h-3 w-3" />
+          )}
+        </Button>
+        <AudioRipple isPlaying={isPlaying} />
+      </div>
       
-      {hasAudio && (
-        <Volume2 className="h-3 w-3 text-muted-foreground/60" />
+      {(hasAudio || isGenerating) && (
+        <>
+          <AudioWaveform 
+            isPlaying={isPlaying} 
+            isGenerating={isGenerating}
+            className="w-8"
+          />
+          {hasAudio && !isGenerating && (
+            <Volume2 className="h-3 w-3 text-muted-foreground/60" />
+          )}
+        </>
       )}
     </div>
   );
