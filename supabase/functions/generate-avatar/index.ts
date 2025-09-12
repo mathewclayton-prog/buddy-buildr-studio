@@ -75,18 +75,19 @@ serve(async (req) => {
     // Download the image from the URL
     const imageResponse = await fetch(imageData.url);
     if (!imageResponse.ok) {
-      throw new Error('Failed to download generated image');
+      throw new Error(`Failed to download generated image: ${imageResponse.status} ${imageResponse.statusText}`);
     }
     
-    const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer());
+    const imageBlob = await imageResponse.blob();
     const fileName = `avatar_${userId}_${Date.now()}.png`;
     const filePath = `catbots/${userId}/${fileName}`;
 
     // Upload to Supabase Storage
     const { data: uploadData, error: uploadError } = await supabase.storage
       .from('images')
-      .upload(filePath, imageBuffer, {
+      .upload(filePath, imageBlob, {
         contentType: 'image/png',
+        cacheControl: '3600',
         upsert: false
       });
 
