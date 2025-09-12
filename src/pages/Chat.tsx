@@ -31,6 +31,7 @@ const Chat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [voiceMode, setVoiceMode] = useState<'text' | 'voice' | 'realtime'>('text');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const voiceConversationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!characterId) return;
@@ -113,6 +114,18 @@ const Chat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Auto-scroll to voice conversation when realtime mode is activated
+  useEffect(() => {
+    if (voiceMode === 'realtime') {
+      setTimeout(() => {
+        voiceConversationRef.current?.scrollIntoView({ 
+          behavior: "smooth", 
+          block: "center" 
+        });
+      }, 100);
+    }
+  }, [voiceMode]);
 
   const generateResponse = async (userMessage: string, character: Character): Promise<string> => {
     // Get conversation history for context (last 20 messages)
@@ -354,8 +367,14 @@ const Chat = () => {
               variant={voiceMode === 'realtime' ? 'default' : 'outline'}
               size="sm"
               onClick={() => setVoiceMode('realtime')}
+              className="relative"
             >
               Live
+              {voiceMode === 'realtime' && (
+                <Badge variant="secondary" className="ml-2 text-xs animate-pulse">
+                  ↓ Scroll to chat
+                </Badge>
+              )}
             </Button>
           </div>
           
@@ -467,7 +486,7 @@ const Chat = () => {
 
           {/* Voice Conversation Mode */}
           {voiceMode === 'realtime' && (
-            <div className="border-t bg-card p-4">
+            <div ref={voiceConversationRef} className="border-t bg-card p-4">
               <VoiceConversation
                 character={character}
                 onConversationUpdate={handleConversationUpdate}
