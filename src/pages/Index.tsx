@@ -1,195 +1,76 @@
-import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { PlatformStats } from "@/components/PlatformStats";
-import { CatbotSection } from "@/components/CatbotSection";
-import { RecentActivityFeed } from "@/components/RecentActivityFeed";
-
-import { Plus, Sparkles, PawPrint } from "lucide-react";
+import { CatbotCard } from "@/components/CatbotCard";
+import { Bot, Plus, Users, Sparkles, PawPrint, MessageCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { 
-  getPlatformStats, 
-  getMostPopularThisWeek, 
-  getRecentlyCreated, 
-  getStaffPicks, 
-  getQuickStartBots 
-} from "@/lib/platformStats";
-import { generateActivityFeed, getRandomOnlineCount } from "@/lib/activityHelpers";
-import type { PublicCharacter } from "@/lib/characterQueries";
-
+import { supabase } from "@/integrations/supabase/client";
+import { useState, useEffect } from "react";
+interface Catbot {
+  id: string;
+  name: string;
+  description: string | null;
+  personality: string | null;
+  avatar_url: string | null;
+  is_public: boolean;
+  created_at: string;
+}
 const heroCat = "/lovable-uploads/057d2f0d-a602-456f-b685-1e284a57e2c5.png";
-
 const Index = () => {
-  const { user } = useAuth();
-  
-  // Platform stats
-  const [platformStats, setPlatformStats] = useState({
-    totalUsers: 1247,
-    totalConversations: 15429,
-    totalCatbots: 67,
-    activeNow: 12
-  });
-
-  // Catbot sections
-  const [popularCatbots, setPopularCatbots] = useState<PublicCharacter[]>([]);
-  const [recentCatbots, setRecentCatbots] = useState<PublicCharacter[]>([]);
-  const [staffPicksCatbots, setStaffPicksCatbots] = useState<PublicCharacter[]>([]);
-  const [starterCatbots, setStarterCatbots] = useState<PublicCharacter[]>([]);
-  
-  // Activity feed
-  const [activityFeed, setActivityFeed] = useState<any[]>([]);
-  const [onlineCount, setOnlineCount] = useState(0);
-  
-  
-  // Loading states
+  const {
+    user
+  } = useAuth();
+  const [featuredCatbots, setFeaturedCatbots] = useState<Catbot[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sectionsLoading, setSectionsLoading] = useState({
-    popular: true,
-    recent: true,
-    staff: true,
-    starter: true
-  });
-
   useEffect(() => {
-    loadAllData();
+    loadFeaturedCatbots();
   }, []);
-
-  useEffect(() => {
-    // Update online count and stats periodically
-    const updateOnlineCount = () => setOnlineCount(getRandomOnlineCount());
-    updateOnlineCount();
-    
-    const onlineInterval = setInterval(updateOnlineCount, 30000); // Every 30 seconds
-    const statsInterval = setInterval(loadPlatformStats, 120000); // Every 2 minutes
-    
-    return () => {
-      clearInterval(onlineInterval);
-      clearInterval(statsInterval);
-    };
-  }, []);
-
-  const loadAllData = async () => {
-    setLoading(true);
-    
-    // Load platform stats first
-    await loadPlatformStats();
-    
-    // Load all catbot sections in parallel
-    await Promise.all([
-      loadPopularCatbots(),
-      loadRecentCatbots(),
-      loadStaffPicks(),
-      loadStarterCatbots()
-    ]);
-    
-    // Load activity feed last (can use data from other sections)
-    await loadActivityFeed();
-    
-    setLoading(false);
-  };
-
-  const loadPlatformStats = async () => {
+  const loadFeaturedCatbots = async () => {
     try {
-      const stats = await getPlatformStats();
-      setPlatformStats(stats);
-      
+      const {
+        data,
+        error
+      } = await supabase.from('catbots').select('*').eq('is_public', true).order('created_at', {
+        ascending: false
+      }).limit(8);
+      if (error) throw error;
+      setFeaturedCatbots(data || []);
     } catch (error) {
-      console.error('Error loading platform stats:', error);
-    }
-  };
-
-  const loadPopularCatbots = async () => {
-    try {
-      setSectionsLoading(prev => ({ ...prev, popular: true }));
-      const data = await getMostPopularThisWeek(6);
-      setPopularCatbots(data);
-    } catch (error) {
-      console.error('Error loading popular catbots:', error);
+      console.error('Error loading featured catbots:', error);
     } finally {
-      setSectionsLoading(prev => ({ ...prev, popular: false }));
+      setLoading(false);
     }
   };
-
-  const loadRecentCatbots = async () => {
-    try {
-      setSectionsLoading(prev => ({ ...prev, recent: true }));
-      const data = await getRecentlyCreated(6);
-      setRecentCatbots(data);
-    } catch (error) {
-      console.error('Error loading recent catbots:', error);
-    } finally {
-      setSectionsLoading(prev => ({ ...prev, recent: false }));
-    }
-  };
-
-  const loadStaffPicks = async () => {
-    try {
-      setSectionsLoading(prev => ({ ...prev, staff: true }));
-      const data = await getStaffPicks(6);
-      setStaffPicksCatbots(data);
-    } catch (error) {
-      console.error('Error loading staff picks:', error);
-    } finally {
-      setSectionsLoading(prev => ({ ...prev, staff: false }));
-    }
-  };
-
-  const loadStarterCatbots = async () => {
-    try {
-      setSectionsLoading(prev => ({ ...prev, starter: true }));
-      const data = await getQuickStartBots(4);
-      setStarterCatbots(data);
-    } catch (error) {
-      console.error('Error loading starter catbots:', error);
-    } finally {
-      setSectionsLoading(prev => ({ ...prev, starter: false }));
-    }
-  };
-
-  const loadActivityFeed = async () => {
-    try {
-      // Combine all catbots for activity generation
-      const allCatbots = [
-        ...popularCatbots,
-        ...recentCatbots,
-        ...staffPicksCatbots,
-        ...starterCatbots
-      ].filter((bot, index, self) => 
-        index === self.findIndex(b => b.id === bot.id) // Remove duplicates
-      );
-      
-      const activities = await generateActivityFeed(allCatbots);
-      setActivityFeed(activities);
-    } catch (error) {
-      console.error('Error loading activity feed:', error);
-    }
-  };
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Navigation />
-      
-      {/* Hero Image - Full Page Width */}
-      <div className="w-screen bg-card overflow-hidden shadow-card">
-        <img src={heroCat} alt="MiCatbot Hero" className="w-full h-auto object-cover" />
+  const getDefaultAvatar = (catbot: Catbot) => {
+    const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
+    const colorIndex = catbot.name.charCodeAt(0) % colors.length;
+    return (
+      <div className={`w-full h-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
+        <PawPrint className="h-12 w-12 text-white" />
       </div>
+    );
+  };
+  return <>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        
+        {/* Hero Image - Full Page Width */}
+        <div className="w-screen bg-card overflow-hidden shadow-card">
+          <img src={heroCat} alt="MiCatbot Hero" className="w-full h-auto object-cover" />
+        </div>
 
-      {/* Hero Section */}
-      <main className="container mx-auto px-4 pt-8 pb-16">
-        <div className="text-center max-w-4xl mx-auto animate-fade-in">
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">
-            Create Your Own Catbot
-          </h1>
+        {/* Hero Section */}
+        <main className="container mx-auto px-4 pt-8 pb-16">
+          <div className="text-center max-w-4xl mx-auto animate-fade-in">
           
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-            Bring your own feline friend to life or build a purrfect companion.
-          </p>
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 bg-gradient-to-r from-primary via-accent to-primary bg-clip-text text-transparent">Create Your Own Catbot</h1>
+          
+          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-8">
-            {user ? (
-              <>
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {user ? <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/create" className="flex items-center gap-3">
                     <Plus className="h-5 w-5" />
@@ -204,9 +85,7 @@ const Index = () => {
                     Meet the Cats
                   </Link>
                 </Button>
-              </>
-            ) : (
-              <>
+              </> : <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
                   <Link to="/auth" className="flex items-center gap-3">
                     <PawPrint className="h-5 w-5" />
@@ -221,84 +100,72 @@ const Index = () => {
                     Meet the Cats
                   </Link>
                 </Button>
-              </>
-            )}
+              </>}
           </div>
         </div>
 
-        {/* Platform Stats */}
-        <PlatformStats {...platformStats} />
-
-        {/* Empty State Message */}
-        {platformStats.totalCatbots === 0 && !loading && (
-          <div className="text-center py-16 mb-16">
-            <PawPrint className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-2xl font-semibold text-foreground mb-2">
-              Our cats are getting ready
-            </h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
-              The MiCatbot community is growing! Check back soon to meet amazing AI companions created by our community.
+        {/* Popular Catbots Section */}
+        <section className="mt-12 mb-16">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-nav-orange">Explore Our Wonderful Cats</h2>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Start chatting now...
             </p>
           </div>
-        )}
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 mb-16">
-          {/* Main Content - Left Side (3/4 width) */}
-          <div className="lg:col-span-3">
-            {/* Quick Start Section */}
-            <CatbotSection
-              title="Quick Start"
-              subtitle="Perfect for first-time cat chatters - friendly and easy to talk to"
-              catbots={starterCatbots}
-              loading={sectionsLoading.starter}
-              sectionType="starter"
-              showMore={false}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+            {loading ?
+          // Loading skeleton
+          [...Array(8)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden">
+                  <div className="h-32 bg-muted" />
+                  <CardContent className="p-3">
+                    <div className="h-4 bg-muted rounded mb-2" />
+                    <div className="space-y-2 mb-3">
+                      <div className="h-3 bg-muted rounded" />
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                    </div>
+                    <div className="h-8 bg-muted rounded" />
+                  </CardContent>
+                </Card>) : featuredCatbots.length > 0 ?
+          // Real catbots from database
+          featuredCatbots.map((catbot, index) => (
+            <CatbotCard 
+              key={catbot.id} 
+              catbot={catbot} 
+              variant="chat"
+              delay={index * 100}
             />
-
-            {/* Most Popular This Week */}
-            <CatbotSection
-              title="Most Popular This Week"
-              subtitle="Trending cats everyone is talking to right now"
-              catbots={popularCatbots}
-              loading={sectionsLoading.popular}
-              sectionType="popular"
+          )) :
+          // Empty state - show sample cards
+          [{
+            id: "sample",
+            name: "Be the first!",
+            description: "Create the first public catbot and it will appear here for everyone to discover.",
+            avatar_url: null
+          }].map((catbot, index) => (
+            <CatbotCard 
+              key={catbot.id} 
+              catbot={catbot} 
+              variant="create"
+              delay={index * 100}
             />
-
-            {/* Staff Picks */}
-            <CatbotSection
-              title="Staff Picks"
-              subtitle="Handpicked by our team for exceptional quality and charm"
-              catbots={staffPicksCatbots}
-              loading={sectionsLoading.staff}
-              sectionType="staff"
-            />
-
-            {/* Recently Created */}
-            <CatbotSection
-              title="Recently Created"
-              subtitle="Fresh faces in our cat community - be among the first to meet them"
-              catbots={recentCatbots}
-              loading={sectionsLoading.recent}
-              sectionType="recent"
-            />
+          ))}
           </div>
 
-          {/* Activity Feed - Right Side (1/4 width) */}
-          <div className="lg:col-span-1">
-            <div className="sticky top-8">
-              <RecentActivityFeed 
-                activities={activityFeed} 
-                onlineCount={onlineCount}
-              />
-            </div>
+          <div className="text-center">
+            <Button variant="outline" size="lg" asChild className="px-8">
+              <Link to="/browse" className="flex items-center gap-2">
+                View All Catbots
+                <ArrowRight className="h-4 w-4" />
+              </Link>
+            </Button>
           </div>
-        </div>
-      </main>
-      
-      <Footer />
-    </div>
-  );
+        </section>
+
+        </main>
+        
+        <Footer />
+      </div>
+    </>;
 };
-
 export default Index;

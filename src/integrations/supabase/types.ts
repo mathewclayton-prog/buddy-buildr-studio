@@ -20,9 +20,7 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
-          interaction_count: number
           is_public: boolean
-          last_active_at: string | null
           name: string
           personality: string | null
           public_profile: string | null
@@ -35,9 +33,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          interaction_count?: number
           is_public?: boolean
-          last_active_at?: string | null
           name: string
           personality?: string | null
           public_profile?: string | null
@@ -50,9 +46,7 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
-          interaction_count?: number
           is_public?: boolean
-          last_active_at?: string | null
           name?: string
           personality?: string | null
           public_profile?: string | null
@@ -61,76 +55,6 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
-      }
-      chat_messages: {
-        Row: {
-          content: string
-          created_at: string
-          id: string
-          is_user: boolean
-          session_id: string
-        }
-        Insert: {
-          content: string
-          created_at?: string
-          id?: string
-          is_user: boolean
-          session_id: string
-        }
-        Update: {
-          content?: string
-          created_at?: string
-          id?: string
-          is_user?: boolean
-          session_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_messages_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "chat_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      chat_sessions: {
-        Row: {
-          catbot_id: string
-          created_at: string
-          id: string
-          is_active: boolean
-          title: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          catbot_id: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          title?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          catbot_id?: string
-          created_at?: string
-          id?: string
-          is_active?: boolean
-          title?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "chat_sessions_catbot_id_fkey"
-            columns: ["catbot_id"]
-            isOneToOne: false
-            referencedRelation: "catbots"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       profiles: {
         Row: {

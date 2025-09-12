@@ -27,9 +27,14 @@ const MyCatbots = () => {
 
   const fetchMyCatbots = async () => {
     try {
-      if (!user?.id) return;
-      const data = await getUserCharacters(user.id);
-      setCatbots(data);
+      const { data, error } = await supabase
+        .from('catbots')
+        .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
+        .eq('user_id', user?.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCatbots(data || []);
     } catch (error) {
       console.error('Error fetching catbots:', error);
       toast({
@@ -185,14 +190,9 @@ const MyCatbots = () => {
               Make public
             </Label>
           </div>
-          <div className="text-right">
-            <div className="text-xs text-muted-foreground">
-              {catbot.interaction_count} interactions
-            </div>
-            <div className="text-xs text-muted-foreground">
-              Created {new Date(catbot.created_at).toLocaleDateString()}
-            </div>
-          </div>
+          <span className="text-xs text-muted-foreground">
+            Created {new Date(catbot.created_at).toLocaleDateString()}
+          </span>
         </div>
       </CardContent>
     </Card>
