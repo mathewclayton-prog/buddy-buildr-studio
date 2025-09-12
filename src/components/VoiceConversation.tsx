@@ -132,9 +132,9 @@ Instructions:
       
       console.log('✅ Signed URL obtained, starting session...');
       
-      // Start the conversation session using the agent ID  
+      // Start the conversation session using the signed URL over WebSocket
       const id = await conversation.startSession({ 
-        agentId: agent.id,
+        signedUrl,
         connectionType: 'websocket'
       });
       setConversationId(id);
