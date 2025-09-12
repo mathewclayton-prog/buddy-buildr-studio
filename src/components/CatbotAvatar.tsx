@@ -33,7 +33,7 @@ export const CatbotAvatar = ({
       <img 
         src={avatarUrl} 
         alt={`${name} avatar`} 
-        className={`${sizeClasses[size]} rounded-lg object-cover shadow-soft animate-pulse ${className}`}
+        className={`${sizeClasses[size]} rounded-lg object-cover shadow-soft animate-pulse hover:animate-purr cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}
         style={{ animationDuration: '3s' }}
       />
     );
@@ -52,7 +52,7 @@ export const CatbotAvatar = ({
 
   return (
     <div 
-      className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft animate-pulse ${className}`}
+      className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft animate-pulse hover:animate-purr cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}
       style={{ animationDuration: '3s' }}
     >
       <PawPrint className={`${iconSizes[size]} text-white`} />

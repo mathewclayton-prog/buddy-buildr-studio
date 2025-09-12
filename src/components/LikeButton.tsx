@@ -89,21 +89,47 @@ export const LikeButton = ({ catbotId, initialLikeCount, className }: LikeButton
     }
   };
 
+  const [showHearts, setShowHearts] = useState(false);
+
+  const handleLikeClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!isLiked) {
+      setShowHearts(true);
+      setTimeout(() => setShowHearts(false), 1000);
+    }
+    toggleLike();
+  };
+
   return (
-    <Button
-      variant="ghost"
-      size="sm"
-      onClick={(e) => {
-        e.stopPropagation();
-        toggleLike();
-      }}
-      disabled={isLoading}
-      className={`flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-colors ${className}`}
-    >
-      <Heart 
-        className={`h-4 w-4 ${isLiked ? 'fill-red-500 text-red-500' : ''}`} 
-      />
-      <span className="text-xs">{likeCount}</span>
-    </Button>
+    <div className="relative">
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={handleLikeClick}
+        disabled={isLoading}
+        className={`flex items-center gap-1 text-muted-foreground hover:text-red-500 transition-all duration-300 hover:scale-110 ${className}`}
+      >
+        <Heart 
+          className={`h-4 w-4 transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500 animate-scale-pulse' : 'hover:animate-bounce-soft'}`} 
+        />
+        <span className="text-xs font-medium">{likeCount}</span>
+      </Button>
+      
+      {/* Floating hearts animation */}
+      {showHearts && (
+        <div className="absolute inset-0 pointer-events-none">
+          {[...Array(3)].map((_, i) => (
+            <Heart
+              key={i}
+              className="absolute h-3 w-3 text-red-500 fill-red-500 animate-heart-float"
+              style={{
+                left: `${20 + i * 10}%`,
+                animationDelay: `${i * 0.2}s`
+              }}
+            />
+          ))}
+        </div>
+      )}
+    </div>
   );
 };

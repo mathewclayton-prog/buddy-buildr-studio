@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CatbotCard } from "@/components/CatbotCard";
+import { PawTrail } from "@/components/PawTrail";
 import { Bot, Plus, Users, Sparkles, PawPrint, MessageCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -73,39 +74,39 @@ const Index = () => {
           
           <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <PawTrail className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {user ? <>
-                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/create" className="flex items-center gap-3">
-                    <Plus className="h-5 w-5" />
+                    <Plus className="h-5 w-5 animate-bounce-soft" />
                     Create Catbot
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className="h-4 w-4 animate-float" />
                   </Link>
                 </Button>
                 
-                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
+                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/browse" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5 animate-wiggle" />
                     Meet the Cats
                   </Link>
                 </Button>
               </> : <>
-                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg">
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/auth" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5 animate-wiggle" />
                     Get Started
-                    <Sparkles className="h-4 w-4" />
+                    <Sparkles className="h-4 w-4 animate-float" />
                   </Link>
                 </Button>
                 
-                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg">
+                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/browse" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5" />
+                    <PawPrint className="h-5 w-5 animate-bounce-soft" />
                     Meet the Cats
                   </Link>
                 </Button>
               </>}
-          </div>
+          </PawTrail>
         </div>
 
         {/* Popular Catbots Section */}
@@ -120,25 +121,30 @@ const Index = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
             {loading ?
           // Loading skeleton
-          [...Array(12)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden">
-                  <div className="h-32 bg-muted" />
+          [...Array(12)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
+                  <div className="h-32 bg-muted animate-scale-pulse" />
                   <CardContent className="p-3">
-                    <div className="h-4 bg-muted rounded mb-2" />
+                    <div className="h-4 bg-muted rounded mb-2 animate-scale-pulse" />
                     <div className="space-y-2 mb-3">
-                      <div className="h-3 bg-muted rounded" />
-                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded animate-scale-pulse" />
+                      <div className="h-3 bg-muted rounded w-3/4 animate-scale-pulse" />
                     </div>
-                    <div className="h-8 bg-muted rounded" />
+                    <div className="h-8 bg-muted rounded animate-scale-pulse" />
                   </CardContent>
                 </Card>) : featuredCatbots.length > 0 ?
           // Real catbots from database
           featuredCatbots.map((catbot, index) => (
-            <CatbotCard 
-              key={catbot.id} 
-              catbot={catbot} 
-              variant="chat"
-              delay={index * 100}
-            />
+            <div 
+              key={catbot.id}
+              className="animate-fade-in"
+              style={{ animationDelay: `${index * 50}ms` }}
+            >
+              <CatbotCard 
+                catbot={catbot} 
+                variant="chat"
+                delay={0}
+              />
+            </div>
           )) :
           // Empty state - show sample cards
           [{
@@ -147,12 +153,17 @@ const Index = () => {
             description: "Create the first public catbot and it will appear here for everyone to discover.",
             avatar_url: null
           }].map((catbot, index) => (
-            <CatbotCard 
-              key={catbot.id} 
-              catbot={catbot} 
-              variant="create"
-              delay={index * 100}
-            />
+            <div 
+              key={catbot.id}
+              className="animate-fade-in animate-bounce-soft"
+              style={{ animationDelay: `${index * 100}ms` }}
+            >
+              <CatbotCard 
+                catbot={catbot} 
+                variant="create"
+                delay={0}
+              />
+            </div>
           ))}
           </div>
 

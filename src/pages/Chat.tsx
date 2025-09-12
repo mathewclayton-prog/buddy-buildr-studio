@@ -314,10 +314,11 @@ const Chat = () => {
       <div className="flex-1 overflow-hidden">
         <div className="h-full max-w-4xl mx-auto flex flex-col">
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-4">
-            {messages.map((message) => (
+            {messages.map((message, index) => (
               <div
                 key={message.id}
-                className={`flex ${message.isUser ? "justify-end" : "justify-start"}`}
+                className={`flex ${message.isUser ? "justify-end" : "justify-start"} animate-message-pop`}
+                style={{ animationDelay: `${index * 50}ms` }}
               >
                 <div className={`flex items-end gap-2 max-w-[70%] ${message.isUser ? "flex-row-reverse" : ""}`}>
                   {!message.isUser && (
@@ -326,11 +327,11 @@ const Chat = () => {
                         <img
                           src={character.avatar}
                           alt={character.name}
-                          className="h-6 w-6 rounded-full object-cover"
+                          className="h-6 w-6 rounded-full object-cover hover:animate-purr cursor-pointer"
                         />
                       ) : (
                         <div 
-                          className="h-6 w-6 rounded-full flex items-center justify-center"
+                          className="h-6 w-6 rounded-full flex items-center justify-center hover:animate-purr cursor-pointer"
                           style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
                         >
                           <Bot className="h-3 w-3 text-white" />
@@ -339,8 +340,16 @@ const Chat = () => {
                     </div>
                   )}
                   
+                  {message.isUser && (
+                    <div className="flex-shrink-0 mb-1">
+                      <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center animate-wiggle">
+                        <User className="h-3 w-3 text-white" />
+                      </div>
+                    </div>
+                  )}
+                  
                   <div
-                    className={`rounded-2xl px-4 py-2 relative ${
+                    className={`rounded-2xl px-4 py-2 relative hover:scale-[1.02] transition-transform duration-200 ${
                       message.isUser
                         ? "bg-primary text-primary-foreground rounded-br-md"
                         : "bg-muted text-foreground rounded-bl-md"

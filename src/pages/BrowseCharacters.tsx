@@ -159,12 +159,17 @@ const BrowseCharacters = () => {
         {/* Catbot Grid */}
         {!loading && filteredCatbots.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 animate-fade-in">
             {filteredCatbots.map((catbot, index) => (
-              <CatbotCard 
-                key={catbot.id} 
-                catbot={catbot} 
-                variant="chat"
-                delay={index * 100}
-              />
+              <div 
+                key={catbot.id}
+                className={`animate-fade-in animate-stagger-${(index % 4) + 1}`}
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <CatbotCard 
+                  catbot={catbot} 
+                  variant="chat"
+                  delay={0}
+                />
+              </div>
             ))}
           </div>}
 

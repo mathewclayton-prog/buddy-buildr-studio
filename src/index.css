@@ -174,4 +174,104 @@ All colors MUST be HSL.
     from { opacity: 0; transform: translateY(20px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* Enhanced chat animations */
+  @keyframes message-pop {
+    0% { opacity: 0; transform: scale(0.8) translateY(10px); }
+    50% { transform: scale(1.02) translateY(-2px); }
+    100% { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  @keyframes wiggle {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-3deg); }
+    75% { transform: rotate(3deg); }
+  }
+
+  @keyframes purr-vibration {
+    0%, 100% { transform: translateX(0); }
+    10% { transform: translateX(-1px); }
+    20% { transform: translateX(1px); }
+    30% { transform: translateX(-1px); }
+    40% { transform: translateX(1px); }
+    50% { transform: translateX(-1px); }
+    60% { transform: translateX(1px); }
+    70% { transform: translateX(-1px); }
+    80% { transform: translateX(1px); }
+    90% { transform: translateX(-1px); }
+  }
+
+  @keyframes heart-float {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-30px) scale(1.2); }
+  }
+
+  @keyframes paw-trail {
+    0% { opacity: 1; transform: scale(0.8) rotate(0deg); }
+    50% { opacity: 0.7; transform: scale(1) rotate(10deg); }
+    100% { opacity: 0; transform: scale(1.2) rotate(15deg); }
+  }
+
+  @keyframes bounce-soft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @keyframes scale-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+  }
+
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 5px hsl(var(--primary) / 0.3); }
+    50% { box-shadow: 0 0 20px hsl(var(--primary) / 0.5), 0 0 30px hsl(var(--primary) / 0.3); }
+  }
+
+  /* Enhanced animation utilities */
+  .animate-message-pop {
+    animation: message-pop 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.3s ease-in-out;
+  }
+
+  .animate-purr {
+    animation: purr-vibration 0.6s ease-in-out;
+  }
+
+  .animate-heart-float {
+    animation: heart-float 1s ease-out forwards;
+  }
+
+  .animate-paw-trail {
+    animation: paw-trail 0.8s ease-out forwards;
+  }
+
+  .animate-bounce-soft {
+    animation: bounce-soft 2s ease-in-out infinite;
+  }
+
+  .animate-scale-pulse {
+    animation: scale-pulse 2s ease-in-out infinite;
+  }
+
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
+  /* Hover effects for interactive elements */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: var(--shadow-primary);
+  }
+
+  /* Cat-themed micro-interactions */
+  .paw-cursor:hover {
+    cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23ff6b35" stroke-width="2"><circle cx="11" cy="4" r="2"/><circle cx="18" cy="6" r="2"/><circle cx="20" cy="20" r="2"/><circle cx="4" cy="20" r="2"/><path d="M11 10a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/><path d="M15 12a2 2 0 1 0 0-4 2 2 0 0 0 0 4z"/></svg>'), auto;
+  }
 }
