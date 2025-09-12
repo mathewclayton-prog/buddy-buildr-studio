@@ -53,7 +53,8 @@ const CreateCharacter = () => {
   const [personality, setPersonality] = useState("");
   const [avatar, setAvatar] = useState<string>("");
   const [avatarColor, setAvatarColor] = useState(COLOR_OPTIONS[0]);
-  const [avatarType, setAvatarType] = useState<"upload" | "color">("color");
+  const [avatarType, setAvatarType] = useState<"upload" | "color" | "ai">("color");
+  const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -326,6 +327,56 @@ const CreateCharacter = () => {
     setAvatar("");
     setAvatarType("color");
   };
+
+  // Generate AI avatar
+  const handleGenerateAvatar = async () => {
+    if (!user?.id || !name.trim() || !trainingDescription.trim() || !personality) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in name, personality, and description before generating an avatar.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingAvatar(true);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-avatar', {
+        body: {
+          name: name.trim(),
+          description: trainingDescription.trim(),
+          personality,
+          userId: user.id
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      if (data.success && data.avatarUrl) {
+        setAvatar(data.avatarUrl);
+        setAvatarType("upload");
+        toast({
+          title: "Avatar Generated!",
+          description: "Your AI-generated avatar has been created successfully.",
+        });
+      } else {
+        throw new Error(data.error || 'Failed to generate avatar');
+      }
+    } catch (error: any) {
+      console.error('Avatar generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate avatar. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingAvatar(false);
+    }
+  };
+
   const handleAvatarUpload = () => {
     fileInputRef.current?.click();
   };
@@ -440,6 +491,10 @@ const CreateCharacter = () => {
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Image
                     </Button>
+                    <Button type="button" variant={avatarType === "ai" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("ai")}>
+                      <div className="h-4 w-4 mr-2">✨</div>
+                      AI Generated
+                    </Button>
                   </div>
 
                   {/* Color Picker */}
@@ -473,6 +528,51 @@ const CreateCharacter = () => {
                           <p className="text-xs text-muted-foreground mt-1">
                             JPG, PNG, GIF, WebP (max 5MB). Will be resized to 300x300px.
                           </p>
+                        </div>
+                      </div>
+                    </div>}
+
+                  {/* AI Generation */}
+                  {avatarType === "ai" && <div className="space-y-2">
+                      <div className="flex items-center gap-4">
+                        {avatar ? <div className="relative">
+                            <img src={avatar} alt="Generated catbot image" className="h-20 w-20 rounded-lg object-cover shadow-soft" />
+                            <Button type="button" variant="destructive" size="icon" className="absolute -top-2 -right-2 h-6 w-6" onClick={handleRemoveImage}>
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </div> : <div className="h-20 w-20 rounded-lg bg-muted flex items-center justify-center">
+                            <div className="text-2xl">✨</div>
+                          </div>}
+                        
+                        <div className="flex-1">
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={handleGenerateAvatar}
+                            disabled={isGeneratingAvatar || !name.trim() || !trainingDescription.trim() || !personality}
+                            className="w-full"
+                          >
+                            {isGeneratingAvatar ? (
+                              <>
+                                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-current mr-2"></div>
+                                Generating...
+                              </>
+                            ) : (
+                              <>
+                                <div className="h-4 w-4 mr-2">✨</div>
+                                {avatar ? "Regenerate Avatar" : "Generate AI Avatar"}
+                              </>
+                            )}
+                          </Button>
+                          {!name.trim() || !trainingDescription.trim() || !personality ? (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Fill in name, personality, and description first
+                            </p>
+                          ) : (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              AI will create a unique avatar based on your cat's details
+                            </p>
+                          )}
                         </div>
                       </div>
                     </div>}
