@@ -36,7 +36,7 @@ class LocalLLMService {
           character: {
             name: "Test",
             personalityTraits: ["friendly"],
-            description: "Test character"
+            trainingDescription: "Test character"
           },
           userMessage: "Hello",
           conversationHistory: []

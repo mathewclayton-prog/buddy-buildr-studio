@@ -12,7 +12,9 @@ import { useToast } from "@/hooks/use-toast";
 interface Catbot {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null; // legacy field
+  public_profile?: string | null;
+  training_description?: string | null;
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
@@ -34,7 +36,7 @@ const BrowseCharacters = () => {
     if (searchQuery.trim() === "") {
       setFilteredCatbots(catbots);
     } else {
-      const filtered = catbots.filter(catbot => catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.description && catbot.description.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()));
+      const filtered = catbots.filter(catbot => catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.public_profile && catbot.public_profile.toLowerCase().includes(searchQuery.toLowerCase()) || catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase()));
       setFilteredCatbots(filtered);
     }
   }, [catbots, searchQuery]);

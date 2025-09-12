@@ -47,7 +47,8 @@ const CreateCharacter = () => {
   } = useParams();
   const isEditMode = !!catbotId;
   const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
+  const [publicProfile, setPublicProfile] = useState("");
+  const [trainingDescription, setTrainingDescription] = useState("");
   const [personality, setPersonality] = useState("");
   const [avatar, setAvatar] = useState<string>("");
   const [avatarColor, setAvatarColor] = useState(COLOR_OPTIONS[0]);
@@ -92,7 +93,8 @@ const CreateCharacter = () => {
 
       // Populate form with existing data
       setName(data.name);
-      setDescription(data.description || "");
+      setPublicProfile(data.public_profile || data.description || ""); // fallback to legacy description
+      setTrainingDescription(data.training_description || data.description || ""); // fallback to legacy description
       setPersonality(data.personality || "");
       setIsPublic(data.is_public);
       if (data.avatar_url) {
@@ -120,7 +122,7 @@ const CreateCharacter = () => {
       navigate("/auth");
       return;
     }
-    if (!name.trim() || !description.trim() || !personality) {
+    if (!name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -132,7 +134,8 @@ const CreateCharacter = () => {
     try {
       const catbotData = {
         name: name.trim(),
-        description: description.trim(),
+        public_profile: publicProfile.trim(),
+        training_description: trainingDescription.trim(),
         personality: personality,
         avatar_url: avatarType === "upload" ? avatar : null,
         is_public: isPublic
@@ -349,12 +352,21 @@ const CreateCharacter = () => {
                   <Input id="name" value={name} onChange={e => setName(e.target.value)} placeholder="e.g., Luna the Wise" maxLength={50} />
                 </div>
 
-                {/* Character Description */}
+                {/* Public Profile */}
                 <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
-                  <Textarea id="description" value={description} onChange={e => setDescription(e.target.value)} placeholder="Tell us about your cat's personality, habits, background, family and anything else that would be helpful." rows={4} maxLength={200} />
+                  <Label htmlFor="publicProfile">Public Profile *</Label>
+                  <Textarea id="publicProfile" value={publicProfile} onChange={e => setPublicProfile(e.target.value)} placeholder="Brief description that other users see when browsing (max 250 characters)" rows={3} maxLength={250} />
                   <p className="text-sm text-muted-foreground">
-                    {description.length}/200 characters
+                    {publicProfile.length}/250 characters
+                  </p>
+                </div>
+
+                {/* Training Description */}
+                <div className="space-y-2">
+                  <Label htmlFor="trainingDescription">AI Training Instructions *</Label>
+                  <Textarea id="trainingDescription" value={trainingDescription} onChange={e => setTrainingDescription(e.target.value)} placeholder="Detailed personality, background, speaking style, and behavior instructions for AI training (max 2000 characters)" rows={6} maxLength={2000} />
+                  <p className="text-sm text-muted-foreground">
+                    {trainingDescription.length}/2000 characters - This information is private and used only for AI training
                   </p>
                 </div>
 
@@ -452,7 +464,7 @@ const CreateCharacter = () => {
                   <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
                     Cancel
                   </Button>
-                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !description.trim() || !personality} className="flex-1">
+                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality} className="flex-1">
                     {isLoading ? isEditMode ? "Updating..." : "Creating..." : isEditMode ? "Update Catbot" : "Create Catbot"}
                   </Button>
                 </div>

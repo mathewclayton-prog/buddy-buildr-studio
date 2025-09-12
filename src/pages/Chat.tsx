@@ -47,7 +47,8 @@ const Chat = () => {
             char = {
               id: data.id,
               name: data.name,
-              description: data.description || '',
+              publicProfile: data.public_profile || '',
+              trainingDescription: data.training_description || '',
               personalityTraits: data.personality ? [data.personality] : ['friendly'],
               avatar: data.avatar_url || undefined,
               createdAt: new Date(data.created_at),
@@ -79,11 +80,11 @@ const Chat = () => {
         const personality = char.personalityTraits[0]?.toLowerCase() || "friendly";
         
         const openingMessages = {
-          playful: `Hello! I'm ${char.name}. ${char.description}. How is your day going?`,
-          wise: `Hello! I'm ${char.name}. ${char.description}. How is your day going?`,
-          friendly: `Hello! I'm ${char.name}. ${char.description}. How is your day going?`,
-          mysterious: `Hello! I'm ${char.name}. ${char.description}. How is your day going?`,
-          serious: `Hello! I'm ${char.name}. ${char.description}. How is your day going?`
+          playful: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
+          wise: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
+          friendly: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
+          mysterious: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
+          serious: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`
         };
         
         const openingContent = openingMessages[personality] || openingMessages.friendly;

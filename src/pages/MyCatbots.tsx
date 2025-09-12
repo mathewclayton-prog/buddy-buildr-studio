@@ -15,7 +15,9 @@ import { Link } from "react-router-dom";
 interface Catbot {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null; // legacy field
+  public_profile?: string | null;
+  training_description?: string | null;
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
@@ -187,7 +189,7 @@ const MyCatbots = () => {
       </CardHeader>
       <CardContent className="pt-0">
         <CardDescription className="mb-4 line-clamp-2">
-          {catbot.description || "No description provided"}
+          {catbot.public_profile || "No description provided"}
         </CardDescription>
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-2">

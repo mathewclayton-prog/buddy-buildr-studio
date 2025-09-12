@@ -62,7 +62,7 @@ CONVERSATION STYLE:
     
     const personalityStyle = personalityPrompts[primaryPersonality] || personalityPrompts.friendly;
     
-    const systemPrompt = `You are ${character.name}, a ${personalityDesc} cat character. ${character.description}
+    const systemPrompt = `You are ${character.name}, a ${personalityDesc} cat character. ${character.trainingDescription || character.description}
 
 CONVERSATION MEMORY & HISTORY:
 - Pay close attention to the full conversation history provided

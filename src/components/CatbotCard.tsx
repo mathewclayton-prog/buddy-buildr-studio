@@ -6,7 +6,9 @@ import { Link } from "react-router-dom";
 interface Catbot {
   id: string;
   name: string;
-  description: string | null;
+  description?: string | null; // legacy field
+  public_profile?: string | null;
+  training_description?: string | null;
   personality?: string | null;
   avatar_url: string | null;
   is_public?: boolean;
@@ -67,7 +69,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       <CardContent className="p-3 flex flex-col flex-1">
         {/* Description - closer to title */}
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-3">
-          {catbot.description || "A mysterious catbot with lots to share"}
+          {catbot.public_profile || "A mysterious catbot with lots to share"}
         </p>
         
         {/* Chat Button - aligned at bottom */}
