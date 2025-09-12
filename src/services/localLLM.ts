@@ -33,12 +33,8 @@ class LocalLLMService {
       // Test the connection to our edge function
       const { error } = await supabase.functions.invoke('chat-ai', {
         body: {
-          character: {
-            name: "Test",
-            personalityTraits: ["friendly"],
-            trainingDescription: "Test character"
-          },
-          userMessage: "Hello",
+          catbotId: 'test-id',
+          userMessage: 'Hello',
           conversationHistory: []
         }
       });
@@ -57,18 +53,18 @@ class LocalLLMService {
   }
 
   async generateResponse(
-    character: Character, 
+    catbotId: string, 
     userMessage: string, 
     conversationHistory?: Array<{role: string; content: string}>
   ): Promise<string> {
     try {
       await this.initialize();
       
-      console.log("🔄 Generating response for:", character.name);
+      console.log('🔄 Generating response for catbot ID:', catbotId);
       
       const { data, error } = await supabase.functions.invoke('chat-ai', {
         body: {
-          character,
+          catbotId,
           userMessage,
           conversationHistory: conversationHistory || []
         }
@@ -90,12 +86,11 @@ class LocalLLMService {
       console.error("❌ Error generating response:", error);
       
       // Fallback to personality-based responses
-      return this.getFallbackResponse(character, userMessage);
+      return this.getFallbackResponse();
     }
   }
 
-  private getFallbackResponse(character: Character, userMessage: string): string {
-    const personality = character.personalityTraits[0]?.toLowerCase() || "friendly";
+  private getFallbackResponse(): string {
     
     const fallbackResponses = {
       friendly: [
@@ -103,29 +98,9 @@ class LocalLLMService {
         "Oh, I totally understand what you mean! Thanks for sharing that with me.",
         "That sounds fascinating! What else would you like to talk about?",
       ],
-      mysterious: [
-        "Hmm... there's always more than meets the eye, isn't there? 🌙",
-        "Interesting... that reminds me of something from long ago.",
-        "Perhaps the truth lies hidden in plain sight. What do you think?",
-      ],
-      wise: [
-        "Ah, that brings to mind an old saying about wisdom and understanding. 🧙‍♀️",
-        "In my experience, the most profound insights come from simple observations.",
-        "Consider this: every question holds the key to deeper understanding.",
-      ],
-      playful: [
-        "Ooh, that's so cool! You always have the most interesting things to say! 🎈",
-        "Haha, I love how creative you are! Tell me more, tell me more! ✨",
-        "This is awesome! You make every conversation an adventure!",
-      ],
-      serious: [
-        "I understand. This deserves careful consideration and thought.",
-        "Your point is well-taken. Let me reflect on this properly.",
-        "This is indeed an important matter. How shall we proceed?",
-      ]
     };
     
-    const responses = fallbackResponses[personality as keyof typeof fallbackResponses] || fallbackResponses.friendly;
+    const responses = fallbackResponses.friendly;
     return responses[Math.floor(Math.random() * responses.length)];
   }
 

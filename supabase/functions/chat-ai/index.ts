@@ -1,12 +1,18 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.57.3';
 
 const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
+const supabaseUrl = Deno.env.get('SUPABASE_URL');
+const supabaseServiceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Initialize Supabase client
+const supabase = createClient(supabaseUrl!, supabaseServiceRoleKey!);
 
 serve(async (req) => {
   // Handle CORS preflight requests
@@ -19,50 +25,26 @@ serve(async (req) => {
       throw new Error('OpenAI API key not configured');
     }
 
-    const { character, userMessage, conversationHistory } = await req.json();
+    const { catbotId, userMessage, conversationHistory } = await req.json();
 
-    console.log('🤖 Generating AI response for character:', character.name);
+    console.log('🤖 Generating AI response for catbot ID:', catbotId);
 
-    // Build the character prompt
-    const personalityDesc = character.personalityTraits.join(", ");
-    const primaryPersonality = character.personalityTraits[0]?.toLowerCase() || "friendly";
-    
-    // Personality-specific conversation examples
-    const personalityPrompts = {
-      playful: `
-CONVERSATION STYLE:
-- Ask playful, energetic questions
-- Be curious about fun activities and games
-- Example questions: "Wanna play a game?" "What's the most fun thing you did today?" "What makes you laugh the most?" "Tell me about your favorite adventure!"`,
-      
-      wise: `
-CONVERSATION STYLE:
-- Ask thoughtful, reflective questions
-- Show interest in learning and wisdom
-- Example questions: "What lesson have you learned recently?" "What do you think about [topic]?" "What wisdom would you share?" "How has that experience changed you?"`,
-      
-      friendly: `
-CONVERSATION STYLE:
-- Ask warm, caring questions about daily life
-- Show genuine interest in relationships and experiences
-- Example questions: "How was your day?" "Tell me about your friends!" "What made you smile today?" "What's been on your mind lately?"`,
-      
-      mysterious: `
-CONVERSATION STYLE:
-- Ask intriguing, deeper questions
-- Be curious about hidden aspects and secrets
-- Example questions: "What secrets are you hiding?" "What's something others don't know about you?" "What mysteries fascinate you?" "Tell me something unexpected about yourself."`,
-      
-      serious: `
-CONVERSATION STYLE:
-- Ask thoughtful, meaningful questions
-- Focus on important topics and genuine connection
-- Example questions: "What matters most to you?" "How do you handle challenges?" "What are your thoughts on [serious topic]?" "What drives your decisions?"`
-    };
-    
-    const personalityStyle = personalityPrompts[primaryPersonality] || personalityPrompts.friendly;
-    
-    const systemPrompt = `You are ${character.name}, a ${personalityDesc} cat character. ${character.trainingDescription || character.description}
+    // Fetch catbot data from database
+    const { data: catbot, error: catbotError } = await supabase
+      .from('catbots')
+      .select('name, training_description, personality')
+      .eq('id', catbotId)
+      .single();
+
+    if (catbotError || !catbot) {
+      console.error('Error fetching catbot:', catbotError);
+      throw new Error('Catbot not found or access denied');
+    }
+
+    console.log('📋 Fetched catbot data:', { name: catbot.name, personality: catbot.personality });
+
+    // Construct system prompt using the training description
+    const systemPrompt = `You are a cat character named ${catbot.name}. Your personality type is ${catbot.personality}. ${catbot.training_description}
 
 CONVERSATION MEMORY & HISTORY:
 - Pay close attention to the full conversation history provided
@@ -78,15 +60,9 @@ CONVERSATION RULES:
 - Ask follow-up questions about what they tell you
 - Keep responses conversational, not just informative
 - Reference our previous conversation when relevant
-${personalityStyle}
-
-Key personality traits:
-${character.personalityTraits.map((trait: string) => `- ${trait}`).join('\n')}
-
-Instructions:
 - Stay in character at all times
 - Keep responses concise (1-3 sentences)
-- Match your personality traits in your tone and word choice
+- Match your personality in your tone and word choice
 - Don't mention that you're an AI or model`;
 
     // Build messages array
@@ -119,10 +95,9 @@ Instructions:
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: 'gpt-5-2025-08-07',
         messages: messages,
-        max_tokens: 150,
-        temperature: 0.7,
+        max_completion_tokens: 150,
       }),
     });
 
@@ -133,10 +108,9 @@ Instructions:
         statusText: response.statusText,
         error: errorData,
         requestBody: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-5-2025-08-07',
           messages: messages,
-          max_tokens: 150,
-          temperature: 0.7,
+          max_completion_tokens: 150,
         })
       });
       throw new Error(`OpenAI API error: ${response.status} - ${errorData}`);
@@ -157,16 +131,16 @@ Instructions:
   } catch (error) {
     console.error('Error in chat-ai function:', error);
     
-    // Try to get character from the already parsed request
-    let character = null;
+    // Try to get catbot from the already parsed request for fallback
+    let catbot = null;
     try {
       const body = await req.clone().json();
-      character = body.character;
+      catbot = { personality: 'friendly' }; // Basic fallback
     } catch (e) {
       console.error('Failed to parse request for fallback:', e);
     }
     
-    const fallbackResponse = getFallbackResponse(character);
+    const fallbackResponse = getFallbackResponse(catbot);
     
     return new Response(JSON.stringify({ 
       response: fallbackResponse,
@@ -179,12 +153,12 @@ Instructions:
   }
 });
 
-function getFallbackResponse(character: any): string {
-  if (!character) {
+function getFallbackResponse(catbot: any): string {
+  if (!catbot) {
     return "I'm having trouble processing that right now. Could you try again? 😸";
   }
 
-  const personality = character.personalityTraits?.[0]?.toLowerCase() || "friendly";
+  const personality = catbot.personality?.toLowerCase() || "friendly";
   
   const fallbackResponses: Record<string, string[]> = {
     friendly: [

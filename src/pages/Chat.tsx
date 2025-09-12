@@ -115,7 +115,7 @@ const Chat = () => {
 
     try {
       if (localLLM.isReady()) {
-        return await localLLM.generateResponse(character, userMessage, conversationHistory);
+        return await localLLM.generateResponse(character.id, userMessage, conversationHistory);
       }
     } catch (error) {
       console.error("LLM generation failed, using fallback:", error);
