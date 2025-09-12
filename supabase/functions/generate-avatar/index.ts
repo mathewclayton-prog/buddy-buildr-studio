@@ -50,11 +50,10 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-image-1',
+        model: 'dall-e-3',
         prompt: prompt,
         size: '1024x1024',
-        quality: 'high',
-        output_format: 'png',
+        quality: 'hd',
         n: 1
       }),
     });
@@ -68,14 +67,18 @@ serve(async (req) => {
     const data = await response.json();
     const imageData = data.data[0];
 
-    // Convert base64 to blob for upload
-    const base64Data = imageData.b64_json || imageData.revised_prompt;
-    if (!imageData.b64_json) {
-      throw new Error('No image data received from OpenAI');
+    // DALL-E-3 returns URLs by default, not base64
+    if (!imageData.url) {
+      throw new Error('No image URL received from OpenAI');
     }
 
-    // Convert base64 to file
-    const imageBuffer = Uint8Array.from(atob(imageData.b64_json), c => c.charCodeAt(0));
+    // Download the image from the URL
+    const imageResponse = await fetch(imageData.url);
+    if (!imageResponse.ok) {
+      throw new Error('Failed to download generated image');
+    }
+    
+    const imageBuffer = new Uint8Array(await imageResponse.arrayBuffer());
     const fileName = `avatar_${userId}_${Date.now()}.png`;
     const filePath = `catbots/${userId}/${fileName}`;
 
