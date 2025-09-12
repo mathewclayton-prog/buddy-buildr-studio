@@ -116,8 +116,11 @@ const Chat = () => {
       content: msg.content
     }));
 
+    // Check if this is a Supabase-backed catbot (has proper UUID format)
+    const isSupabaseCatbot = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(character.id);
+
     try {
-      if (localLLM.isReady()) {
+      if (localLLM.isReady() && isSupabaseCatbot) {
         return await localLLM.generateResponse(character.id, userMessage, conversationHistory, user?.id);
       }
     } catch (error) {
