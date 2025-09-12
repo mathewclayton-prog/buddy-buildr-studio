@@ -5,7 +5,7 @@ import Footer from "@/components/Footer";
 import { PlatformStats } from "@/components/PlatformStats";
 import { CatbotSection } from "@/components/CatbotSection";
 import { RecentActivityFeed } from "@/components/RecentActivityFeed";
-import { DatabaseSeeder } from "@/components/DatabaseSeeder";
+
 import { Plus, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -41,7 +41,7 @@ const Index = () => {
   // Activity feed
   const [activityFeed, setActivityFeed] = useState<any[]>([]);
   const [onlineCount, setOnlineCount] = useState(0);
-  const [showSeeder, setShowSeeder] = useState(false);
+  
   
   // Loading states
   const [loading, setLoading] = useState(true);
@@ -95,8 +95,6 @@ const Index = () => {
       const stats = await getPlatformStats();
       setPlatformStats(stats);
       
-      // Show seeder if no conversations exist
-      setShowSeeder(stats.totalConversations === 0);
     } catch (error) {
       console.error('Error loading platform stats:', error);
     }
@@ -231,10 +229,16 @@ const Index = () => {
         {/* Platform Stats */}
         <PlatformStats {...platformStats} />
 
-        {/* Database Seeder (only show if no conversations) */}
-        {showSeeder && (
-          <div className="mb-16">
-            <DatabaseSeeder />
+        {/* Empty State Message */}
+        {platformStats.totalCatbots === 0 && !loading && (
+          <div className="text-center py-16 mb-16">
+            <PawPrint className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-2xl font-semibold text-foreground mb-2">
+              Our cats are getting ready
+            </h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              The MiCatbot community is growing! Check back soon to meet amazing AI companions created by our community.
+            </p>
           </div>
         )}
 
