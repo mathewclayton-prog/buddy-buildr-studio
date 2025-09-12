@@ -34,7 +34,7 @@ const Index = () => {
         error
       } = await supabase.from('catbots').select('*').eq('is_public', true).order('created_at', {
         ascending: false
-      }).limit(8);
+      }).limit(60);
       if (error) throw error;
       setFeaturedCatbots(data || []);
     } catch (error) {
@@ -113,10 +113,10 @@ const Index = () => {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 mb-8">
             {loading ?
           // Loading skeleton
-          [...Array(8)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden">
+          [...Array(12)].map((_, index) => <Card key={index} className="animate-pulse shadow-card overflow-hidden">
                   <div className="h-32 bg-muted" />
                   <CardContent className="p-3">
                     <div className="h-4 bg-muted rounded mb-2" />
