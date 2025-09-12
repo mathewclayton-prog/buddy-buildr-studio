@@ -11,6 +11,7 @@ interface Catbot {
   personality?: string | null;
   avatar_url: string | null;
   is_public?: boolean;
+  interaction_count?: number;
   created_at?: string;
 }
 
@@ -67,9 +68,17 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       {/* Content Section - Compact spacing with flex-grow */}
       <CardContent className="p-3 flex flex-col flex-1">
         {/* Description - closer to title */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-3">
+        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-2">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
+        
+        {/* Interaction count */}
+        {catbot.interaction_count !== undefined && (
+          <div className="text-xs text-muted-foreground mb-3 flex items-center gap-1">
+            <MessageCircle className="h-3 w-3" />
+            {catbot.interaction_count.toLocaleString()} interactions
+          </div>
+        )}
         
         {/* Chat Button - aligned at bottom */}
         {variant === 'chat' ? (

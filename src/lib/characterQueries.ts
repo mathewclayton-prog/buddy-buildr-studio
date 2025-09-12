@@ -9,6 +9,7 @@ export interface PublicCharacter {
   personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
+  interaction_count: number;
   created_at: string;
   updated_at: string;
 }
@@ -43,12 +44,27 @@ export interface CharacterForEdit {
  * Fetches public characters for browsing/discovery
  * Only includes fields needed for public display
  */
-export async function getPublicCharacters(): Promise<PublicCharacter[]> {
-  const { data, error } = await supabase
+export async function getPublicCharacters(sortBy: 'newest' | 'popular' | 'oldest' = 'newest'): Promise<PublicCharacter[]> {
+  let query = supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
-    .eq('is_public', true)
-    .order('created_at', { ascending: false });
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count')
+    .eq('is_public', true);
+
+  // Apply sorting
+  switch (sortBy) {
+    case 'popular':
+      query = query.order('interaction_count', { ascending: false });
+      break;
+    case 'oldest':
+      query = query.order('created_at', { ascending: true });
+      break;
+    case 'newest':
+    default:
+      query = query.order('created_at', { ascending: false });
+      break;
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Error fetching public characters:', error);
@@ -65,7 +81,7 @@ export async function getPublicCharacters(): Promise<PublicCharacter[]> {
 export async function getUserCharacters(userId: string): Promise<PublicCharacter[]> {
   const { data, error } = await supabase
     .from('catbots')
-    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public')
+    .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, interaction_count')
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 

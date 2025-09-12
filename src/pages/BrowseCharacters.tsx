@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import Navigation from "@/components/Navigation";
 import { CatbotCard } from "@/components/CatbotCard";
 import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
@@ -13,13 +14,14 @@ const BrowseCharacters = () => {
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [filteredCatbots, setFilteredCatbots] = useState<PublicCharacter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState<'newest' | 'popular' | 'oldest'>('popular');
   const [loading, setLoading] = useState(true);
   const {
     toast
   } = useToast();
   useEffect(() => {
     loadPublicCatbots();
-  }, []);
+  }, [sortBy]);
   useEffect(() => {
     if (searchQuery.trim() === "") {
       setFilteredCatbots(catbots);
@@ -30,7 +32,7 @@ const BrowseCharacters = () => {
   }, [catbots, searchQuery]);
   const loadPublicCatbots = async () => {
     try {
-      const data = await getPublicCharacters();
+      const data = await getPublicCharacters(sortBy);
       setCatbots(data);
       setFilteredCatbots(data);
     } catch (error) {
@@ -63,11 +65,23 @@ const BrowseCharacters = () => {
           </p>
         </div>
 
-        {/* Search Bar */}
-        {catbots.length > 0 && <div className="max-w-md mx-auto mb-8 animate-fade-in">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input type="text" placeholder="Search catbots by name, description, or personality..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card shadow-soft" />
+        {/* Search and Sort Bar */}
+        {catbots.length > 0 && <div className="max-w-2xl mx-auto mb-8 animate-fade-in">
+            <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input type="text" placeholder="Search catbots by name, description, or personality..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="pl-10 bg-card shadow-soft" />
+              </div>
+              <Select value={sortBy} onValueChange={(value: 'newest' | 'popular' | 'oldest') => setSortBy(value)}>
+                <SelectTrigger className="w-full sm:w-48 bg-card shadow-soft">
+                  <SelectValue placeholder="Sort by..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="popular">Most Popular</SelectItem>
+                  <SelectItem value="newest">Newest First</SelectItem>
+                  <SelectItem value="oldest">Oldest First</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>}
 
