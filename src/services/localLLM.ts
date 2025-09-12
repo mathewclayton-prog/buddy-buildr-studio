@@ -30,18 +30,8 @@ class LocalLLMService {
     try {
       console.log("🤖 Initializing AI service...");
       
-      // Test the connection to our edge function
-      const { error } = await supabase.functions.invoke('chat-ai', {
-        body: {
-          catbotId: 'test-id',
-          userMessage: 'Hello',
-          conversationHistory: []
-        }
-      });
-
-      if (error) {
-        console.warn("Edge function test failed, but service will continue:", error);
-      }
+      // Skip test call during initialization to avoid invalid UUID error
+      console.log("AI service ready for use");
       
       this.serviceReady = true;
       console.log("✅ AI service initialized successfully!");

@@ -30,6 +30,12 @@ serve(async (req) => {
     console.log('🤖 Generating AI response for catbot ID:', catbotId);
 
     // Fetch catbot data from database
+    // UUID validation
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+    if (!uuidRegex.test(catbotId)) {
+      throw new Error('Invalid catbot ID format');
+    }
+
     const { data: catbot, error: catbotError } = await supabase
       .from('catbots')
       .select('name, training_description, personality')
@@ -53,7 +59,7 @@ serve(async (req) => {
         .select('*')
         .eq('user_id', userId)
         .eq('catbot_id', catbotId)
-        .single() : Promise.resolve({ data: null }),
+        .maybeSingle() : Promise.resolve({ data: null }),
       
       userId ? supabase
         .from('conversation_contexts')
@@ -94,7 +100,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: messages,
-        max_completion_tokens: 150,
+        max_tokens: 150,
       }),
     });
 
@@ -132,13 +138,7 @@ serve(async (req) => {
     console.error('Error in chat-ai function:', error);
     
     // Enhanced fallback with personality consistency
-    let catbot = null;
-    try {
-      const body = await req.clone().json();
-      catbot = { personality: 'friendly' };
-    } catch (e) {
-      console.error('Failed to parse request for fallback:', e);
-    }
+    const catbot = { personality: 'friendly' };
     
     const fallbackResponse = getPersonalityFallbackResponse(catbot);
     
@@ -766,12 +766,4 @@ async function createSimpleUserMemory(userId: string, catbotId: string, insights
   await supabase
     .from('user_memory_profiles')
     .insert(memoryProfile);
-}
-
-function getRelationshipLabel(depth: number): string {
-  if (depth <= 2) return 'getting acquainted';
-  if (depth <= 4) return 'becoming friends';
-  if (depth <= 6) return 'good friends';
-  if (depth <= 8) return 'close friends';
-  return 'very close bond';
 }
