@@ -130,6 +130,24 @@ const CreateCharacter = () => {
       });
       return;
     }
+
+    if (publicProfile.length > 250) {
+      toast({
+        title: "Validation Error",
+        description: "Public Profile must be 250 characters or less.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (trainingDescription.length > 2000) {
+      toast({
+        title: "Validation Error",
+        description: "Personality & History must be 2000 characters or less.",
+        variant: "destructive"
+      });
+      return;
+    }
     setIsLoading(true);
     try {
       const catbotData = {
@@ -364,7 +382,10 @@ const CreateCharacter = () => {
                     maxLength={250} 
                   />
                   <p className="text-sm text-muted-foreground">
-                    {publicProfile.length}/250 characters - This is what people see when browsing cats
+                    <span className={publicProfile.length > 250 ? "text-destructive font-medium" : ""}>
+                      {publicProfile.length}/250 characters
+                    </span>
+                    {" - This is what people see when browsing cats"}
                   </p>
                 </div>
 
@@ -380,7 +401,10 @@ const CreateCharacter = () => {
                     maxLength={2000} 
                   />
                   <p className="text-sm text-muted-foreground">
-                    {trainingDescription.length}/2000 characters - Private training instructions
+                    <span className={trainingDescription.length > 2000 ? "text-destructive font-medium" : ""}>
+                      {trainingDescription.length}/2000 characters
+                    </span>
+                    {" - Private training instructions"}
                   </p>
                 </div>
 
@@ -478,7 +502,7 @@ const CreateCharacter = () => {
                   <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
                     Cancel
                   </Button>
-                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality} className="flex-1">
+                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality || publicProfile.length > 250 || trainingDescription.length > 2000} className="flex-1">
                     {isLoading ? isEditMode ? "Updating..." : "Creating..." : isEditMode ? "Update Catbot" : "Create Catbot"}
                   </Button>
                 </div>
