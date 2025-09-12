@@ -251,7 +251,7 @@ const MyCatbots = () => {
           </Button>
         </div>
 
-        <Tabs defaultValue="private" className="space-y-6">
+        <Tabs defaultValue="public" className="space-y-6">
           <TabsList>
             <TabsTrigger value="private" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
