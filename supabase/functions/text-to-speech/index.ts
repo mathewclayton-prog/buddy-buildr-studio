@@ -6,7 +6,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Voice mapping for different cat personalities
+// Voice mapping for different cat personalities (backwards compatibility)
 const PERSONALITY_VOICES = {
   'friendly': 'Charlotte', // Warm and friendly
   'playful': 'Sarah', // Energetic and fun
@@ -16,10 +16,17 @@ const PERSONALITY_VOICES = {
   'default': 'Charlotte'
 };
 
+// All available voice IDs (female and male)
 const ELEVENLABS_VOICE_IDS = {
+  // Female voices
   'Charlotte': 'XB0fDUnXU5powFXDhCwa',
   'Sarah': 'EXAVITQu4vr4xnSDxMaL',
   'Laura': 'FGY2WhTYpPnrIDTdsKH5',
+  // Male voices  
+  'Daniel': 'onwK4e9ZLuTAKqWW03F9',
+  'Brian': 'nPczCjzI2devNBz1zQrb',
+  'Chris': 'iP95p4xoKVk53GoZ742B',
+  // Legacy female voices
   'Alice': 'Xb7hH8MSUJpSbSDYk0k2',
   'Jessica': 'cgSgspJ2msm6clMCkdW9'
 };
@@ -31,7 +38,7 @@ serve(async (req) => {
   }
 
   try {
-    const { text, personality = 'friendly' } = await req.json();
+    const { text, personality = 'friendly', voiceId } = await req.json();
 
     if (!text) {
       throw new Error('Text is required');
@@ -42,14 +49,24 @@ serve(async (req) => {
       throw new Error('ElevenLabs API key not configured');
     }
 
-    // Select voice based on personality
-    const voiceName = PERSONALITY_VOICES[personality as keyof typeof PERSONALITY_VOICES] || PERSONALITY_VOICES.default;
-    const voiceId = ELEVENLABS_VOICE_IDS[voiceName as keyof typeof ELEVENLABS_VOICE_IDS];
+    // Select voice - prefer explicit voiceId over personality mapping
+    let selectedVoiceId = voiceId;
+    let voiceName = 'Custom';
+    
+    if (!selectedVoiceId) {
+      // Fallback to personality-based voice selection
+      voiceName = PERSONALITY_VOICES[personality as keyof typeof PERSONALITY_VOICES] || PERSONALITY_VOICES.default;
+      selectedVoiceId = ELEVENLABS_VOICE_IDS[voiceName as keyof typeof ELEVENLABS_VOICE_IDS];
+    } else {
+      // Find voice name from ID for logging
+      const voiceEntry = Object.entries(ELEVENLABS_VOICE_IDS).find(([_, id]) => id === selectedVoiceId);
+      voiceName = voiceEntry ? voiceEntry[0] : 'Unknown';
+    }
 
     console.log(`🎵 Generating speech for personality: ${personality}, voice: ${voiceName}, text length: ${text.length}`);
 
     // Call ElevenLabs API
-    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`, {
+    const response = await fetch(`https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`, {
       method: 'POST',
       headers: {
         'Accept': 'audio/mpeg',

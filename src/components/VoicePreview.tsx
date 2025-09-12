@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Play, Pause, Volume2 } from "lucide-react";
 import { audioService } from "@/services/audioService";
-import { getVoiceForPersonality, getVoiceDescription, PERSONALITY_VOICES } from "@/utils/voiceMapping";
+import { AVAILABLE_VOICES } from "@/utils/voiceMapping";
 import { useToast } from "@/hooks/use-toast";
 
 interface VoicePreviewProps {
@@ -17,8 +17,11 @@ const VoicePreview = ({ personality, characterName = "Your Cat" }: VoicePreviewP
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
 
-  const voiceName = getVoiceForPersonality(personality);
-  const voiceDescription = getVoiceDescription(voiceName);
+  // Default to Charlotte for backwards compatibility
+  const voiceInfo = Object.values(AVAILABLE_VOICES.female).find(v => v.name === 'Charlotte') || 
+                   Object.values(AVAILABLE_VOICES.female)[0];
+  const voiceName = voiceInfo.name;
+  const voiceDescription = voiceInfo.description;
   
   const sampleText = `Hello! I'm ${characterName}. I'm excited to chat with you! This is how I'll sound when we talk together.`;
 
@@ -99,12 +102,10 @@ const VoicePreview = ({ personality, characterName = "Your Cat" }: VoicePreviewP
         </div>
         
         <div className="grid grid-cols-2 gap-2 text-xs">
-          {Object.entries(PERSONALITY_VOICES).map(([pers, voice]) => (
-            <div key={pers} className={`p-2 rounded border text-center ${
-              pers === personality ? 'bg-primary/10 border-primary' : 'bg-muted/30 border-border'
-            }`}>
-              <div className="font-medium capitalize">{pers}</div>
-              <div className="text-muted-foreground">{voice}</div>
+          {[...Object.entries(AVAILABLE_VOICES.female), ...Object.entries(AVAILABLE_VOICES.male)].map(([voiceId, voice]) => (
+            <div key={voiceId} className="p-2 rounded border text-center bg-muted/30 border-border">
+              <div className="font-medium">{voice.name}</div>
+              <div className="text-muted-foreground capitalize">{voice.gender}</div>
             </div>
           ))}
         </div>
