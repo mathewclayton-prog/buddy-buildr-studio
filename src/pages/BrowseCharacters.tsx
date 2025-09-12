@@ -7,22 +7,11 @@ import Navigation from "@/components/Navigation";
 import { CatbotCard } from "@/components/CatbotCard";
 import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
 import { Link } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-interface Catbot {
-  id: string;
-  name: string;
-  description?: string | null; // legacy field for backward compatibility
-  public_profile?: string | null;
-  personality: string | null;
-  avatar_url: string | null;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { getPublicCharacters, type PublicCharacter } from "@/lib/characterQueries";
 const BrowseCharacters = () => {
-  const [catbots, setCatbots] = useState<Catbot[]>([]);
-  const [filteredCatbots, setFilteredCatbots] = useState<Catbot[]>([]);
+  const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
+  const [filteredCatbots, setFilteredCatbots] = useState<PublicCharacter[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const {
@@ -41,15 +30,9 @@ const BrowseCharacters = () => {
   }, [catbots, searchQuery]);
   const loadPublicCatbots = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('catbots').select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public').eq('is_public', true).order('created_at', {
-        ascending: false
-      });
-      if (error) throw error;
-      setCatbots(data || []);
-      setFilteredCatbots(data || []);
+      const data = await getPublicCharacters();
+      setCatbots(data);
+      setFilteredCatbots(data);
     } catch (error) {
       console.error('Error loading public catbots:', error);
       toast({
@@ -61,7 +44,7 @@ const BrowseCharacters = () => {
       setLoading(false);
     }
   };
-  const getDefaultAvatar = (catbot: Catbot) => {
+  const getDefaultAvatar = (catbot: PublicCharacter) => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
     return <div className={`h-20 w-20 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>

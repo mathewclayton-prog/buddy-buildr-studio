@@ -11,23 +11,12 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
-
-interface Catbot {
-  id: string;
-  name: string;
-  description?: string | null; // legacy field for backward compatibility
-  public_profile?: string | null;
-  personality: string | null;
-  avatar_url: string | null;
-  is_public: boolean;
-  created_at: string;
-  updated_at: string;
-}
+import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
 const MyCatbots = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [catbots, setCatbots] = useState<Catbot[]>([]);
+  const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -116,7 +105,7 @@ const MyCatbots = () => {
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
   const publicCatbots = catbots.filter(catbot => catbot.is_public);
 
-  const CatbotCard = ({ catbot }: { catbot: Catbot }) => (
+  const CatbotCard = ({ catbot }: { catbot: PublicCharacter }) => (
     <Card className="hover-scale shadow-card">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">

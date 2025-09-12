@@ -16,6 +16,7 @@ import { useToast } from "@/hooks/use-toast";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
+import { getCharacterForEdit } from "@/lib/characterQueries";
 const PERSONALITY_OPTIONS = [{
   value: "Friendly",
   label: "Friendly",
@@ -84,12 +85,11 @@ const CreateCharacter = () => {
   }, [isEditMode, catbotId, user]);
   const loadCatbotData = async () => {
     try {
-      const {
-        data,
-        error
-      } = await supabase.from('catbots').select('id, name, description, public_profile, training_description, personality, avatar_url, is_public').eq('id', catbotId).eq('user_id', user?.id) // Ensure user owns the catbot
-      .single();
-      if (error) throw error;
+      const data = await getCharacterForEdit(catbotId, user.id);
+      
+      if (!data) {
+        throw new Error('Catbot not found or access denied');
+      }
 
       // Populate form with existing data, handling backward compatibility
       setName(data.name);
