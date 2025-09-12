@@ -23,6 +23,8 @@ export type Database = {
           is_public: boolean
           name: string
           personality: string | null
+          public_profile: string | null
+          training_description: string | null
           updated_at: string
           user_id: string
         }
@@ -34,6 +36,8 @@ export type Database = {
           is_public?: boolean
           name: string
           personality?: string | null
+          public_profile?: string | null
+          training_description?: string | null
           updated_at?: string
           user_id: string
         }
@@ -45,6 +49,8 @@ export type Database = {
           is_public?: boolean
           name?: string
           personality?: string | null
+          public_profile?: string | null
+          training_description?: string | null
           updated_at?: string
           user_id?: string
         }
