@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/useAuth";
 import MemoryIndicator from "@/components/MemoryIndicator";
 import AudioControls from "@/components/AudioControls";
 import VoiceIndicator from "@/components/VoiceIndicator";
+import VoiceInput from "@/components/VoiceInput";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -169,12 +170,13 @@ const Chat = () => {
     return personalityResponses[Math.floor(Math.random() * personalityResponses.length)];
   };
 
-  const sendMessage = async () => {
-    if (!newMessage.trim() || !character) return;
+  const sendMessage = async (messageText?: string) => {
+    const textToSend = messageText || newMessage.trim();
+    if (!textToSend || !character) return;
 
     const userMessage: ChatMessage = {
       id: crypto.randomUUID(),
-      content: newMessage.trim(),
+      content: textToSend,
       isUser: true,
       timestamp: new Date(),
     };
@@ -218,6 +220,11 @@ const Chat = () => {
         });
       }
     }, 1000 + Math.random() * 1000);
+  };
+
+  const handleVoiceTranscription = (transcribedText: string) => {
+    // Auto-send the transcribed text
+    sendMessage(transcribedText);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -413,6 +420,11 @@ const Chat = () => {
           {/* Message Input Area - WhatsApp style */}
           <div className="border-t bg-card p-4">
             <div className="flex gap-3 items-end">
+              <VoiceInput 
+                onTranscription={handleVoiceTranscription}
+                disabled={isTyping}
+                className="flex-shrink-0"
+              />
               <div className="flex-1 relative">
                 <Input
                   value={newMessage}
@@ -424,7 +436,7 @@ const Chat = () => {
                   style={{ paddingRight: '3rem' }}
                 />
                 <Button
-                  onClick={sendMessage}
+                  onClick={() => sendMessage()}
                   disabled={!newMessage.trim() || isTyping}
                   size="icon"
                   variant="ghost"
