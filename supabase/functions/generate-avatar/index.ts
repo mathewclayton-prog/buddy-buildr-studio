@@ -38,8 +38,15 @@ serve(async (req) => {
 
     // Construct intelligent prompt from catbot details
     const personalityDescriptor = getPersonalityDescriptor(personality);
-    const prompt = `A portrait of ${name}, a ${personalityDescriptor} cat character. ${description}. Digital art style, friendly expression, clear background, high quality, detailed fur texture, expressive eyes. Professional character illustration.`;
+    const sanitizedDescription = buildShortDescription(description, 800);
+    let prompt = `A portrait of ${name}, a ${personalityDescriptor} cat character. ${sanitizedDescription}. Digital art style, friendly expression, clear background, high quality, detailed fur texture, expressive eyes. Professional character illustration.`;
 
+    // Absolute safety cap under DALL·E 3's 4000-char limit
+    if (prompt.length > 3800) {
+      prompt = prompt.slice(0, 3790) + '...';
+    }
+
+    console.log('Generating avatar with prompt length:', prompt.length);
     console.log('Generating avatar with prompt:', prompt);
 
     // Generate image using OpenAI
@@ -59,9 +66,18 @@ serve(async (req) => {
     });
 
     if (!response.ok) {
-      const errorData = await response.json();
+      let errorData: any = {};
+      try {
+        errorData = await response.json();
+      } catch (_e) {}
       console.error('OpenAI API error:', errorData);
-      throw new Error(`OpenAI API error: ${errorData.error?.message || 'Unknown error'}`);
+      return new Response(
+        JSON.stringify({
+          error: errorData.error?.message || 'OpenAI image generation failed',
+          details: errorData
+        }),
+        { status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
     const data = await response.json();
@@ -141,4 +157,39 @@ function getPersonalityDescriptor(personality: string): string {
   };
   
   return descriptors[personality] || 'charming';
+}
+
+// Build a concise, safe description segment for image prompts
+function buildShortDescription(text: string, maxLen = 800): string {
+  if (!text) return '';
+  const noMd = stripMarkdown(text);
+  const compact = collapseWhitespace(noMd);
+  return truncateText(compact, maxLen);
+}
+
+function stripMarkdown(text: string): string {
+  return text
+    // Remove code blocks and inline code
+    .replace(/```[\s\S]*?```/g, ' ')
+    .replace(/`[^`]*`/g, ' ')
+    // Images ![alt](url)
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+    // Links [text](url) -> text
+    .replace(/\[[^\]]+\]\([^)]*\)/g, '$1')
+    // Headings, quotes, lists, hr
+    .replace(/^\s{0,3}(#+|>|-|\*|\+|\d+\.)\s+/gm, '')
+    .replace(/^(-{3,}|\*{3,}|_{3,})$/gm, ' ')
+    // Markdown emphasis
+    .replace(/[\*_~]+/g, ' ');
+}
+
+function collapseWhitespace(text: string): string {
+  return text.replace(/\s+/g, ' ').trim();
+}
+
+function truncateText(text: string, maxLen: number): string {
+  if (text.length <= maxLen) return text;
+  const slice = text.slice(0, maxLen);
+  const lastSpace = slice.lastIndexOf(' ');
+  return (lastSpace > 0 ? slice.slice(0, lastSpace) : slice).trim() + '...';
 }
