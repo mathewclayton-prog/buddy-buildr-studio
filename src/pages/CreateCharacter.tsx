@@ -140,10 +140,10 @@ const CreateCharacter = () => {
       return;
     }
 
-    if (trainingDescription.length > 2000) {
+    if (trainingDescription.length > 10000) {
       toast({
         title: "Validation Error",
-        description: "Personality & History must be 2000 characters or less.",
+        description: "Personality & History must be 10000 characters or less.",
         variant: "destructive"
       });
       return;
@@ -398,11 +398,11 @@ const CreateCharacter = () => {
                     onChange={e => setTrainingDescription(e.target.value)} 
                     placeholder="Let us know as much as possible about your cat! Their personality and traits, likes and dislikes, favourite toys and places to sleep. Whether they live with any other pets etc. Also (if you want) mention other members of your family the cat interacts with, how old it is etc. This is private and used to train your cat." 
                     rows={8} 
-                    maxLength={2000} 
+                    maxLength={10000} 
                   />
                   <p className="text-sm text-muted-foreground">
-                    <span className={trainingDescription.length > 2000 ? "text-destructive font-medium" : ""}>
-                      {trainingDescription.length}/2000 characters
+                    <span className={trainingDescription.length > 10000 ? "text-destructive font-medium" : ""}>
+                      {trainingDescription.length}/10000 characters
                     </span>
                     {" - Private training instructions"}
                   </p>
@@ -502,7 +502,7 @@ const CreateCharacter = () => {
                   <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
                     Cancel
                   </Button>
-                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality || publicProfile.length > 250 || trainingDescription.length > 2000} className="flex-1">
+                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality || publicProfile.length > 250 || trainingDescription.length > 10000} className="flex-1">
                     {isLoading ? isEditMode ? "Updating..." : "Creating..." : isEditMode ? "Update Catbot" : "Create Catbot"}
                   </Button>
                 </div>

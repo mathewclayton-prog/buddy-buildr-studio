@@ -2,7 +2,7 @@ export interface Character {
   id: string;
   name: string;
   publicProfile: string; // max 250 chars, what users see when browsing
-  trainingDescription: string; // max 2000 chars, private AI training instructions
+  trainingDescription: string; // max 10000 chars, private AI training instructions
   personalityTraits: string[];
   avatar?: string;
   avatarColor?: string;
