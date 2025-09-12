@@ -376,11 +376,11 @@ const Chat = () => {
                       <img
                         src={character.avatar}
                         alt={character.name}
-                        className="h-6 w-6 rounded-full object-cover"
+                        className="h-6 w-6 rounded-full object-cover animate-pulse"
                       />
                     ) : (
                       <div 
-                        className="h-6 w-6 rounded-full flex items-center justify-center"
+                        className="h-6 w-6 rounded-full flex items-center justify-center animate-pulse"
                         style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
                       >
                         <Bot className="h-3 w-3 text-white" />
@@ -388,10 +388,10 @@ const Chat = () => {
                     )}
                   </div>
                   <div className="bg-muted rounded-2xl rounded-bl-md px-4 py-3">
-                    <div className="flex space-x-1">
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce"></div>
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
-                      <div className="w-2 h-2 bg-muted-foreground/60 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+                    <div className="flex space-x-2 items-center">
+                      <div className="text-primary/80 animate-bounce text-lg">🐾</div>
+                      <div className="text-primary/80 animate-bounce text-lg" style={{ animationDelay: "0.2s" }}>🐾</div>
+                      <div className="text-primary/80 animate-bounce text-lg" style={{ animationDelay: "0.4s" }}>🐾</div>
                     </div>
                   </div>
                 </div>
