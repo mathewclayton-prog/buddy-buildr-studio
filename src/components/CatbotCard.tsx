@@ -96,7 +96,6 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         {/* Stats and Like Button */}
         <div className="flex items-center justify-between mb-3">
           <StatsDisplay 
-            likeCount={catbot.like_count || 0}
             interactionCount={catbot.interaction_count || 0}
           />
           <LikeButton 
