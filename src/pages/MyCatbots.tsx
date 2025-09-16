@@ -9,7 +9,7 @@ import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle } from "lucide-react";
+import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, RotateCcw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
@@ -18,6 +18,7 @@ const MyCatbots = () => {
   const { toast } = useToast();
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [cleanupLoading, setCleanupLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -99,6 +100,38 @@ const MyCatbots = () => {
         description: "Failed to delete catbot. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const cleanupAutoCats = async () => {
+    setCleanupLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('cleanup-auto-cats', {
+        headers: {
+          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data.success) {
+        await fetchMyCatbots(); // Refresh the list
+        toast({
+          title: "Success",
+          description: data.message,
+        });
+      } else {
+        throw new Error(data.error || 'Unknown error occurred');
+      }
+    } catch (error) {
+      console.error('Error cleaning up auto-generated catbots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cleanup auto-generated catbots. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setCleanupLoading(false);
     }
   };
 
@@ -243,12 +276,23 @@ const MyCatbots = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Catbots</h1>
-          <Button asChild>
-            <Link to="/create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Catbot
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              variant="outline" 
+              onClick={cleanupAutoCats}
+              disabled={cleanupLoading}
+              className="flex items-center gap-2"
+            >
+              <RotateCcw className={`h-4 w-4 ${cleanupLoading ? 'animate-spin' : ''}`} />
+              Delete Auto-Generated Cats
+            </Button>
+            <Button asChild>
+              <Link to="/create" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create New Catbot
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="public" className="space-y-6">
