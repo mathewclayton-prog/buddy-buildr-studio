@@ -52,97 +52,33 @@ serve(async (req) => {
 
     console.log('Starting bulk catbot creation for user:', userId);
 
-    // Complex character categories for detailed descriptions
-    const complexCategories = [
-      // Historical Figures (8)
-      { category: 'historical', count: 8, personality: 'wise' },
-      // Fantasy Characters (8) 
-      { category: 'fantasy', count: 8, personality: 'mysterious' },
-      // Professional Specialists (8)
-      { category: 'professional', count: 8, personality: 'serious' },
-      // Unique Personas (8)
-      { category: 'unique', count: 8, personality: 'playful' }
-    ];
+    // Create job record
+    const { data: job, error: jobError } = await supabase
+      .from('catbot_generation_jobs')
+      .insert({
+        user_id: userId,
+        status: 'running',
+        total_count: 63,
+        completed_count: 0
+      })
+      .select('id')
+      .single();
 
-    // Simple character categories
-    const simpleCategories = [
-      // Everyday house cats (15)
-      { category: 'domestic', count: 15, personality: 'friendly' },
-      // Modern cats (16)
-      { category: 'modern', count: 16, personality: 'playful' }
-    ];
-
-    const allCatbots: CatbotData[] = [];
-    let createdCount = 0;
-
-    // Generate complex catbots first (32 total)
-    for (const catGroup of complexCategories) {
-      for (let i = 0; i < catGroup.count; i++) {
-        try {
-          const catbot = await generateComplexCatbot(catGroup.category, catGroup.personality, openAIApiKey);
-          allCatbots.push(catbot);
-          createdCount++;
-          console.log(`Generated complex catbot ${createdCount}/32: ${catbot.name}`);
-          
-          // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (error) {
-          console.error(`Error generating complex catbot ${createdCount + 1}:`, error);
-        }
-      }
+    if (jobError) {
+      throw jobError;
     }
 
-    // Generate simple catbots (31 total)
-    for (const catGroup of simpleCategories) {
-      for (let i = 0; i < catGroup.count; i++) {
-        try {
-          const catbot = await generateSimpleCatbot(catGroup.category, catGroup.personality, openAIApiKey);
-          allCatbots.push(catbot);
-          createdCount++;
-          console.log(`Generated simple catbot ${createdCount}/63: ${catbot.name}`);
-          
-          // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 100));
-        } catch (error) {
-          console.error(`Error generating simple catbot ${createdCount + 1}:`, error);
-        }
-      }
-    }
+    const jobId = job.id;
 
-    // Ensure we have exactly 63 cats (handle any failures)
-    while (allCatbots.length < 63) {
-      try {
-        const catbot = await generateSimpleCatbot('domestic', 'friendly', openAIApiKey);
-        allCatbots.push(catbot);
-        console.log(`Generated fallback catbot ${allCatbots.length}/63: ${catbot.name}`);
-      } catch (error) {
-        console.error('Error generating fallback catbot:', error);
-        break;
-      }
-    }
+    // Start background generation
+    EdgeRuntime.waitUntil(generateCatbotsInBackground(userId, jobId, openAIApiKey, supabase));
 
-    // Insert all catbots into database
-    const catbotsToInsert = allCatbots.slice(0, 63).map(catbot => ({
-      ...catbot,
-      user_id: userId
-    }));
-
-    const { data: insertedCatbots, error: insertError } = await supabase
-      .from('catbots')
-      .insert(catbotsToInsert)
-      .select('id, name');
-
-    if (insertError) {
-      throw insertError;
-    }
-
-    console.log(`Successfully created ${insertedCatbots?.length || 0} catbots`);
-
+    // Return job ID immediately
     return new Response(
       JSON.stringify({ 
         success: true, 
-        created: insertedCatbots?.length || 0,
-        message: `Successfully created ${insertedCatbots?.length || 0} catbots`
+        jobId,
+        message: 'Catbot generation started'
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
@@ -158,6 +94,118 @@ serve(async (req) => {
     );
   }
 });
+
+async function generateCatbotsInBackground(
+  userId: string, 
+  jobId: string, 
+  openAIApiKey: string, 
+  supabase: any
+) {
+  try {
+    // Complex character categories
+    const complexCategories = [
+      { category: 'historical', count: 8, personality: 'wise' },
+      { category: 'fantasy', count: 8, personality: 'mysterious' },
+      { category: 'professional', count: 8, personality: 'serious' },
+      { category: 'unique', count: 8, personality: 'playful' }
+    ];
+
+    // Simple character categories
+    const simpleCategories = [
+      { category: 'domestic', count: 15, personality: 'friendly' },
+      { category: 'modern', count: 16, personality: 'playful' }
+    ];
+
+    let completedCount = 0;
+
+    // Generate and insert complex catbots
+    for (const catGroup of complexCategories) {
+      for (let i = 0; i < catGroup.count; i++) {
+        try {
+          const catbot = await generateComplexCatbot(catGroup.category, catGroup.personality, openAIApiKey);
+          
+          // Insert individual catbot
+          const { error: insertError } = await supabase
+            .from('catbots')
+            .insert({
+              ...catbot,
+              user_id: userId
+            });
+
+          if (!insertError) {
+            completedCount++;
+            console.log(`Generated complex catbot ${completedCount}/63: ${catbot.name}`);
+            
+            // Update job progress
+            await supabase
+              .from('catbot_generation_jobs')
+              .update({ completed_count: completedCount })
+              .eq('id', jobId);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Error generating complex catbot:`, error);
+        }
+      }
+    }
+
+    // Generate and insert simple catbots
+    for (const catGroup of simpleCategories) {
+      for (let i = 0; i < catGroup.count; i++) {
+        try {
+          const catbot = await generateSimpleCatbot(catGroup.category, catGroup.personality, openAIApiKey);
+          
+          // Insert individual catbot
+          const { error: insertError } = await supabase
+            .from('catbots')
+            .insert({
+              ...catbot,
+              user_id: userId
+            });
+
+          if (!insertError) {
+            completedCount++;
+            console.log(`Generated simple catbot ${completedCount}/63: ${catbot.name}`);
+            
+            // Update job progress
+            await supabase
+              .from('catbot_generation_jobs')
+              .update({ completed_count: completedCount })
+              .eq('id', jobId);
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 200));
+        } catch (error) {
+          console.error(`Error generating simple catbot:`, error);
+        }
+      }
+    }
+
+    // Mark job as completed
+    await supabase
+      .from('catbot_generation_jobs')
+      .update({ 
+        status: 'completed',
+        completed_count: completedCount
+      })
+      .eq('id', jobId);
+
+    console.log(`Background generation completed: ${completedCount}/63 catbots created`);
+
+  } catch (error) {
+    console.error('Background generation failed:', error);
+    
+    // Mark job as failed
+    await supabase
+      .from('catbot_generation_jobs')
+      .update({ 
+        status: 'failed',
+        error: error.message
+      })
+      .eq('id', jobId);
+  }
+}
 
 async function generateComplexCatbot(category: string, personality: string, apiKey: string): Promise<CatbotData> {
   const prompts = {
