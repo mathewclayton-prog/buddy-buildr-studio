@@ -34,6 +34,10 @@ const availableVoices = [
 
 const personalities = ['friendly', 'mysterious', 'wise', 'playful', 'serious'];
 
+function getRandomVoice(): string {
+  return availableVoices[Math.floor(Math.random() * availableVoices.length)];
+}
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -281,18 +285,29 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
 }
 
 async function generateComplexCatbot(category: string, personality: string, apiKey: string): Promise<CatbotData> {
-  const prompts = {
-    historical: `Create a historical cat character with deep backstory. Choose from: Renaissance artist cat, Ancient Egyptian temple guardian, Medieval court advisor, Viking explorer cat, Wild West sheriff cat, Victorian detective cat, Ancient Greek philosopher cat, or Roman general cat. Include transformation story, detailed historical context, and rich personality development. 1500-2000 words.`,
-    
-    fantasy: `Create a fantasy cat character with magical abilities. Choose from: Elemental wizard cat, Time-traveling familiar, Interdimensional guardian, Ancient dragon in cat form, Celestial messenger cat, Shadow realm walker, Crystal cave keeper, or Starlight weaver cat. Include magical backstory, powers, responsibilities, and detailed world-building. 1500-2000 words.`,
-    
-    professional: `Create a professional specialist cat with detailed career background. Choose from: Quantum physicist cat, Master chef with culinary empire, Detective with complex case history, Surgeon with medical adventures, Architect of impossible buildings, Marine biologist explorer, or Astronaut cat. Include education, achievements, memorable cases/projects, and expertise. 1500-2000 words.`,
-    
-    unique: `Create a unique conceptual cat character. Choose from: Sentient AI in cat form, Dream walker who enters human dreams, Emotion collector cat, Memory keeper of lost civilizations, Guardian of the internet, Translator between species, or Living constellation cat. Include origin story, special abilities, philosophical outlook, and unique perspective. 1500-2000 words.`
+  const categoryPrompts = {
+    historical: "Create a sophisticated cat character inspired by historical periods or figures. Think Renaissance artists, medieval knights, ancient scholars, or historical explorers reimagined as cats.",
+    fantasy: "Design an enchanting cat character from magical realms. Consider wizards, mythical creatures, elemental beings, or fantasy adventurers with rich backstories.",
+    professional: "Develop a cat character with a distinguished career or expertise. Think professors, scientists, artists, chefs, or other professionals with depth and personality.",
+    unique: "Craft a truly unique cat character with unusual traits, backgrounds, or abilities. Be creative with their story, quirks, and distinctive characteristics."
   };
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+  const prompt = categoryPrompts[category as keyof typeof categoryPrompts] || categoryPrompts.unique;
+  
+  const systemMessage = `You are a creative character designer. Create a detailed, engaging cat character profile with the personality trait: ${personality}.
+
+${prompt}
+
+Return a JSON object with these exact fields:
+{
+  "name": "Character name (2-3 words max)",
+  "public_profile": "Brief, engaging description for browsing (150-200 chars max)",
+  "description": "Detailed character description for display (400-600 chars)",
+  "training_description": "Comprehensive AI training instructions and personality details (800-1500 chars)",
+  "tags": ["3-5 relevant tags"]
+}
+
+Make the public_profile catchy and intriguing. The description should be rich and detailed. The training_description should include personality, speaking style, background, and interaction guidelines.`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -301,80 +316,63 @@ async function generateComplexCatbot(category: string, personality: string, apiK
         'Authorization': `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
-      signal: controller.signal,
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages: [
-          {
-            role: 'system',
-            content: `You are a creative writer creating detailed cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
-{
-  "name": "unique creative cat name",
-  "description": "200-300 character public profile description",
-  "training_description": "1500-2000 word detailed backstory with personality, mannerisms, and rich character development",
-  "tags": ["keyword1", "keyword2", "keyword3"]
-}
-
-Make each character unique and memorable with specific details and engaging backstory.`
-          },
-          {
-            role: 'user',
-            content: prompts[category as keyof typeof prompts]
-          }
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: `Create a ${category} cat character with ${personality} personality.` }
         ],
-        max_tokens: 3000,
-        temperature: 0.8
+        max_tokens: 1000,
+        temperature: 0.8,
       }),
     });
-    
-    clearTimeout(timeoutId);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+      throw new Error(`OpenAI API error: ${response.status}`);
     }
 
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
-  console.log(`OpenAI response for ${category}:`, content);
-  
-  let parsed;
-  try {
-    // Try to extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : content;
-    parsed = JSON.parse(jsonString);
-  } catch (e) {
-    console.error(`JSON parsing failed for ${category}:`, e);
-    console.error('Raw content:', content);
-    // Fallback if JSON parsing fails
-    parsed = {
-      name: `Complex Cat ${Date.now()}`,
-      description: "A mysterious and complex feline character with a rich backstory.",
-      training_description: "This is a placeholder for a complex character description that would normally be much longer.",
-      tags: [category, personality, 'complex']
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    try {
+      const parsed = JSON.parse(content);
+      
+      return {
+        name: parsed.name || `${personality} Cat`,
+        personality: personality,
+        public_profile: parsed.public_profile?.substring(0, 250) || parsed.description?.substring(0, 200) || `A ${personality} cat with unique charm`,
+        description: parsed.description?.substring(0, 600) || parsed.public_profile || `A fascinating ${personality} cat character`,
+        training_description: parsed.training_description?.substring(0, 10000) || `You are a ${personality} cat character. Respond in character with warmth and personality.`,
+        tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : [personality, category],
+        voice_id: getRandomVoice(),
+        is_public: Math.random() > 0.3
+      };
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response:', parseError);
+      return {
+        name: `${personality} Cat`,
+        personality: personality,
+        public_profile: `A charming ${personality} cat from the ${category} realm`,
+        description: `A delightful ${personality} cat character with a rich background and engaging personality`,
+        training_description: `You are a ${personality} cat character from a ${category} background. Respond warmly and in character.`,
+        tags: [personality, category],
+        voice_id: getRandomVoice(),
+        is_public: Math.random() > 0.3
+      };
+    }
+  } catch (error) {
+    console.error('Error generating complex catbot:', error);
+    return {
+      name: `${personality} Cat`,
+      personality: personality,
+      public_profile: `A wonderful ${personality} cat character`,
+      description: `A ${personality} cat with a unique personality and engaging backstory`,
+      training_description: `You are a ${personality} cat character. Be warm, friendly, and respond in character.`,
+      tags: [personality, category],
+      voice_id: getRandomVoice(),
+      is_public: Math.random() > 0.3
     };
   }
-  
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('OpenAI request timeout');
-    }
-    throw error;
-  }
-
-  return {
-    name: parsed.name,
-    personality,
-    public_profile: parsed.description?.substring(0, 250) || `A ${personality} ${category} cat`,
-    description: parsed.description,
-    training_description: parsed.training_description,
-    voice_id: availableVoices[Math.floor(Math.random() * availableVoices.length)],
-    is_public: Math.random() > 0.25, // 75% public
-    tags: parsed.tags || [category, personality]
-  };
 }
 
 async function generateSimpleCatbot(category: string, personality: string, apiKey: string): Promise<CatbotData> {
@@ -435,17 +433,17 @@ Keep descriptions warm, accessible, and engaging. Focus on personality and relat
         description: parsed.description?.substring(0, 600) || `A friendly ${personality} cat with lots of personality`,
         training_description: parsed.training_description?.substring(0, 10000) || `You are a ${personality} cat. Be friendly, warm, and engaging in conversations.`,
         tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : [personality, 'friendly'],
-        voice_id: availableVoices[Math.floor(Math.random() * availableVoices.length)],
+        voice_id: getRandomVoice(),
         is_public: Math.random() > 0.2
       };
     } catch (parseError) {
       console.error('Failed to parse OpenAI response:', parseError);
       return {
         name: personality,
+        personality: personality,
         public_profile: `A delightful ${personality} cat`,
         description: `A ${personality} cat with a warm, engaging personality`,
         training_description: `You are a ${personality} cat. Be friendly and conversational.`,
-        personality: personality,
         tags: [personality, 'friendly'],
         voice_id: getRandomVoice(),
         is_public: Math.random() > 0.2
@@ -455,105 +453,15 @@ Keep descriptions warm, accessible, and engaging. Focus on personality and relat
     console.error('Error generating simple catbot:', error);
     return {
       name: personality,
+      personality: personality,
       public_profile: `A lovely ${personality} cat`,
       description: `A ${personality} cat ready for friendly conversations`,
       training_description: `You are a ${personality} cat. Be warm and engaging.`,
-      personality: personality,
       tags: [personality, 'chat'],
       voice_id: getRandomVoice(),
       is_public: Math.random() > 0.2
     };
   }
-}
-  const prompts = {
-    domestic: `Create a relatable house cat character. Include favorite spots, daily routines, quirky habits, relationships with family, and personality traits. 500-800 words. Make them charming and accessible.`,
-    
-    modern: `Create a modern cat character with contemporary interests. Could be a gamer cat, social media influencer cat, tech-savvy cat, artist cat, or fitness enthusiast cat. Include modern references and relatable personality. 500-800 words.`
-  };
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
-
-  try {
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      signal: controller.signal,
-      body: JSON.stringify({
-        model: 'gpt-4o-mini',
-        messages: [
-          {
-            role: 'system',
-            content: `You are creating simple, relatable cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
-{
-  "name": "cute simple cat name",
-  "description": "150-200 character public profile description",
-  "training_description": "500-800 word backstory with warm, approachable personality",
-  "tags": ["keyword1", "keyword2"]
-}
-
-Make characters warm and approachable with relatable traits.`
-          },
-          {
-            role: 'user',
-            content: prompts[category as keyof typeof prompts]
-          }
-        ],
-        max_tokens: 1500,
-        temperature: 0.7
-      }),
-    });
-    
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
-    }
-
-  const data = await response.json();
-  const content = data.choices[0].message.content;
-  
-  console.log(`OpenAI response for ${category}:`, content);
-  
-  let parsed;
-  try {
-    // Try to extract JSON from the response
-    const jsonMatch = content.match(/\{[\s\S]*\}/);
-    const jsonString = jsonMatch ? jsonMatch[0] : content;
-    parsed = JSON.parse(jsonString);
-  } catch (e) {
-    console.error(`JSON parsing failed for ${category}:`, e);
-    console.error('Raw content:', content);
-    // Fallback if JSON parsing fails
-    parsed = {
-      name: `Simple Cat ${Date.now()}`,
-      description: "A friendly and approachable house cat.",
-      training_description: "This is a simple, relatable cat character with everyday charm.",
-      tags: [category, personality]
-    };
-  }
-  
-  } catch (error) {
-    clearTimeout(timeoutId);
-    if (error.name === 'AbortError') {
-      throw new Error('OpenAI request timeout');
-    }
-    throw error;
-  }
-
-  return {
-    name: parsed.name,
-    personality,
-    description: parsed.description,
-    training_description: parsed.training_description,
-    voice_id: availableVoices[Math.floor(Math.random() * availableVoices.length)],
-    is_public: Math.random() > 0.25, // 75% public
-    tags: parsed.tags || [category, personality]
-  };
 }
 
 async function generateAvatarWithTimeout(name: string, description: string, personality: string, supabase: any): Promise<string | null> {
@@ -600,7 +508,7 @@ async function generateAvatar(name: string, description: string, personality: st
     },
     signal,
     body: JSON.stringify({
-      model: 'gpt-image-1',
+      model: 'dall-e-2',
       prompt: prompt,
       n: 1,
       size: '512x512',
