@@ -5,11 +5,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle } from "lucide-react";
+import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, Sparkles, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
@@ -18,6 +19,8 @@ const MyCatbots = () => {
   const { toast } = useToast();
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [loading, setLoading] = useState(true);
+  const [bulkCreating, setBulkCreating] = useState(false);
+  const [bulkProgress, setBulkProgress] = useState(0);
 
   useEffect(() => {
     if (user) {
@@ -99,6 +102,45 @@ const MyCatbots = () => {
         description: "Failed to delete catbot. Please try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const bulkCreateCatbots = async () => {
+    if (!user) return;
+
+    setBulkCreating(true);
+    setBulkProgress(0);
+
+    try {
+      toast({
+        title: "Creating 63 Catbots",
+        description: "This will take a few minutes. Please wait...",
+      });
+
+      const { data, error } = await supabase.functions.invoke('bulk-create-catbots', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success! 🎉",
+        description: `Created ${data.created} catbots with complex descriptions!`,
+      });
+
+      // Refresh the catbots list
+      await fetchMyCatbots();
+
+    } catch (error) {
+      console.error('Error creating bulk catbots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create bulk catbots. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setBulkCreating(false);
+      setBulkProgress(0);
     }
   };
 
@@ -243,13 +285,50 @@ const MyCatbots = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Catbots</h1>
-          <Button asChild>
-            <Link to="/create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Catbot
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            <Button 
+              onClick={bulkCreateCatbots}
+              disabled={bulkCreating}
+              variant="secondary"
+              className="flex items-center gap-2"
+            >
+              {bulkCreating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" />
+                  Generate 63 Catbots
+                </>
+              )}
+            </Button>
+            <Button asChild>
+              <Link to="/create" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create New Catbot
+              </Link>
+            </Button>
+          </div>
         </div>
+
+        {bulkCreating && (
+          <Card className="mb-6 border-primary/20 bg-primary/5">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-4">
+                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
+                <div className="flex-1">
+                  <h3 className="font-semibold mb-2">Creating 63 Unique Catbots</h3>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    Generating diverse characters with complex backstories (32 with 2000+ word descriptions)...
+                  </p>
+                  <Progress value={bulkProgress} className="h-2" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Tabs defaultValue="public" className="space-y-6">
           <TabsList>
