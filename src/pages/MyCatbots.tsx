@@ -23,9 +23,36 @@ const MyCatbots = () => {
   const [bulkProgress, setBulkProgress] = useState(0);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
 
+  const checkForRunningJobs = async () => {
+    if (!user) return;
+    
+    try {
+      const { data: runningJobs, error } = await supabase
+        .from('catbot_generation_jobs')
+        .select('*')
+        .eq('user_id', user.id)
+        .eq('status', 'running')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (error) throw error;
+
+      if (runningJobs && runningJobs.length > 0) {
+        const job = runningJobs[0];
+        setBulkCreating(true);
+        setCurrentJobId(job.id);
+        setBulkProgress((job.completed_count / job.total_count) * 100);
+        pollJobProgress(job.id);
+      }
+    } catch (error) {
+      console.error('Error checking for running jobs:', error);
+    }
+  };
+
   useEffect(() => {
     if (user) {
       fetchMyCatbots();
+      checkForRunningJobs();
     }
   }, [user]);
 
