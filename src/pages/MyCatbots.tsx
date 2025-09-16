@@ -5,12 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { Progress } from "@/components/ui/progress";
 import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, Sparkles, Loader2, Wrench } from "lucide-react";
+import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
@@ -19,41 +18,10 @@ const MyCatbots = () => {
   const { toast } = useToast();
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
   const [loading, setLoading] = useState(true);
-  const [bulkCreating, setBulkCreating] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState(0);
-  const [currentJobId, setCurrentJobId] = useState<string | null>(null);
-  const [isRepairing, setIsRepairing] = useState(false);
-
-  const checkForRunningJobs = async () => {
-    if (!user) return;
-    
-    try {
-      const { data: runningJobs, error } = await supabase
-        .from('catbot_generation_jobs')
-        .select('*')
-        .eq('user_id', user.id)
-        .eq('status', 'running')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      if (error) throw error;
-
-      if (runningJobs && runningJobs.length > 0) {
-        const job = runningJobs[0];
-        setBulkCreating(true);
-        setCurrentJobId(job.id);
-        setBulkProgress((job.completed_count / job.total_count) * 100);
-        pollJobProgress(job.id);
-      }
-    } catch (error) {
-      console.error('Error checking for running jobs:', error);
-    }
-  };
 
   useEffect(() => {
     if (user) {
       fetchMyCatbots();
-      checkForRunningJobs();
     }
   }, [user]);
 
@@ -131,144 +99,6 @@ const MyCatbots = () => {
         description: "Failed to delete catbot. Please try again.",
         variant: "destructive",
       });
-    }
-  };
-
-  const bulkCreateCatbots = async () => {
-    if (!user) return;
-
-    setBulkCreating(true);
-    setBulkProgress(0);
-
-    try {
-      toast({
-        title: "Creating 63 Catbots",
-        description: "Starting generation in the background...",
-      });
-
-      const { data, error } = await supabase.functions.invoke('bulk-create-catbots', {
-        body: { userId: user.id }
-      });
-
-      if (error) throw error;
-
-      setCurrentJobId(data.jobId);
-      
-      // Start polling for progress
-      pollJobProgress(data.jobId);
-
-    } catch (error) {
-      console.error('Error creating bulk catbots:', error);
-      toast({
-        title: "Error",
-        description: "Failed to start catbot generation. Please try again.",
-        variant: "destructive",
-      });
-      setBulkCreating(false);
-      setBulkProgress(0);
-    }
-  };
-
-  const pollJobProgress = async (jobId: string) => {
-    const pollInterval = setInterval(async () => {
-      try {
-        const { data: job, error } = await supabase
-          .from('catbot_generation_jobs')
-          .select('*')
-          .eq('id', jobId)
-          .single();
-
-        if (error) {
-          console.error('Error polling job:', error);
-          return;
-        }
-
-        const progress = Math.round((job.completed_count / job.total_count) * 100);
-        setBulkProgress(progress);
-
-        if (job.status === 'completed') {
-          clearInterval(pollInterval);
-          setBulkCreating(false);
-          setCurrentJobId(null);
-          toast({
-            title: "Success! 🎉",
-            description: `Created ${job.completed_count} catbots with complex descriptions!`,
-          });
-          await fetchMyCatbots();
-        } else if (job.status === 'failed') {
-          clearInterval(pollInterval);
-          setBulkCreating(false);
-          setCurrentJobId(null);
-          toast({
-            title: "Generation Failed",
-            description: job.error || "Something went wrong during generation.",
-            variant: "destructive",
-          });
-        }
-      } catch (error) {
-        console.error('Error in polling:', error);
-      }
-    }, 2000); // Poll every 2 seconds
-
-    // Clean up if component unmounts
-    setTimeout(() => {
-      if (pollInterval) clearInterval(pollInterval);
-    }, 10 * 60 * 1000); // Stop polling after 10 minutes max
-  };
-
-  const repairCatbots = async () => {
-    if (!user?.id) return;
-    
-    setIsRepairing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('repair-catbots', {
-        body: { userId: user.id }
-      });
-
-      if (error) throw error;
-
-      fetchMyCatbots(); // Refresh the list
-      toast({
-        title: "Repair Complete",
-        description: `Repaired ${data.repaired} catbots out of ${data.total} found.`,
-      });
-    } catch (error) {
-      console.error('Error repairing catbots:', error);
-      toast({
-        title: "Error",
-        description: "Failed to repair catbots. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRepairing(false);
-    }
-  };
-
-  const backfillProfiles = async () => {
-    if (!user?.id) return;
-    
-    setIsRepairing(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('backfill-catbot-profiles', {
-        body: { userId: user.id }
-      });
-
-      if (error) throw error;
-
-      fetchMyCatbots(); // Refresh the list
-      toast({
-        title: "Backfill Complete",
-        description: `Updated ${data.updated} catbots with missing descriptions.`,
-      });
-    } catch (error) {
-      console.error('Error backfilling profiles:', error);
-      toast({
-        title: "Error",
-        description: "Failed to backfill catbot profiles. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsRepairing(false);
     }
   };
 
@@ -413,88 +243,13 @@ const MyCatbots = () => {
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">My Catbots</h1>
-          <div className="flex items-center gap-3">
-            <Button 
-              onClick={bulkCreateCatbots}
-              disabled={bulkCreating}
-              variant="secondary"
-              className="flex items-center gap-2"
-            >
-              {bulkCreating ? (
-                <>
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  Creating...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="h-4 w-4" />
-                  Generate 63 Catbots
-                </>
-              )}
-            </Button>
-            <Button asChild>
-              <Link to="/create" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create New Catbot
-              </Link>
-            </Button>
-            
-            <Button 
-              onClick={repairCatbots}
-              disabled={isRepairing}
-              variant="outline"
-              className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-            >
-              {isRepairing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Repairing...
-                </>
-              ) : (
-                <>
-                  <Wrench className="mr-2 h-4 w-4" />
-                  Repair Generated Cats
-                </>
-              )}
-            </Button>
-            
-            <Button 
-              onClick={backfillProfiles}
-              disabled={isRepairing}
-              variant="outline"
-              className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
-            >
-              {isRepairing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Backfilling...
-                </>
-              ) : (
-                <>
-                  <Sparkles className="mr-2 h-4 w-4" />
-                  Backfill missing descriptions
-                </>
-              )}
-            </Button>
-          </div>
+          <Button asChild>
+            <Link to="/create" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create New Catbot
+            </Link>
+          </Button>
         </div>
-
-        {bulkCreating && (
-          <Card className="mb-6 border-primary/20 bg-primary/5">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-4">
-                <Sparkles className="h-6 w-6 text-primary animate-pulse" />
-                <div className="flex-1">
-                  <h3 className="font-semibold mb-2">Creating 63 Unique Catbots</h3>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    Generating diverse characters with complex backstories ({bulkProgress}% complete)...
-                  </p>
-                  <Progress value={bulkProgress} className="h-2" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
 
         <Tabs defaultValue="public" className="space-y-6">
           <TabsList>

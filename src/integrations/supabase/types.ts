@@ -14,39 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      catbot_generation_jobs: {
-        Row: {
-          completed_count: number
-          created_at: string
-          error: string | null
-          id: string
-          status: string
-          total_count: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          completed_count?: number
-          created_at?: string
-          error?: string | null
-          id?: string
-          status?: string
-          total_count?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          completed_count?: number
-          created_at?: string
-          error?: string | null
-          id?: string
-          status?: string
-          total_count?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       catbot_likes: {
         Row: {
           catbot_id: string

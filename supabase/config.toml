@@ -17,6 +17,3 @@ verify_jwt = false
 
 [functions.get-elevenlabs-url]
 verify_jwt = false
-
-[functions.bulk-create-catbots]
-verify_jwt = false
