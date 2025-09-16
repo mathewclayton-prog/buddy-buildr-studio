@@ -244,6 +244,34 @@ const MyCatbots = () => {
     }
   };
 
+  const backfillProfiles = async () => {
+    if (!user?.id) return;
+    
+    setIsRepairing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('backfill-catbot-profiles', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      fetchMyCatbots(); // Refresh the list
+      toast({
+        title: "Backfill Complete",
+        description: `Updated ${data.updated} catbots with missing descriptions.`,
+      });
+    } catch (error) {
+      console.error('Error backfilling profiles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to backfill catbot profiles. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRepairing(false);
+    }
+  };
+
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
   const publicCatbots = catbots.filter(catbot => catbot.is_public);
 
@@ -426,6 +454,25 @@ const MyCatbots = () => {
                 <>
                   <Wrench className="mr-2 h-4 w-4" />
                   Repair Generated Cats
+                </>
+              )}
+            </Button>
+            
+            <Button 
+              onClick={backfillProfiles}
+              disabled={isRepairing}
+              variant="outline"
+              className="text-green-600 border-green-600 hover:bg-green-600 hover:text-white"
+            >
+              {isRepairing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Backfilling...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 h-4 w-4" />
+                  Backfill missing descriptions
                 </>
               )}
             </Button>

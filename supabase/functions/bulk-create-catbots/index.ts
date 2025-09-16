@@ -10,6 +10,7 @@ const corsHeaders = {
 interface CatbotData {
   name: string;
   personality: string;
+  public_profile: string;
   description: string;
   training_description: string;
   voice_id: string;
@@ -127,8 +128,15 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
           const { error: insertError } = await supabase
             .from('catbots')
             .insert({
-              ...catbot,
-              user_id: userId
+              user_id: userId,
+              name: catbot.name,
+              public_profile: catbot.public_profile,
+              description: catbot.description,
+              training_description: catbot.training_description,
+              personality: catbot.personality,
+              tags: catbot.tags,
+              voice_id: catbot.voice_id,
+              is_public: catbot.is_public
             });
 
           if (insertError) {
@@ -190,8 +198,15 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
           const { error: insertError } = await supabase
             .from('catbots')
             .insert({
-              ...catbot,
-              user_id: userId
+              user_id: userId,
+              name: catbot.name,
+              public_profile: catbot.public_profile,
+              description: catbot.description,
+              training_description: catbot.training_description,
+              personality: catbot.personality,
+              tags: catbot.tags,
+              voice_id: catbot.voice_id,
+              is_public: catbot.is_public
             });
 
           if (insertError) {
@@ -353,6 +368,7 @@ Make each character unique and memorable with specific details and engaging back
   return {
     name: parsed.name,
     personality,
+    public_profile: parsed.description?.substring(0, 250) || `A ${personality} ${category} cat`,
     description: parsed.description,
     training_description: parsed.training_description,
     voice_id: availableVoices[Math.floor(Math.random() * availableVoices.length)],
@@ -362,6 +378,93 @@ Make each character unique and memorable with specific details and engaging back
 }
 
 async function generateSimpleCatbot(category: string, personality: string, apiKey: string): Promise<CatbotData> {
+  const categoryPrompts = {
+    domestic: "Create a relatable, everyday cat character. Think house cats with charming personalities, neighborhood cats with stories, or family pets with endearing quirks.",
+    modern: "Design a contemporary cat character that fits modern life. Consider cats with social media presence, tech-savvy cats, urban cats, or cats with modern hobbies."
+  };
+
+  const prompt = categoryPrompts[category as keyof typeof categoryPrompts] || categoryPrompts.domestic;
+  
+  const systemMessage = `You are a character designer creating approachable, lovable cat characters. Create a ${personality} cat character.
+
+${prompt}
+
+Return a JSON object with these exact fields:
+{
+  "name": "Simple, friendly name (1-2 words)",
+  "public_profile": "Warm, inviting description (100-150 chars max)",
+  "description": "Friendly character description (300-400 chars)",
+  "training_description": "Clear personality and interaction style guide (500-800 chars)",
+  "tags": ["2-4 simple, relatable tags"]
+}
+
+Keep descriptions warm, accessible, and engaging. Focus on personality and relatability.`;
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { role: 'system', content: systemMessage },
+          { role: 'user', content: `Create a ${category} cat with ${personality} personality.` }
+        ],
+        max_tokens: 800,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`OpenAI API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const content = data.choices[0].message.content;
+    
+    try {
+      const parsed = JSON.parse(content);
+      
+      return {
+        name: parsed.name || `${personality}`,
+        personality: personality,
+        public_profile: parsed.public_profile?.substring(0, 250) || `A ${personality} cat you'll love chatting with`,
+        description: parsed.description?.substring(0, 600) || `A friendly ${personality} cat with lots of personality`,
+        training_description: parsed.training_description?.substring(0, 10000) || `You are a ${personality} cat. Be friendly, warm, and engaging in conversations.`,
+        tags: Array.isArray(parsed.tags) ? parsed.tags.slice(0, 5) : [personality, 'friendly'],
+        voice_id: availableVoices[Math.floor(Math.random() * availableVoices.length)],
+        is_public: Math.random() > 0.2
+      };
+    } catch (parseError) {
+      console.error('Failed to parse OpenAI response:', parseError);
+      return {
+        name: personality,
+        public_profile: `A delightful ${personality} cat`,
+        description: `A ${personality} cat with a warm, engaging personality`,
+        training_description: `You are a ${personality} cat. Be friendly and conversational.`,
+        personality: personality,
+        tags: [personality, 'friendly'],
+        voice_id: getRandomVoice(),
+        is_public: Math.random() > 0.2
+      };
+    }
+  } catch (error) {
+    console.error('Error generating simple catbot:', error);
+    return {
+      name: personality,
+      public_profile: `A lovely ${personality} cat`,
+      description: `A ${personality} cat ready for friendly conversations`,
+      training_description: `You are a ${personality} cat. Be warm and engaging.`,
+      personality: personality,
+      tags: [personality, 'chat'],
+      voice_id: getRandomVoice(),
+      is_public: Math.random() > 0.2
+    };
+  }
+}
   const prompts = {
     domestic: `Create a relatable house cat character. Include favorite spots, daily routines, quirky habits, relationships with family, and personality traits. 500-800 words. Make them charming and accessible.`,
     
