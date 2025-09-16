@@ -29,56 +29,6 @@ const MyCatbots = () => {
     }
   }, [user]);
 
-  // Poll job status when bulk creating
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    
-    if (currentJobId && bulkCreating) {
-      interval = setInterval(async () => {
-        try {
-          const { data: job, error } = await supabase
-            .from('catbot_generation_jobs')
-            .select('status, completed_count, total_count, error')
-            .eq('id', currentJobId)
-            .single();
-
-          if (error) throw error;
-
-          if (job) {
-            const progress = (job.completed_count / job.total_count) * 100;
-            setBulkProgress(progress);
-
-            if (job.status === 'completed') {
-              setBulkCreating(false);
-              setCurrentJobId(null);
-              setBulkProgress(0);
-              await fetchMyCatbots();
-              toast({
-                title: "Success! 🎉",
-                description: `Created ${job.completed_count} catbots with complex descriptions!`,
-              });
-            } else if (job.status === 'failed') {
-              setBulkCreating(false);
-              setCurrentJobId(null);
-              setBulkProgress(0);
-              toast({
-                title: "Error",
-                description: job.error || "Failed to create catbots",
-                variant: "destructive",
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Error polling job status:', error);
-        }
-      }, 2000);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [currentJobId, bulkCreating, toast]);
-
   const fetchMyCatbots = async () => {
     try {
       const { data, error } = await supabase
@@ -164,8 +114,8 @@ const MyCatbots = () => {
 
     try {
       toast({
-        title: "Starting Catbot Generation",
-        description: "Generating 63 unique catbots in the background...",
+        title: "Creating 63 Catbots",
+        description: "Starting generation in the background...",
       });
 
       const { data, error } = await supabase.functions.invoke('bulk-create-catbots', {
@@ -175,17 +125,67 @@ const MyCatbots = () => {
       if (error) throw error;
 
       setCurrentJobId(data.jobId);
+      
+      // Start polling for progress
+      pollJobProgress(data.jobId);
 
     } catch (error) {
-      console.error('Error starting bulk catbot creation:', error);
-      setBulkCreating(false);
-      setBulkProgress(0);
+      console.error('Error creating bulk catbots:', error);
       toast({
         title: "Error",
         description: "Failed to start catbot generation. Please try again.",
         variant: "destructive",
       });
+      setBulkCreating(false);
+      setBulkProgress(0);
     }
+  };
+
+  const pollJobProgress = async (jobId: string) => {
+    const pollInterval = setInterval(async () => {
+      try {
+        const { data: job, error } = await supabase
+          .from('catbot_generation_jobs')
+          .select('*')
+          .eq('id', jobId)
+          .single();
+
+        if (error) {
+          console.error('Error polling job:', error);
+          return;
+        }
+
+        const progress = Math.round((job.completed_count / job.total_count) * 100);
+        setBulkProgress(progress);
+
+        if (job.status === 'completed') {
+          clearInterval(pollInterval);
+          setBulkCreating(false);
+          setCurrentJobId(null);
+          toast({
+            title: "Success! 🎉",
+            description: `Created ${job.completed_count} catbots with complex descriptions!`,
+          });
+          await fetchMyCatbots();
+        } else if (job.status === 'failed') {
+          clearInterval(pollInterval);
+          setBulkCreating(false);
+          setCurrentJobId(null);
+          toast({
+            title: "Generation Failed",
+            description: job.error || "Something went wrong during generation.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error('Error in polling:', error);
+      }
+    }, 2000); // Poll every 2 seconds
+
+    // Clean up if component unmounts
+    setTimeout(() => {
+      if (pollInterval) clearInterval(pollInterval);
+    }, 10 * 60 * 1000); // Stop polling after 10 minutes max
   };
 
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
@@ -365,8 +365,7 @@ const MyCatbots = () => {
                 <div className="flex-1">
                   <h3 className="font-semibold mb-2">Creating 63 Unique Catbots</h3>
                   <p className="text-sm text-muted-foreground mb-3">
-                    Generating diverse characters with complex backstories (32 with 2000+ word descriptions)...
-                    Progress: {Math.round(bulkProgress)}% ({Math.round((bulkProgress / 100) * 63)}/63 complete)
+                    Generating diverse characters with complex backstories ({bulkProgress}% complete)...
                   </p>
                   <Progress value={bulkProgress} className="h-2" />
                 </div>
