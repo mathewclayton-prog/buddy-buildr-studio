@@ -10,7 +10,7 @@ import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, Sparkles, Loader2 } from "lucide-react";
+import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, Sparkles, Loader2, Wrench } from "lucide-react";
 import { Link } from "react-router-dom";
 import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
@@ -22,6 +22,7 @@ const MyCatbots = () => {
   const [bulkCreating, setBulkCreating] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(0);
   const [currentJobId, setCurrentJobId] = useState<string | null>(null);
+  const [isRepairing, setIsRepairing] = useState(false);
 
   const checkForRunningJobs = async () => {
     if (!user) return;
@@ -215,6 +216,34 @@ const MyCatbots = () => {
     }, 10 * 60 * 1000); // Stop polling after 10 minutes max
   };
 
+  const repairCatbots = async () => {
+    if (!user?.id) return;
+    
+    setIsRepairing(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('repair-catbots', {
+        body: { userId: user.id }
+      });
+
+      if (error) throw error;
+
+      fetchMyCatbots(); // Refresh the list
+      toast({
+        title: "Repair Complete",
+        description: `Repaired ${data.repaired} catbots out of ${data.total} found.`,
+      });
+    } catch (error) {
+      console.error('Error repairing catbots:', error);
+      toast({
+        title: "Error",
+        description: "Failed to repair catbots. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRepairing(false);
+    }
+  };
+
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
   const publicCatbots = catbots.filter(catbot => catbot.is_public);
 
@@ -380,6 +409,25 @@ const MyCatbots = () => {
                 <Plus className="h-4 w-4" />
                 Create New Catbot
               </Link>
+            </Button>
+            
+            <Button 
+              onClick={repairCatbots}
+              disabled={isRepairing}
+              variant="outline"
+              className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+            >
+              {isRepairing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Repairing...
+                </>
+              ) : (
+                <>
+                  <Wrench className="mr-2 h-4 w-4" />
+                  Repair Generated Cats
+                </>
+              )}
             </Button>
           </div>
         </div>

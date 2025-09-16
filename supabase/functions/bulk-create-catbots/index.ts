@@ -57,7 +57,7 @@ serve(async (req) => {
       .insert({
         user_id: userId,
         status: 'running',
-        total_count: 63,
+        total_count: 25,
         completed_count: 0
       })
       .select()
@@ -95,37 +95,35 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
   try {
     console.log('Starting bulk catbot creation for user:', userId);
 
-    // Complex character categories for detailed descriptions
+    // Reduced batch size to avoid rate limits
     const complexCategories = [
-      { category: 'historical', count: 8, personality: 'wise' },
-      { category: 'fantasy', count: 8, personality: 'mysterious' },
-      { category: 'professional', count: 8, personality: 'serious' },
-      { category: 'unique', count: 8, personality: 'playful' }
+      { category: 'historical', count: 3, personality: 'wise' },
+      { category: 'fantasy', count: 3, personality: 'mysterious' },
+      { category: 'professional', count: 3, personality: 'serious' },
+      { category: 'unique', count: 3, personality: 'playful' }
     ];
 
     // Simple character categories
     const simpleCategories = [
-      { category: 'domestic', count: 15, personality: 'friendly' },
-      { category: 'modern', count: 16, personality: 'playful' }
+      { category: 'domestic', count: 6, personality: 'friendly' },
+      { category: 'modern', count: 7, personality: 'playful' }
     ];
 
     let completedCount = 0;
+    let rateLimitHit = false;
 
-    // Generate complex catbots first (32 total)
+    // Generate complex catbots first (12 total)
     for (const catGroup of complexCategories) {
       for (let i = 0; i < catGroup.count; i++) {
+        if (rateLimitHit) {
+          console.log('Rate limit detected, stopping generation');
+          break;
+        }
+        
         try {
           const catbot = await generateComplexCatbot(catGroup.category, catGroup.personality, openAIApiKey);
           
-          // Generate avatar
-          try {
-            const avatarUrl = await generateAvatar(catbot.name, catbot.description, catbot.personality, supabase);
-            catbot.avatar_url = avatarUrl;
-          } catch (avatarError) {
-            console.error('Error generating avatar:', avatarError);
-          }
-          
-          // Insert catbot immediately
+          // Insert catbot first (without avatar)
           const { error: insertError } = await supabase
             .from('catbots')
             .insert({
@@ -135,40 +133,60 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
 
           if (insertError) {
             console.error('Error inserting catbot:', insertError);
-          } else {
-            completedCount++;
-            console.log(`Generated complex catbot ${completedCount}/63: ${catbot.name}`);
-            
-            // Update job progress
-            await supabase
-              .from('catbot_generation_jobs')
-              .update({ completed_count: completedCount })
-              .eq('id', jobId);
+            continue;
+          }
+
+          completedCount++;
+          console.log(`Generated complex catbot ${completedCount}/25: ${catbot.name}`);
+          
+          // Update job progress immediately
+          await supabase
+            .from('catbot_generation_jobs')
+            .update({ completed_count: completedCount })
+            .eq('id', jobId);
+          
+          // Try to generate avatar with timeout (non-blocking)
+          try {
+            const avatarUrl = await generateAvatarWithTimeout(catbot.name, catbot.description, catbot.personality, supabase);
+            if (avatarUrl) {
+              await supabase
+                .from('catbots')
+                .update({ avatar_url: avatarUrl })
+                .eq('name', catbot.name)
+                .eq('user_id', userId);
+            }
+          } catch (avatarError) {
+            console.error('Avatar generation failed (non-blocking):', avatarError);
+            if (avatarError.message?.includes('rate_limit')) {
+              rateLimitHit = true;
+            }
           }
           
-          // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Longer delay to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
           console.error(`Error generating complex catbot ${completedCount + 1}:`, error);
+          if (error.message?.includes('rate_limit') || error.message?.includes('quota')) {
+            rateLimitHit = true;
+            break;
+          }
         }
       }
+      if (rateLimitHit) break;
     }
 
-    // Generate simple catbots (31 total)
+    // Generate simple catbots (13 total)
     for (const catGroup of simpleCategories) {
       for (let i = 0; i < catGroup.count; i++) {
+        if (rateLimitHit) {
+          console.log('Rate limit detected, stopping generation');
+          break;
+        }
+        
         try {
           const catbot = await generateSimpleCatbot(catGroup.category, catGroup.personality, openAIApiKey);
           
-          // Generate avatar
-          try {
-            const avatarUrl = await generateAvatar(catbot.name, catbot.description, catbot.personality, supabase);
-            catbot.avatar_url = avatarUrl;
-          } catch (avatarError) {
-            console.error('Error generating avatar:', avatarError);
-          }
-          
-          // Insert catbot immediately
+          // Insert catbot first (without avatar)
           const { error: insertError } = await supabase
             .from('catbots')
             .insert({
@@ -178,35 +196,60 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
 
           if (insertError) {
             console.error('Error inserting catbot:', insertError);
-          } else {
-            completedCount++;
-            console.log(`Generated simple catbot ${completedCount}/63: ${catbot.name}`);
-            
-            // Update job progress
-            await supabase
-              .from('catbot_generation_jobs')
-              .update({ completed_count: completedCount })
-              .eq('id', jobId);
+            continue;
+          }
+
+          completedCount++;
+          console.log(`Generated simple catbot ${completedCount}/25: ${catbot.name}`);
+          
+          // Update job progress immediately
+          await supabase
+            .from('catbot_generation_jobs')
+            .update({ completed_count: completedCount })
+            .eq('id', jobId);
+          
+          // Try to generate avatar with timeout (non-blocking)
+          try {
+            const avatarUrl = await generateAvatarWithTimeout(catbot.name, catbot.description, catbot.personality, supabase);
+            if (avatarUrl) {
+              await supabase
+                .from('catbots')
+                .update({ avatar_url: avatarUrl })
+                .eq('name', catbot.name)
+                .eq('user_id', userId);
+            }
+          } catch (avatarError) {
+            console.error('Avatar generation failed (non-blocking):', avatarError);
+            if (avatarError.message?.includes('rate_limit')) {
+              rateLimitHit = true;
+            }
           }
           
-          // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 200));
+          // Longer delay to respect rate limits
+          await new Promise(resolve => setTimeout(resolve, 1000));
         } catch (error) {
           console.error(`Error generating simple catbot ${completedCount + 1}:`, error);
+          if (error.message?.includes('rate_limit') || error.message?.includes('quota')) {
+            rateLimitHit = true;
+            break;
+          }
         }
       }
+      if (rateLimitHit) break;
     }
 
-    // Mark job as completed
+    // Mark job as completed or rate limited
+    const finalStatus = rateLimitHit ? 'rate_limited' : 'completed';
     await supabase
       .from('catbot_generation_jobs')
       .update({ 
-        status: 'completed',
-        completed_count: completedCount
+        status: finalStatus,
+        completed_count: completedCount,
+        error: rateLimitHit ? 'OpenAI rate limit reached. Avatars can be generated later.' : null
       })
       .eq('id', jobId);
 
-    console.log(`Successfully created ${completedCount} catbots`);
+    console.log(`Successfully created ${completedCount} catbots. Status: ${finalStatus}`);
 
   } catch (error) {
     console.error('Error in background generation:', error);
@@ -233,18 +276,23 @@ async function generateComplexCatbot(category: string, personality: string, apiK
     unique: `Create a unique conceptual cat character. Choose from: Sentient AI in cat form, Dream walker who enters human dreams, Emotion collector cat, Memory keeper of lost civilizations, Guardian of the internet, Translator between species, or Living constellation cat. Include origin story, special abilities, philosophical outlook, and unique perspective. 1500-2000 words.`
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are a creative writer creating detailed cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a creative writer creating detailed cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
 {
   "name": "unique creative cat name",
   "description": "200-300 character public profile description",
@@ -253,16 +301,23 @@ async function generateComplexCatbot(category: string, personality: string, apiK
 }
 
 Make each character unique and memorable with specific details and engaging backstory.`
-        },
-        {
-          role: 'user',
-          content: prompts[category as keyof typeof prompts]
-        }
-      ],
-      max_tokens: 3000,
-      temperature: 0.8
-    }),
-  });
+          },
+          {
+            role: 'user',
+            content: prompts[category as keyof typeof prompts]
+          }
+        ],
+        max_tokens: 3000,
+        temperature: 0.8
+      }),
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
 
   const data = await response.json();
   const content = data.choices[0].message.content;
@@ -286,6 +341,14 @@ Make each character unique and memorable with specific details and engaging back
       tags: [category, personality, 'complex']
     };
   }
+  
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('OpenAI request timeout');
+    }
+    throw error;
+  }
 
   return {
     name: parsed.name,
@@ -305,18 +368,23 @@ async function generateSimpleCatbot(category: string, personality: string, apiKe
     modern: `Create a modern cat character with contemporary interests. Could be a gamer cat, social media influencer cat, tech-savvy cat, artist cat, or fitness enthusiast cat. Include modern references and relatable personality. 500-800 words.`
   };
 
-  const response = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${apiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content: `You are creating simple, relatable cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      signal: controller.signal,
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content: `You are creating simple, relatable cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
 {
   "name": "cute simple cat name",
   "description": "150-200 character public profile description",
@@ -325,16 +393,23 @@ async function generateSimpleCatbot(category: string, personality: string, apiKe
 }
 
 Make characters warm and approachable with relatable traits.`
-        },
-        {
-          role: 'user',
-          content: prompts[category as keyof typeof prompts]
-        }
-      ],
-      max_tokens: 1500,
-      temperature: 0.7
-    }),
-  });
+          },
+          {
+            role: 'user',
+            content: prompts[category as keyof typeof prompts]
+          }
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      }),
+    });
+    
+    clearTimeout(timeoutId);
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(`OpenAI API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+    }
 
   const data = await response.json();
   const content = data.choices[0].message.content;
@@ -358,6 +433,14 @@ Make characters warm and approachable with relatable traits.`
       tags: [category, personality]
     };
   }
+  
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      throw new Error('OpenAI request timeout');
+    }
+    throw error;
+  }
 
   return {
     name: parsed.name,
@@ -370,7 +453,25 @@ Make characters warm and approachable with relatable traits.`
   };
 }
 
-async function generateAvatar(name: string, description: string, personality: string, supabase: any): Promise<string> {
+async function generateAvatarWithTimeout(name: string, description: string, personality: string, supabase: any): Promise<string | null> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s timeout for images
+
+  try {
+    return await generateAvatar(name, description, personality, supabase, controller.signal);
+  } catch (error) {
+    clearTimeout(timeoutId);
+    if (error.name === 'AbortError') {
+      console.error('Avatar generation timeout for:', name);
+      return null;
+    }
+    throw error;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+async function generateAvatar(name: string, description: string, personality: string, supabase: any, signal?: AbortSignal): Promise<string> {
   const openAIApiKey = Deno.env.get('OPENAI_API_KEY')!;
   
   // Clean up description for prompt
@@ -394,14 +495,20 @@ async function generateAvatar(name: string, description: string, personality: st
       'Authorization': `Bearer ${openAIApiKey}`,
       'Content-Type': 'application/json',
     },
+    signal,
     body: JSON.stringify({
       model: 'gpt-image-1',
       prompt: prompt,
       n: 1,
-      size: '1024x1024',
+      size: '512x512',
       quality: 'standard'
     }),
   });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(`OpenAI Image API error: ${response.status} - ${errorData.error?.message || 'Unknown error'}`);
+  }
 
   const data = await response.json();
   
