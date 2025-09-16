@@ -15,6 +15,7 @@ interface CatbotData {
   voice_id: string;
   is_public: boolean;
   tags: string[];
+  avatar_url?: string;
 }
 
 const availableVoices = [
@@ -116,6 +117,14 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
         try {
           const catbot = await generateComplexCatbot(catGroup.category, catGroup.personality, openAIApiKey);
           
+          // Generate avatar
+          try {
+            const avatarUrl = await generateAvatar(catbot.name, catbot.description, catbot.personality, supabase);
+            catbot.avatar_url = avatarUrl;
+          } catch (avatarError) {
+            console.error('Error generating avatar:', avatarError);
+          }
+          
           // Insert catbot immediately
           const { error: insertError } = await supabase
             .from('catbots')
@@ -138,7 +147,7 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
           }
           
           // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Error generating complex catbot ${completedCount + 1}:`, error);
         }
@@ -150,6 +159,14 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
       for (let i = 0; i < catGroup.count; i++) {
         try {
           const catbot = await generateSimpleCatbot(catGroup.category, catGroup.personality, openAIApiKey);
+          
+          // Generate avatar
+          try {
+            const avatarUrl = await generateAvatar(catbot.name, catbot.description, catbot.personality, supabase);
+            catbot.avatar_url = avatarUrl;
+          } catch (avatarError) {
+            console.error('Error generating avatar:', avatarError);
+          }
           
           // Insert catbot immediately
           const { error: insertError } = await supabase
@@ -173,7 +190,7 @@ async function generateCatbotsInBackground(jobId: string, userId: string, supaba
           }
           
           // Small delay to respect rate limits
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 200));
         } catch (error) {
           console.error(`Error generating simple catbot ${completedCount + 1}:`, error);
         }
@@ -227,7 +244,15 @@ async function generateComplexCatbot(category: string, personality: string, apiK
       messages: [
         {
           role: 'system',
-          content: `You are a creative writer creating detailed cat character profiles. Generate a JSON response with: name (unique, creative), description (200-300 char public profile), training_description (1500-2000 word detailed backstory), and tags (3-5 relevant keywords). Make each character unique and memorable with rich personality, specific details, mannerisms, and engaging backstory.`
+          content: `You are a creative writer creating detailed cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
+{
+  "name": "unique creative cat name",
+  "description": "200-300 character public profile description",
+  "training_description": "1500-2000 word detailed backstory with personality, mannerisms, and rich character development",
+  "tags": ["keyword1", "keyword2", "keyword3"]
+}
+
+Make each character unique and memorable with specific details and engaging backstory.`
         },
         {
           role: 'user',
@@ -242,10 +267,17 @@ async function generateComplexCatbot(category: string, personality: string, apiK
   const data = await response.json();
   const content = data.choices[0].message.content;
   
+  console.log(`OpenAI response for ${category}:`, content);
+  
   let parsed;
   try {
-    parsed = JSON.parse(content);
+    // Try to extract JSON from the response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonString = jsonMatch ? jsonMatch[0] : content;
+    parsed = JSON.parse(jsonString);
   } catch (e) {
+    console.error(`JSON parsing failed for ${category}:`, e);
+    console.error('Raw content:', content);
     // Fallback if JSON parsing fails
     parsed = {
       name: `Complex Cat ${Date.now()}`,
@@ -284,7 +316,15 @@ async function generateSimpleCatbot(category: string, personality: string, apiKe
       messages: [
         {
           role: 'system',
-          content: `You are creating simple, relatable cat character profiles. Generate a JSON response with: name (cute, simple), description (150-200 char public profile), training_description (500-800 word backstory), and tags (2-4 relevant keywords). Make characters warm and approachable.`
+          content: `You are creating simple, relatable cat character profiles. You MUST respond with valid JSON only. No markdown, no code blocks, no extra text. Just a JSON object with these exact fields:
+{
+  "name": "cute simple cat name",
+  "description": "150-200 character public profile description",
+  "training_description": "500-800 word backstory with warm, approachable personality",
+  "tags": ["keyword1", "keyword2"]
+}
+
+Make characters warm and approachable with relatable traits.`
         },
         {
           role: 'user',
@@ -299,10 +339,17 @@ async function generateSimpleCatbot(category: string, personality: string, apiKe
   const data = await response.json();
   const content = data.choices[0].message.content;
   
+  console.log(`OpenAI response for ${category}:`, content);
+  
   let parsed;
   try {
-    parsed = JSON.parse(content);
+    // Try to extract JSON from the response
+    const jsonMatch = content.match(/\{[\s\S]*\}/);
+    const jsonString = jsonMatch ? jsonMatch[0] : content;
+    parsed = JSON.parse(jsonString);
   } catch (e) {
+    console.error(`JSON parsing failed for ${category}:`, e);
+    console.error('Raw content:', content);
     // Fallback if JSON parsing fails
     parsed = {
       name: `Simple Cat ${Date.now()}`,
@@ -321,4 +368,70 @@ async function generateSimpleCatbot(category: string, personality: string, apiKe
     is_public: Math.random() > 0.25, // 75% public
     tags: parsed.tags || [category, personality]
   };
+}
+
+async function generateAvatar(name: string, description: string, personality: string, supabase: any): Promise<string> {
+  const openAIApiKey = Deno.env.get('OPENAI_API_KEY')!;
+  
+  // Clean up description for prompt
+  const cleanDescription = description.replace(/[^\w\s]/gi, '').substring(0, 100);
+  
+  const personalityDescriptors = {
+    friendly: "warm and approachable",
+    mysterious: "enigmatic and captivating", 
+    wise: "intelligent and serene",
+    playful: "energetic and cheerful",
+    serious: "dignified and composed"
+  };
+  
+  const prompt = `A beautiful, expressive cat portrait representing ${name}. ${personalityDescriptors[personality as keyof typeof personalityDescriptors] || "charming"}. ${cleanDescription}. Professional digital art style, detailed fur texture, expressive eyes, high quality rendering, centered composition.`;
+  
+  console.log(`Generating avatar for ${name} with prompt:`, prompt);
+  
+  const response = await fetch('https://api.openai.com/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${openAIApiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: 'gpt-image-1',
+      prompt: prompt,
+      n: 1,
+      size: '1024x1024',
+      quality: 'standard'
+    }),
+  });
+
+  const data = await response.json();
+  
+  if (!data.data || !data.data[0]) {
+    throw new Error('No image generated');
+  }
+
+  const imageUrl = data.data[0].url;
+  
+  // Download and upload to Supabase Storage
+  const imageResponse = await fetch(imageUrl);
+  const imageBlob = await imageResponse.blob();
+  
+  const fileName = `catbot-${Date.now()}-${Math.random().toString(36).substring(7)}.png`;
+  const filePath = `catbots/${fileName}`;
+  
+  const { error: uploadError } = await supabase.storage
+    .from('images')
+    .upload(filePath, imageBlob, {
+      contentType: 'image/png',
+    });
+
+  if (uploadError) {
+    console.error('Upload error:', uploadError);
+    throw new Error(`Failed to upload avatar: ${uploadError.message}`);
+  }
+
+  const { data: { publicUrl } } = supabase.storage
+    .from('images')
+    .getPublicUrl(filePath);
+
+  return publicUrl;
 }
