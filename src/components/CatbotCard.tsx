@@ -74,6 +74,8 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
             src={catbot.avatar_url} 
             alt={`${catbot.name} avatar`} 
             className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-500" 
+            loading="lazy"
+            decoding="async"
           />
         ) : (
           <div className="w-full aspect-square flex items-center justify-center">
@@ -88,30 +90,30 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       </div>
 
       {/* Content Section - Compact spacing with flex-grow */}
-      <CardContent className="p-2 flex flex-col flex-1">
+      <CardContent className="p-1.5 flex flex-col flex-1">
         {/* Description - closer to title */}
-        <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-2">
+        <p className="text-xs text-muted-foreground line-clamp-1 leading-relaxed flex-1 mb-1.5">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
         {/* Tags */}
         {catbot.tags && catbot.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-2">
-            {catbot.tags.slice(0, 3).map(tag => (
+          <div className="flex flex-wrap gap-1 mb-1.5">
+            {catbot.tags.slice(0, 2).map(tag => (
               <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
                 {tag}
               </Badge>
             ))}
-            {catbot.tags.length > 3 && (
+            {catbot.tags.length > 2 && (
               <Badge variant="outline" className="text-xs px-1 py-0">
-                +{catbot.tags.length - 3}
+                +{catbot.tags.length - 2}
               </Badge>
             )}
           </div>
         )}
         
         {/* Stats and Like Button */}
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-2">
           <StatsDisplay 
             interactionCount={catbot.interaction_count || 0}
           />
