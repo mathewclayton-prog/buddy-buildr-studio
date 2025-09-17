@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Bot, Plus, PawPrint, LogOut, User, Home, Settings, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
@@ -76,7 +75,10 @@ const Navigation = () => {
     }
     return name;
   };
-  return <header className="border-b bg-white backdrop-blur-sm sticky top-0 z-50 shadow-soft text-black">
+  const navLinkClass = (isActive: boolean) => 
+    `px-3 py-2 rounded-md text-sm font-medium text-black hover:bg-black/10 transition-colors flex items-center gap-2 ${isActive ? 'bg-black/10 font-semibold' : ''}`;
+
+  return <header className="border-b bg-white backdrop-blur-sm sticky top-0 z-50 text-black">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity text-black">
           <span className="text-xl font-bold text-black">MiCat.Online</span>
@@ -84,41 +86,29 @@ const Navigation = () => {
 
         <nav className="flex items-center gap-4">
           {user ? <>
-              <Button variant={location.pathname === "/" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/" className="flex items-center gap-2">
-                  <Home className="h-4 w-4" />
-                  Home
-                </Link>
-              </Button>
+              <Link to="/" className={navLinkClass(location.pathname === "/")}>
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
 
-              <Button variant={location.pathname === "/browse" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/browse" className="flex items-center gap-2">
-                  <PawPrint className="h-4 w-4" />
-                  Explore Cats
-                </Link>
-              </Button>
+              <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
+                <PawPrint className="h-4 w-4" />
+                Explore Cats
+              </Link>
 
-              <Button variant={location.pathname === "/my-cats" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/my-cats" className="flex items-center gap-2">
-                  <PawPrint className="h-4 w-4" />
-                  My Cats
-                </Link>
-              </Button>
+              <Link to="/my-cats" className={navLinkClass(location.pathname === "/my-cats")}>
+                <PawPrint className="h-4 w-4" />
+                My Cats
+              </Link>
 
-              <Button variant={location.pathname === "/create" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/create" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create a Cat
-                </Link>
-              </Button>
+              <Link to="/create" className={navLinkClass(location.pathname === "/create")}>
+                <Plus className="h-4 w-4" />
+                Create a Cat
+              </Link>
 
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant={location.pathname === "/profile" ? "default" : "ghost"} 
-                    size="sm" 
-                    className="flex items-center gap-2 max-w-[200px]"
-                  >
+                  <button className={`${navLinkClass(location.pathname === "/profile")} max-w-[200px]`}>
                     {avatarUrl ? (
                       <img 
                         src={avatarUrl} 
@@ -132,50 +122,42 @@ const Navigation = () => {
                       {loading ? "..." : getTruncatedName(displayName)}
                     </span>
                     <ChevronDown className="h-3 w-3 flex-shrink-0" />
-                  </Button>
+                  </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-48 bg-background border shadow-lg z-50">
+                <DropdownMenuContent align="end" className="w-48 bg-white border shadow-lg z-50">
                   <DropdownMenuItem asChild>
-                    <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                    <Link to="/profile" className="flex items-center gap-2 cursor-pointer text-black">
                       <User className="h-4 w-4" />
                       View Profile
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 cursor-pointer">
+                  <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 cursor-pointer text-black">
                     <LogOut className="h-4 w-4" />
                     Sign Out
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </> : <>
-              <Button variant={location.pathname === "/" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/" className="flex items-center gap-2">
-                  <Home className="h-4 w-4" />
-                  Home
-                </Link>
-              </Button>
+              <Link to="/" className={navLinkClass(location.pathname === "/")}>
+                <Home className="h-4 w-4" />
+                Home
+              </Link>
 
-              <Button variant={location.pathname === "/browse" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/browse" className="flex items-center gap-2">
-                  <PawPrint className="h-4 w-4" />
-                  Explore Cats
-                </Link>
-              </Button>
+              <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
+                <PawPrint className="h-4 w-4" />
+                Explore Cats
+              </Link>
 
-              <Button variant={location.pathname === "/create" ? "default" : "ghost"} size="sm" asChild>
-                <Link to="/create" className="flex items-center gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create a Cat
-                </Link>
-              </Button>
+              <Link to="/create" className={navLinkClass(location.pathname === "/create")}>
+                <Plus className="h-4 w-4" />
+                Create a Cat
+              </Link>
 
-              <Button variant="default" size="sm" asChild>
-                <Link to="/auth" className="flex items-center gap-2">
-                  <User className="h-4 w-4" />
-                  Sign In
-                </Link>
-              </Button>
+              <Link to="/auth" className="px-3 py-2 rounded-md text-sm font-medium text-black bg-black/10 hover:bg-black/20 transition-colors flex items-center gap-2">
+                <User className="h-4 w-4" />
+                Sign In
+              </Link>
             </>}
         </nav>
       </div>
