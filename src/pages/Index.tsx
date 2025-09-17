@@ -22,7 +22,7 @@ interface Catbot {
   interaction_count?: number;
   tags?: string[];
 }
-const heroCat = "/lovable-uploads/057d2f0d-a602-456f-b685-1e284a57e2c5.png";
+
 const Index = () => {
   const {
     user
@@ -61,10 +61,6 @@ const Index = () => {
       <div className="min-h-screen bg-background">
         <Navigation />
         
-        {/* Hero Image - Full Page Width */}
-        <div className="w-screen bg-card overflow-hidden shadow-card">
-          <img src={heroCat} alt="MiCatbot Hero" className="w-full h-auto object-cover" />
-        </div>
 
         {/* Hero Section */}
         <main className="container mx-auto px-4 pt-8 pb-16">
