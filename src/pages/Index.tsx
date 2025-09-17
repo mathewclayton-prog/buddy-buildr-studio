@@ -108,8 +108,7 @@ const Index = () => {
         {/* Popular Catbots Section */}
         <section className="mt-12 mb-16">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 text-nav-orange">Explore Our Wonderful Cats</h2>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-8">
               Start chatting now...
             </p>
           </div>
