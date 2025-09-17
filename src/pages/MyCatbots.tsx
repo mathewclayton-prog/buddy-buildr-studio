@@ -1,30 +1,44 @@
 import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useAdminAuth } from "@/hooks/useAdminAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { MessageCircle, Edit, Trash, Eye, EyeOff, Sparkles, Users, BarChart3, Shield, Database, UserCheck, Plus, RotateCcw, Globe, Lock, PawPrint, Trash2 } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import Navigation from "@/components/Navigation";
+import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import Navigation from "@/components/Navigation";
-import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { PawPrint, Plus, Edit, Trash2, Globe, Lock, MessageCircle, RotateCcw } from "lucide-react";
-import { Link } from "react-router-dom";
-import { getUserCharacters, type PublicCharacter } from "@/lib/characterQueries";
 
 const MyCatbots = () => {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { isAdmin, loading: adminLoading } = useAdminAuth();
   const [catbots, setCatbots] = useState<PublicCharacter[]>([]);
+  const [allCatbots, setAllCatbots] = useState<any[]>([]);
+  const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [cleanupLoading, setCleanupLoading] = useState(false);
+  const [adminStats, setAdminStats] = useState({
+    totalUsers: 0,
+    totalCatbots: 0,
+    publicCatbots: 0,
+    privateCatbots: 0
+  });
+  const { toast } = useToast();
 
   useEffect(() => {
     if (user) {
       fetchMyCatbots();
+      if (isAdmin) {
+        fetchAdminData();
+      }
     }
-  }, [user]);
+  }, [user, isAdmin]);
 
   const fetchMyCatbots = async () => {
     try {
@@ -45,6 +59,60 @@ const MyCatbots = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchAdminData = async () => {
+    if (!user || !isAdmin) return;
+
+    try {
+      // Fetch all catbots for admin view
+      const { data: allCatbotsData, error: catbotsError } = await supabase
+        .from('catbots')
+        .select(`
+          *,
+          profiles!catbots_user_id_fkey (
+            display_name,
+            avatar_url
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (catbotsError) {
+        console.error('Error fetching all catbots:', catbotsError);
+      } else {
+        setAllCatbots(allCatbotsData || []);
+      }
+
+      // Fetch all users with their catbot counts
+      const { data: usersData, error: usersError } = await supabase
+        .from('profiles')
+        .select(`
+          *,
+          catbots(count)
+        `);
+
+      if (usersError) {
+        console.error('Error fetching users:', usersError);
+      } else {
+        setAllUsers(usersData || []);
+      }
+
+      // Calculate admin stats
+      if (allCatbotsData) {
+        const totalCatbots = allCatbotsData.length;
+        const publicCount = allCatbotsData.filter(c => c.is_public).length;
+        const privateCount = totalCatbots - publicCount;
+
+        setAdminStats({
+          totalUsers: usersData?.length || 0,
+          totalCatbots,
+          publicCatbots: publicCount,
+          privateCatbots: privateCount
+        });
+      }
+    } catch (error) {
+      console.error('Error fetching admin data:', error);
     }
   };
 
@@ -116,6 +184,9 @@ const MyCatbots = () => {
 
       if (data.success) {
         await fetchMyCatbots(); // Refresh the list
+        if (isAdmin) {
+          await fetchAdminData(); // Refresh admin data too
+        }
         toast({
           title: "Success",
           description: data.message,
@@ -138,7 +209,15 @@ const MyCatbots = () => {
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
   const publicCatbots = catbots.filter(catbot => catbot.is_public);
 
-  const CatbotCard = ({ catbot }: { catbot: PublicCharacter }) => (
+  const CatbotCard = ({ 
+    catbot, 
+    showCreator = false, 
+    creatorName 
+  }: { 
+    catbot: PublicCharacter; 
+    showCreator?: boolean;
+    creatorName?: string;
+  }) => (
     <Card className="hover-scale shadow-card">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
@@ -168,6 +247,11 @@ const MyCatbots = () => {
                   {catbot.is_public ? 'Public' : 'Private'}
                 </span>
               </div>
+              {showCreator && creatorName && (
+                <div className="text-xs text-muted-foreground mt-1">
+                  by {creatorName}
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -231,26 +315,29 @@ const MyCatbots = () => {
     </Card>
   );
 
-  const EmptyState = ({ isPublic }: { isPublic: boolean }) => (
+  const EmptyState = ({ 
+    title, 
+    description, 
+    showCreateButton = true 
+  }: { 
+    title: string; 
+    description: string; 
+    showCreateButton?: boolean;
+  }) => (
     <div className="text-center py-12">
       <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
         <PawPrint className="h-10 w-10 text-muted-foreground" />
       </div>
-      <h3 className="text-lg font-semibold mb-2">
-        No {isPublic ? 'public' : 'private'} catbots yet
-      </h3>
-      <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-        {isPublic 
-          ? "You haven't made any catbots public yet. Toggle the switch on your catbots to share them with the community."
-          : "You haven't created any catbots yet. Create your first one to get started!"
-        }
-      </p>
-      <Button asChild>
-        <Link to="/create" className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
-          Create New Catbot
-        </Link>
-      </Button>
+      <h3 className="text-lg font-semibold mb-2">{title}</h3>
+      <p className="text-muted-foreground mb-6 max-w-md mx-auto">{description}</p>
+      {showCreateButton && (
+        <Button asChild>
+          <Link to="/create" className="flex items-center gap-2">
+            <Plus className="h-4 w-4" />
+            Create New Catbot
+          </Link>
+        </Button>
+      )}
     </div>
   );
 
@@ -275,7 +362,15 @@ const MyCatbots = () => {
       <Navigation />
       <main className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-8">
-          <h1 className="text-3xl font-bold">My Catbots</h1>
+          <div>
+            <h1 className="text-3xl font-bold flex items-center gap-2">
+              My Catbots
+              {isAdmin && <Badge variant="destructive" className="text-xs"><Shield className="w-3 h-3 mr-1" />Admin</Badge>}
+            </h1>
+            <p className="text-muted-foreground mt-1">
+              {isAdmin ? "Manage your AI companions and oversee the platform" : "Manage your AI companions and see how they're performing"}
+            </p>
+          </div>
           <div className="flex items-center gap-3">
             <Button 
               variant="outline" 
@@ -295,16 +390,28 @@ const MyCatbots = () => {
           </div>
         </div>
 
-        <Tabs defaultValue="public" className="space-y-6">
-          <TabsList>
+        <Tabs defaultValue="private" className="space-y-6">
+          <TabsList className={`grid w-full ${isAdmin ? 'grid-cols-4' : 'grid-cols-2'}`}>
             <TabsTrigger value="private" className="flex items-center gap-2">
               <Lock className="h-4 w-4" />
-              Private Catbots ({privateCatbots.length})
+              Private ({privateCatbots.length})
             </TabsTrigger>
             <TabsTrigger value="public" className="flex items-center gap-2">
               <Globe className="h-4 w-4" />
-              My Public Catbots ({publicCatbots.length})
+              Public ({publicCatbots.length})
             </TabsTrigger>
+            {isAdmin && (
+              <>
+                <TabsTrigger value="admin-dashboard" className="flex items-center gap-2">
+                  <BarChart3 className="w-4 h-4" />
+                  Dashboard
+                </TabsTrigger>
+                <TabsTrigger value="admin-manage" className="flex items-center gap-2">
+                  <Database className="w-4 h-4" />
+                  All Catbots ({allCatbots.length})
+                </TabsTrigger>
+              </>
+            )}
           </TabsList>
 
           <TabsContent value="private">
@@ -337,7 +444,10 @@ const MyCatbots = () => {
                 ))}
               </div>
             ) : (
-              <EmptyState isPublic={false} />
+              <EmptyState 
+                title="No private catbots yet"
+                description="You haven't created any catbots yet. Create your first one to get started!"
+              />
             )}
           </TabsContent>
 
@@ -371,9 +481,128 @@ const MyCatbots = () => {
                 ))}
               </div>
             ) : (
-              <EmptyState isPublic={true} />
+              <EmptyState 
+                title="No public catbots yet"
+                description="You haven't made any catbots public yet. Toggle the switch on your catbots to share them with the community."
+              />
             )}
           </TabsContent>
+
+          {/* Admin Dashboard Tab */}
+          {isAdmin && (
+            <TabsContent value="admin-dashboard" className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Users</CardTitle>
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{adminStats.totalUsers}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Total Catbots</CardTitle>
+                    <Sparkles className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{adminStats.totalCatbots}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Public Catbots</CardTitle>
+                    <Eye className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{adminStats.publicCatbots}</div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                    <CardTitle className="text-sm font-medium">Private Catbots</CardTitle>
+                    <EyeOff className="h-4 w-4 text-muted-foreground" />
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-2xl font-bold">{adminStats.privateCatbots}</div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Top Users by Catbots</CardTitle>
+                    <CardDescription>Users with the most created catbots</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {allUsers
+                      .sort((a, b) => (b.catbots?.[0]?.count || 0) - (a.catbots?.[0]?.count || 0))
+                      .slice(0, 5)
+                      .map((user) => (
+                        <div key={user.id} className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                              <UserCheck className="w-4 h-4" />
+                            </div>
+                            <span className="font-medium">{user.display_name || 'Anonymous'}</span>
+                          </div>
+                          <Badge variant="secondary">{user.catbots?.[0]?.count || 0} catbots</Badge>
+                        </div>
+                      ))}
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Platform Actions</CardTitle>
+                    <CardDescription>Administrative tools and actions</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
+                    <Button 
+                      onClick={cleanupAutoCats} 
+                      disabled={cleanupLoading}
+                      variant="outline"
+                      className="w-full justify-start"
+                    >
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      {cleanupLoading ? "Cleaning up..." : "Cleanup Auto Cats"}
+                    </Button>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+          )}
+
+          {/* Admin All Catbots Tab */}
+          {isAdmin && (
+            <TabsContent value="admin-manage" className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold">All Platform Catbots</h2>
+                <Badge variant="secondary">{allCatbots.length} total</Badge>
+              </div>
+              
+              {allCatbots.length === 0 ? (
+                <EmptyState 
+                  title="No catbots found" 
+                  description="No catbots have been created on the platform yet." 
+                  showCreateButton={false}
+                />
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+                  {allCatbots.map((catbot) => (
+                    <CatbotCard 
+                      key={catbot.id} 
+                      catbot={catbot} 
+                      showCreator={true}
+                      creatorName={(catbot as any).profiles?.display_name}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          )}
         </Tabs>
       </main>
     </div>
