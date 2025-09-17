@@ -270,23 +270,39 @@ const CreateCharacter = () => {
     if (!selectedFile || !completedCrop || !imgRef.current) return;
     setIsUploading(true);
     try {
-      // Create cropped canvas
-      const canvas = getCroppedCanvas(imgRef.current, completedCrop);
+      let fileToUpload: File;
+      
+      // Check if the file is a GIF
+      if (selectedFile.type === 'image/gif') {
+        // For GIFs, preserve the original file to maintain animation
+        // Apply basic size limit if needed but don't crop to avoid breaking animation
+        if (selectedFile.size > 5 * 1024 * 1024) { // 5MB limit for GIFs
+          throw new Error('GIF file is too large. Please use a file smaller than 5MB.');
+        }
+        
+        const timestamp = Date.now();
+        fileToUpload = new File([selectedFile], `catbot-${timestamp}.gif`, {
+          type: 'image/gif'
+        });
+      } else {
+        // For static images, use the existing cropping logic
+        const canvas = getCroppedCanvas(imgRef.current, completedCrop);
 
-      // Convert canvas to blob
-      const blob = await new Promise<Blob>(resolve => {
-        canvas.toBlob(blob => {
-          resolve(blob!);
-        }, 'image/jpeg', 0.9);
-      });
+        // Convert canvas to blob
+        const blob = await new Promise<Blob>(resolve => {
+          canvas.toBlob(blob => {
+            resolve(blob!);
+          }, 'image/jpeg', 0.9);
+        });
 
-      // Create file from blob
-      const croppedFile = new File([blob], `catbot-${Date.now()}.jpg`, {
-        type: 'image/jpeg'
-      });
+        // Create file from blob
+        fileToUpload = new File([blob], `catbot-${Date.now()}.jpg`, {
+          type: 'image/jpeg'
+        });
+      }
 
       // Upload to Supabase Storage
-      const result = await uploadImage(croppedFile, 'catbots');
+      const result = await uploadImage(fileToUpload, 'catbots');
       if (result.error || !result.data) {
         throw new Error(result.error);
       }
@@ -296,7 +312,7 @@ const CreateCharacter = () => {
       setAvatarType("upload");
       toast({
         title: "Success",
-        description: "Image uploaded successfully"
+        description: `${selectedFile.type === 'image/gif' ? 'Animated GIF' : 'Image'} uploaded successfully`
       });
 
       // Close dialog and reset states
