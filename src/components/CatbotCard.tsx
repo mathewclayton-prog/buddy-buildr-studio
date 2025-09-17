@@ -73,10 +73,10 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           <img 
             src={catbot.avatar_url} 
             alt={`${catbot.name} avatar`} 
-            className="w-full aspect-[4/3] object-cover group-hover:scale-110 transition-transform duration-500" 
+            className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-500" 
           />
         ) : (
-          <div className="w-full aspect-[4/3] flex items-center justify-center">
+          <div className="w-full aspect-square flex items-center justify-center">
             {getDefaultAvatar()}
           </div>
         )}
@@ -88,7 +88,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       </div>
 
       {/* Content Section - Compact spacing with flex-grow */}
-      <CardContent className="p-3 flex flex-col flex-1">
+      <CardContent className="p-2 flex flex-col flex-1">
         {/* Description - closer to title */}
         <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed flex-1 mb-2">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}

@@ -113,7 +113,7 @@ const BrowseCharacters = () => {
         )}
 
         {/* Loading State */}
-        {loading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        {loading && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
             {[...Array(8)].map((_, i) => <Card key={i} className="animate-pulse shadow-card overflow-hidden">
                 <div className="h-32 bg-muted" />
                 <CardContent className="p-3">
@@ -157,7 +157,7 @@ const BrowseCharacters = () => {
           </div>}
 
         {/* Catbot Grid */}
-        {!loading && filteredCatbots.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 animate-fade-in">
+        {!loading && filteredCatbots.length > 0 && <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5 animate-fade-in">
             {filteredCatbots.map((catbot, index) => (
               <div 
                 key={catbot.id}
