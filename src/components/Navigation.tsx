@@ -12,7 +12,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const logoCat = "/lovable-uploads/c7b70528-7764-40bc-9281-0ce068fbf6dc.png";
+
 const Navigation = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
@@ -79,9 +79,6 @@ const Navigation = () => {
   return <header className="border-b bg-nav-orange backdrop-blur-sm sticky top-0 z-50 shadow-soft text-nav-orange-foreground">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-nav-orange-foreground">
-          <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
-            <img src={logoCat} alt="MiCat.Online Logo" className="h-8 w-8 object-cover" />
-          </div>
           <span className="text-xl font-bold text-nav-orange-foreground">MiCat.Online</span>
         </Link>
 
