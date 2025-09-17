@@ -104,11 +104,11 @@ const Auth = () => {
         <div className="text-center mb-8">
           <div className="mb-6 flex justify-center">
             <div className="h-32 w-full max-w-md bg-card rounded-md overflow-hidden shadow-card">
-              <img src="/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png" alt="MiCatbot Hero" className="h-full w-full object-cover" />
+              <img src="/lovable-uploads/64020e0f-9ccf-4775-a7f0-8791338dde1c.png" alt="MiCat.Online Hero" className="h-full w-full object-cover" />
             </div>
           </div>
           <Link to="/" className="inline-flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
-            <span className="text-2xl font-bold">MiCat</span>
+            <span className="text-2xl font-bold">MiCat.Online</span>
           </Link>
           <h1 className="text-3xl font-bold mb-2">Welcome cat lovers!</h1>
           <p className="text-muted-foreground">
