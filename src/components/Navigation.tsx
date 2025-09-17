@@ -76,10 +76,10 @@ const Navigation = () => {
     }
     return name;
   };
-  return <header className="border-b bg-nav-orange backdrop-blur-sm sticky top-0 z-50 shadow-soft text-nav-orange-foreground">
+  return <header className="border-b bg-white backdrop-blur-sm sticky top-0 z-50 shadow-soft text-black">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-nav-orange-foreground">
-          <span className="text-xl font-bold text-nav-orange-foreground">MiCat.Online</span>
+        <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity text-black">
+          <span className="text-xl font-bold text-black">MiCat.Online</span>
         </Link>
 
         <nav className="flex items-center gap-4">
