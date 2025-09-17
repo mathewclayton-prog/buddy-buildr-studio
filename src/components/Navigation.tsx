@@ -79,7 +79,7 @@ const Navigation = () => {
     `px-3 py-2 rounded-md text-sm font-medium text-black hover:bg-black/10 transition-colors flex items-center gap-2 ${isActive ? 'bg-black/10 font-semibold' : ''}`;
 
   return <header className="border-b bg-white backdrop-blur-sm sticky top-0 z-50 text-black">
-      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+      <div className="container mx-auto px-4 py-2 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity text-black">
           <span className="text-xl font-bold text-black">MiCat.Online</span>
         </Link>

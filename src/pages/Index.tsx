@@ -63,12 +63,12 @@ const Index = () => {
         
 
         {/* Hero Section */}
-        <main className="container mx-auto px-4 pt-8 pb-16">
+        <main className="container mx-auto px-4 pt-4 pb-16">
           <div className="text-center max-w-4xl mx-auto animate-fade-in">
           
-          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-black">Create Your Own Catbot</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-black">Create Your Own Catbot</h1>
           
-          <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
+          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
 
           <PawTrail className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {user ? <>
@@ -92,9 +92,9 @@ const Index = () => {
         </div>
 
         {/* Popular Catbots Section */}
-        <section className="mt-12 mb-16">
+        <section className="mt-6 mb-16">
           <div className="text-center mb-12">
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-8">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto mt-4">
               Start chatting now...
             </p>
           </div>
