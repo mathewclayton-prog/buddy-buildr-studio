@@ -79,26 +79,12 @@ const Index = () => {
                     <Sparkles className="h-4 w-4 animate-float" />
                   </Link>
                 </Button>
-                
-                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
-                  <Link to="/browse" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5 animate-wiggle" />
-                    Meet the Cats
-                  </Link>
-                </Button>
               </> : <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/auth" className="flex items-center gap-3">
                     <PawPrint className="h-5 w-5 animate-wiggle" />
                     Get Started
                     <Sparkles className="h-4 w-4 animate-float" />
-                  </Link>
-                </Button>
-                
-                <Button variant="outline" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
-                  <Link to="/browse" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5 animate-bounce-soft" />
-                    Meet the Cats
                   </Link>
                 </Button>
               </>}
