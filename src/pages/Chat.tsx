@@ -13,6 +13,7 @@ import { localLLM } from "@/services/localLLM";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
 import AudioControls from "@/components/AudioControls";
 import VoiceIndicator from "@/components/VoiceIndicator";
@@ -85,18 +86,11 @@ const Chat = () => {
       if (existingSession) {
         setMessages(existingSession.messages);
       } else {
-        // Create personality-specific opening message
-        const personality = char.personalityTraits[0]?.toLowerCase() || "friendly";
-        
-        const openingMessages = {
-          playful: `Hello! I'm ${char.name}. ${char.publicProfile}. *bounces excitedly* Do you have any cats? I absolutely LOVE hearing about kitties and their adorable antics! 🐱`,
-          wise: `Hello! I'm ${char.name}. ${char.publicProfile}. *settles in thoughtfully* I'm curious about the feline companions in your life. Do you share your home with any cats?`,
-          friendly: `Hello! I'm ${char.name}. ${char.publicProfile}. I'm so excited to meet you! Do you have any cats? I'd love to hear all about them! 😊`,
-          mysterious: `Hello! I'm ${char.name}. ${char.publicProfile}. *whiskers twitching with curiosity* Something tells me you might have some fascinating feline secrets to share... Do you have cats? 🌙`,
-          serious: `Hello! I'm ${char.name}. ${char.publicProfile}. I'd like to learn about what's important to you. Do you have cats that you care for?`
-        };
-        
-        const openingContent = openingMessages[personality] || openingMessages.friendly;
+        // Generate dynamic character-specific opening message
+        const openingContent = OpeningMessageGenerator.generateOpening(char, {
+          includeQuestion: true,
+          maxLength: 250
+        });
         
         const greeting: ChatMessage = {
           id: crypto.randomUUID(),
