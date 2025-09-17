@@ -80,9 +80,9 @@ const Navigation = () => {
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity text-nav-orange-foreground">
           <div className="h-8 w-8 rounded-lg flex items-center justify-center overflow-hidden">
-            <img src={logoCat} alt="MiCatbot Logo" className="h-8 w-8 object-cover" />
+            <img src={logoCat} alt="MiCat.Online Logo" className="h-8 w-8 object-cover" />
           </div>
-          <span className="text-xl font-bold text-nav-orange-foreground">MiCat</span>
+          <span className="text-xl font-bold text-nav-orange-foreground">MiCat.Online</span>
         </Link>
 
         <nav className="flex items-center gap-4">
