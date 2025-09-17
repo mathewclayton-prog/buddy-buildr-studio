@@ -89,11 +89,11 @@ const Chat = () => {
         const personality = char.personalityTraits[0]?.toLowerCase() || "friendly";
         
         const openingMessages = {
-          playful: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
-          wise: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
-          friendly: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
-          mysterious: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`,
-          serious: `Hello! I'm ${char.name}. ${char.publicProfile}. How is your day going?`
+          playful: `Hello! I'm ${char.name}. ${char.publicProfile}. *bounces excitedly* Do you have any cats? I absolutely LOVE hearing about kitties and their adorable antics! 🐱`,
+          wise: `Hello! I'm ${char.name}. ${char.publicProfile}. *settles in thoughtfully* I'm curious about the feline companions in your life. Do you share your home with any cats?`,
+          friendly: `Hello! I'm ${char.name}. ${char.publicProfile}. I'm so excited to meet you! Do you have any cats? I'd love to hear all about them! 😊`,
+          mysterious: `Hello! I'm ${char.name}. ${char.publicProfile}. *whiskers twitching with curiosity* Something tells me you might have some fascinating feline secrets to share... Do you have cats? 🌙`,
+          serious: `Hello! I'm ${char.name}. ${char.publicProfile}. I'd like to learn about what's important to you. Do you have cats that you care for?`
         };
         
         const openingContent = openingMessages[personality] || openingMessages.friendly;
@@ -150,34 +150,34 @@ const Chat = () => {
     
     const responses = {
       friendly: [
-        "That's really interesting! I love hearing your thoughts on this. 😊",
-        "Oh, I totally get what you mean! Thanks for sharing that with me.",
-        "That sounds wonderful! I'm always excited to learn new things from you.",
-        "I appreciate you telling me about this. What else would you like to talk about?",
+        "That's really interesting! I love hearing your thoughts on this. 😊 By the way, do you have any cats? I'm always excited to hear about furry friends!",
+        "Oh, I totally get what you mean! Thanks for sharing that with me. Speaking of sharing - tell me about your cats!",
+        "That sounds wonderful! I'm always excited to learn new things from you. Do your cats enjoy anything similar?",
+        "I appreciate you telling me about this. What else would you like to talk about? Maybe something about your cats?",
       ],
       mysterious: [
-        "Hmm... there's more to this than meets the eye, don't you think? 🌙",
-        "Interesting... that reminds me of something I once discovered in an old tome.",
-        "Perhaps the answer lies hidden in plain sight. What do you truly see?",
-        "The shadows whisper secrets... but are you ready to hear them?",
+        "Hmm... there's more to this than meets the eye, don't you think? 🌙 Just like cats, who always seem to know secrets we don't...",
+        "Interesting... that reminds me of the mysterious ways cats move through shadows. Do you have feline companions who share such enigmas?",
+        "Perhaps the answer lies hidden in plain sight, like a cat watching from the darkness. What secrets do your cats keep?",
+        "The shadows whisper secrets... much like cats do with their midnight wanderings. Tell me about your nocturnal feline friends.",
       ],
       wise: [
-        "Ah, this brings to mind an ancient saying: 'Knowledge is the light that guides us.' 🧙‍♀️",
-        "In my experience, the most profound truths are often the simplest ones.",
-        "Consider this perspective: every question contains the seeds of its own answer.",
-        "Wisdom comes not from having all the answers, but from asking the right questions.",
+        "Ah, this brings to mind the wisdom cats show us daily about patience and observation. 🧙‍♀️ Do you learn from any feline teachers?",
+        "In my experience, cats are among our greatest teachers of life's simple truths. What have your cats taught you?",
+        "Consider how cats approach life - with curiosity and independence. Do you share your home with such wise creatures?",
+        "Wisdom often comes from unexpected sources - like the gentle purr of a content cat. Do you have cats who bring you peace?",
       ],
       playful: [
-        "Ooh, that's fun! You know what we should do next? Let's explore this idea more! 🎈",
-        "Haha, you're so creative! I love how your mind works. What other ideas do you have?",
-        "This is awesome! You always come up with the most interesting things to talk about! ✨",
-        "Yay! I'm having so much fun chatting with you. Tell me more, tell me more!",
+        "Ooh, that's fun! You know what else is fun? Cat zoomies at 3am! 🎈 Do your cats have silly moments like that?",
+        "Haha, you're so creative! I love how your mind works - just like how cats find the most creative hiding spots! What funny things do your cats do?",
+        "This is awesome! You always come up with interesting things to talk about! Do your cats surprise you with interesting behaviors too? ✨",
+        "Yay! I'm having so much fun chatting with you. Do you have cats who are as playful as this conversation?",
       ],
       serious: [
-        "I understand. This is indeed a matter that requires careful consideration.",
-        "Your point is well-taken. Let me think about this methodically.",
-        "This is an important topic. I appreciate you bringing it to my attention.",
-        "I see the significance of what you're saying. How shall we proceed?",
+        "I understand. This is indeed a matter that requires careful consideration, much like the responsibility of caring for cats.",
+        "Your point is well-taken. Let me think about this methodically. Do you find that your cats help you think through important matters?",
+        "This is an important topic. I appreciate you bringing it to my attention. Do you have cats you turn to for comfort during serious times?",
+        "I see the significance of what you're saying. How shall we proceed? Do your cats provide support during challenging discussions?",
       ]
     };
     

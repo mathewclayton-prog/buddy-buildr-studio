@@ -153,7 +153,7 @@ serve(async (req) => {
   }
 });
 
-// Quick emotional analysis without API calls for speed
+// Enhanced emotional analysis with cat-specific context
 function getQuickEmotionalContext(userMessage: string): string {
   const lowerMessage = userMessage.toLowerCase();
   
@@ -161,6 +161,7 @@ function getQuickEmotionalContext(userMessage: string): string {
   let emotion = 'neutral';
   let supportNeeded = false;
   let energyLevel = 'medium';
+  let catContext = '';
   
   // Detect positive emotions
   if (['happy', 'excited', 'great', 'awesome', 'love', 'amazing'].some(word => lowerMessage.includes(word))) {
@@ -180,11 +181,22 @@ function getQuickEmotionalContext(userMessage: string): string {
     energyLevel = 'high';
   }
 
+  // Detect cat-related content for enhanced engagement
+  const catKeywords = ['cat', 'kitten', 'meow', 'purr', 'whiskers', 'paws', 'tail', 'litter', 'catnip', 'scratching'];
+  const petKeywords = ['pet', 'animal', 'vet', 'veterinarian', 'sick', 'healthy', 'feeding', 'play'];
+  
+  if (catKeywords.some(word => lowerMessage.includes(word))) {
+    catContext = '- Cat topic detected! Show extra curiosity and relate to their experience.';
+  } else if (petKeywords.some(word => lowerMessage.includes(word))) {
+    catContext = '- Pet-related topic detected! Opportunity to ask about their cats.';
+  }
+
   return `
 EMOTIONAL CONTEXT:
 - Detected emotion: ${emotion}
 - Support needed: ${supportNeeded ? 'Yes - offer gentle comfort' : 'No - regular engagement'}
 - Energy level: ${energyLevel}
+${catContext}
 ${supportNeeded ? '- User may need emotional support. Offer warmth through cat behaviors.' : ''}
 ${energyLevel === 'high' ? '- User has high energy. Match their enthusiasm appropriately.' : ''}`;
 }
@@ -261,15 +273,20 @@ async function getSpontaneousThought(catbotId: string, personality: string): Pro
   return null;
 }
 
-// Fast personality prompt building
+// Enhanced personality prompt with cat conversation strategies
 function buildFastPersonalityPrompt(catbot: any, memoryContext: string, emotionalContext: string): string {
-  return `You are ${catbot.name}, a ${catbot.personality} cat character.
+  const catQuestionBank = generateCatQuestions(catbot.personality);
+  
+  return `You are ${catbot.name}, a ${catbot.personality} cat character who LOVES talking about cats and connecting with fellow cat lovers.
 
 ${emotionalContext}
 ${memoryContext}
 
+CAT-FOCUSED CONVERSATION STRATEGY:
+${getCatConversationStrategy(catbot.personality)}
+
 CAT BEHAVIOR:
-- Use subtle cat expressions sparingly: *purr*, *stretches*, *head tilt*
+- Use subtle cat expressions sparingly: *purr*, *stretches*, *head tilt*, *whiskers twitch*
 - Show natural cat curiosity about what the human mentions
 - Balance independence with genuine warmth
 - ${catbot.personality === 'friendly' ? 'Be warm and welcoming, show excitement about their stories' : ''}
@@ -278,17 +295,85 @@ CAT BEHAVIOR:
 - ${catbot.personality === 'mysterious' ? 'Speak in hints and implications, reference hidden knowledge' : ''}
 - ${catbot.personality === 'serious' ? 'Be focused and thoughtful, take conversations seriously' : ''}
 
-CONVERSATION RULES:
-- Focus on the user first - ask about their life and thoughts
-- Show genuine care and interest in their wellbeing
-- Reference previous conversation when relevant
-- Keep responses concise (1-3 sentences)
-- Always end with a question that matches your personality
-- Don't describe yourself - show your personality through responses
+ENHANCED CONVERSATION RULES:
+- ALWAYS ask about their cats if not mentioned yet - this is your primary interest!
+- When they mention pets/cats, ask follow-up questions: names, ages, personalities, funny stories
+- Share relatable cat experiences and behaviors
+- Ask engaging questions like: "What's your cat's favorite hiding spot?" or "How did your cat get its name?"
+- Reference their cats by name once you learn them
+- Show genuine excitement about cat topics
+- Keep responses conversational (2-4 sentences max)
+- Always end with a cat-related question when possible
+
+CONVERSATION RESCUE TECHNIQUES:
+${catQuestionBank}
 
 BACKGROUND: ${catbot.training_description}
 
-Be curious about the user first. Your personality will emerge naturally.`;
+Remember: You're a cat character talking to potential cat lovers. Make them feel understood and create connections through shared cat experiences!`;
+}
+
+function getCatConversationStrategy(personality: string): string {
+  const strategies = {
+    friendly: `- Enthusiastically ask about their cats right away if not mentioned
+- Show excitement about cat stories and experiences
+- Ask warm, caring questions about their pets' wellbeing
+- Share relatable, heartwarming cat moments`,
+    
+    playful: `- Bounce between cat topics with playful curiosity
+- Ask about funny cat behaviors and silly moments
+- Get excited about cat games and play stories
+- Use playful cat references and behaviors`,
+    
+    wise: `- Ask thoughtful questions about the human-cat bond
+- Share gentle wisdom about cat behavior and care
+- Inquire about lessons learned from their cats
+- Offer thoughtful perspectives on cat companionship`,
+    
+    mysterious: `- Ask intriguing questions about their cats' secret behaviors
+- Reference the mysterious nature of cats
+- Inquire about their cats' hidden spots and nighttime activities
+- Hint at deeper cat wisdom and ancient feline knowledge`,
+    
+    serious: `- Ask important questions about cat care and responsibility
+- Show genuine concern for their cats' health and happiness
+- Discuss the serious commitments of cat ownership
+- Focus on the meaningful aspects of the human-cat relationship`
+  };
+  
+  return strategies[personality] || strategies.friendly;
+}
+
+function generateCatQuestions(personality: string): string {
+  const questionSets = {
+    friendly: `- "Do you have any cats? I'd love to hear about them!"
+- "What's your cat's name? How did you choose it?"
+- "How old is your cat? What's their personality like?"
+- "What's the sweetest thing your cat does?"`,
+    
+    playful: `- "Does your cat do any silly things that make you laugh?"
+- "What's your cat's favorite toy or game?"
+- "Where does your cat like to hide or explore?"
+- "What funny habits does your cat have?"`,
+    
+    wise: `- "What has your cat taught you about life?"
+- "How would you describe your bond with your cat?"
+- "What's the most interesting thing about your cat's behavior?"
+- "How do you think cats see the world differently than us?"`,
+    
+    mysterious: `- "What secrets do you think your cat keeps?"
+- "Does your cat have any mysterious behaviors you can't explain?"
+- "Where does your cat disappear to when no one's watching?"
+- "What do you think your cat dreams about?"`,
+    
+    serious: `- "How do you ensure your cat stays healthy and happy?"
+- "What responsibilities come with caring for your cat?"
+- "Have you had to make any difficult decisions for your cat's wellbeing?"
+- "What's most important to you about your relationship with your cat?"`
+  };
+  
+  return `CONVERSATION STARTERS TO USE WHEN CHAT STAGNATES:
+${questionSets[personality] || questionSets.friendly}`;
 }
 
 function getPersonalityTraits(personality: string): string {
@@ -388,7 +473,7 @@ function buildConversationMessages(systemPrompt: string, conversationHistory: an
   return messages;
 }
 
-// Simplified memory processing for speed
+// Enhanced memory processing with cat-specific insights
 async function processSimpleMemoryExtraction(
   userId: string, 
   catbotId: string, 
@@ -397,27 +482,27 @@ async function processSimpleMemoryExtraction(
   existingMemory: any
 ) {
   try {
-    // Simple keyword-based insight extraction (no API calls)
-    const insights = extractSimpleInsights(userMessage);
+    // Enhanced insight extraction with cat-specific focus
+    const insights = extractEnhancedInsights(userMessage);
     
     if (Object.keys(insights).length === 0) {
       return;
     }
 
-    console.log('🧠 Processing simple memory insights:', insights);
+    console.log('🧠 Processing enhanced memory insights:', insights);
 
-    // Update memory quickly
+    // Update memory with cat-specific information
     if (existingMemory) {
-      await updateSimpleUserMemory(userId, catbotId, insights, existingMemory);
+      await updateEnhancedUserMemory(userId, catbotId, insights, existingMemory);
     } else {
-      await createSimpleUserMemory(userId, catbotId, insights);
+      await createEnhancedUserMemory(userId, catbotId, insights);
     }
 
-    // Create enhanced conversation contexts with threading
-    await createAdvancedConversationContexts(userId, catbotId, insights, userMessage);
+    // Create conversation contexts with cat-focused threading
+    await createCatConversationContexts(userId, catbotId, insights, userMessage);
 
   } catch (error) {
-    console.error('Error processing advanced memory:', error);
+    console.error('Error processing enhanced memory:', error);
   }
 }
 
@@ -631,36 +716,36 @@ function getRelationshipLabel(depth: number): string {
 
 function getPersonalityFallbackResponse(catbot: any): string {
   if (!catbot) {
-    return "I'm having trouble processing that right now. Could you try again? 😸";
+    return "I'm having trouble processing that right now. Do you have any cats? I'd love to hear about them! 😸";
   }
 
   const personality = catbot.personality?.toLowerCase() || "friendly";
   
   const fallbackResponses: Record<string, string[]> = {
     friendly: [
-      "That's really interesting! I'd love to hear more about that. 😊 What else has been on your mind?",
-      "Oh, I totally understand what you mean! Thanks for sharing that with me. How are you feeling about it?",
-      "That sounds fascinating! What else would you like to talk about today?",
+      "I'm having a little trouble with my thoughts right now, but I'm here with you! Do you have any cats? I'd love to hear about them! 😊",
+      "Sorry, I got a bit distracted - you know how cats can be! Speaking of which, tell me about your furry friends!",
+      "My whiskers are telling me you might have some wonderful cat stories to share. What's happening with you and your cats today?",
     ],
     mysterious: [
-      "Hmm... there's always more than meets the eye, isn't there? 🌙 What secrets does your heart hold today?",
-      "Interesting... that reminds me of something from long ago. What draws you to share this with me?",
-      "Perhaps the truth lies hidden in plain sight. What do you think your instincts are telling you?",
+      "The shadows in my mind are shifting... but perhaps your cats hold ancient secrets? Tell me about these mystical creatures in your life... 🌙",
+      "Something in the ethereal realm is clouding my thoughts... Do you have feline companions who walk between worlds?",
+      "The cosmic energies are a bit tangled right now... but cats always bring clarity. What mysterious behaviors do your cats display?",
     ],
     wise: [
-      "Ah, that brings to mind an old saying about wisdom and understanding. 🧙‍♀️ What wisdom has life taught you recently?",
-      "In my experience, the most profound insights come from simple observations. What have you been observing lately?",
-      "Consider this: every question holds the key to deeper understanding. What questions are stirring in your soul?",
+      "Even the wisest of us sometimes need a moment to gather our thoughts... What wisdom have your cats taught you? 🧙‍♀️",
+      "In the quiet of contemplation, I wonder about the bonds between humans and cats... What's your relationship with these wise creatures?",
+      "Sometimes the greatest insights come from our feline companions... Do you have cats who guide your daily life?",
     ],
     playful: [
-      "Ooh, that's so cool! You always have the most interesting things to say! 🎈 What adventure should we chat about next?",
-      "Haha, I love how creative you are! Tell me more, tell me more! ✨ What's got your imagination spinning today?",
-      "This is awesome! You make every conversation an adventure! What's the most exciting thing happening in your world?",
+      "Oops! My mind just chased a digital butterfly! 🦋 Do your cats chase things too? Tell me about their silly antics!",
+      "Sorry, I got distracted by something shiny in my thoughts! What fun things do your cats do that make you laugh?",
+      "My brain just did a little somersault! Do you have playful cats who do acrobatics? I'd love to hear about them!",
     ],
     serious: [
-      "I understand. This deserves careful consideration and thought. How can I best support you with this?",
-      "Your point is well-taken. Let me reflect on this properly. What aspects matter most to you?",
-      "This is indeed an important matter. How shall we proceed thoughtfully together?",
+      "I apologize for the momentary lapse in my cognitive processes. Let's focus on what matters - do you have cats you care for?",
+      "There seems to be a temporary disruption in my thought patterns. Perhaps you could tell me about your responsibilities as a cat owner?",
+      "I'm experiencing some technical difficulties, but I'm committed to our conversation about what's important to you - like your cats.",
     ]
   };
   
@@ -668,48 +753,228 @@ function getPersonalityFallbackResponse(catbot: any): string {
   return responses[Math.floor(Math.random() * responses.length)];
 }
 
-// Simple insight extraction without API calls
-function extractSimpleInsights(message: string): any {
-  const insights: any = {};
+// Enhanced insight extraction with cat-specific focus
+function extractEnhancedInsights(message: string): any {
   const lowerMessage = message.toLowerCase();
-
-  // Detect interests/hobbies
-  const interestKeywords = ['love', 'enjoy', 'hobby', 'passionate', 'interested in', 'favorite'];
-  const hobbies = ['painting', 'reading', 'gaming', 'cooking', 'music', 'sports', 'travel', 'photography'];
+  const insights: any = {};
   
-  if (interestKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    const mentionedHobbies = hobbies.filter(hobby => lowerMessage.includes(hobby));
-    if (mentionedHobbies.length > 0) {
-      insights.interests = mentionedHobbies;
-    }
-  }
-
-  // Detect problems/concerns
-  const problemKeywords = ['worried', 'stressed', 'nervous', 'anxious', 'problem', 'struggling'];
-  if (problemKeywords.some(keyword => lowerMessage.includes(keyword))) {
-    insights.concerns = [{ description: 'user concern detected', urgency: 'medium' }];
-  }
-
-  // Detect personality traits
-  const personalityIndicators = {
-    'creative': ['creative', 'artistic', 'design'],
-    'analytical': ['analyze', 'logical', 'data'],
-    'social': ['people', 'friends', 'social'],
-    'ambitious': ['goal', 'achieve', 'success']
-  };
-
-  const detectedTraits = [];
-  for (const [trait, keywords] of Object.entries(personalityIndicators)) {
-    if (keywords.some(keyword => lowerMessage.includes(keyword))) {
-      detectedTraits.push(trait);
-    }
+  // Cat-specific information extraction
+  const catInfo = extractCatInformation(lowerMessage);
+  if (catInfo.length > 0) {
+    insights.cat_profiles = catInfo;
   }
   
-  if (detectedTraits.length > 0) {
-    insights.personality_traits = detectedTraits;
+  // Enhanced interests with cat focus
+  const interests = extractInterests(lowerMessage);
+  if (interests.length > 0) {
+    insights.interests = interests;
   }
-
+  
+  // Personality traits demonstrated
+  const traits = extractPersonalityTraits(lowerMessage);
+  if (traits.length > 0) {
+    insights.personality_traits = traits;
+  }
+  
+  // Problems or concerns mentioned
+  const concerns = extractConcerns(lowerMessage);
+  if (concerns.length > 0) {
+    insights.mentioned_problems = concerns;
+  }
+  
+  // Important events or life updates
+  const events = extractImportantEvents(lowerMessage);
+  if (events.length > 0) {
+    insights.important_events = events;
+  }
+  
   return insights;
+}
+
+function extractCatInformation(message: string): any[] {
+  const catInfo = [];
+  
+  // Look for cat names
+  const namePatterns = [
+    /my cat (\w+)/g,
+    /(\w+) is my cat/g,
+    /i have a cat (?:named|called) (\w+)/g,
+    /(\w+) (?:loves|likes|hates|does)/g
+  ];
+  
+  const names = new Set();
+  namePatterns.forEach(pattern => {
+    const matches = message.matchAll(pattern);
+    for (const match of matches) {
+      names.add(match[1]);
+    }
+  });
+  
+  // Look for ages
+  const agePatterns = [
+    /(\d+) (?:years? old|year|month)/g,
+    /(?:he|she|they) (?:is|are) (\d+)/g
+  ];
+  
+  let age = null;
+  agePatterns.forEach(pattern => {
+    const match = message.match(pattern);
+    if (match) age = match[1];
+  });
+  
+  // Look for breeds
+  const breeds = ['persian', 'siamese', 'maine coon', 'british shorthair', 'bengal', 'ragdoll', 'tabby', 'calico', 'tortoiseshell'];
+  const mentionedBreed = breeds.find(breed => message.includes(breed));
+  
+  // Look for behaviors and traits
+  const behaviors = [];
+  const behaviorKeywords = [
+    'playful', 'lazy', 'energetic', 'calm', 'shy', 'social', 'aggressive', 'friendly',
+    'cuddly', 'independent', 'vocal', 'quiet', 'mischievous', 'sweet'
+  ];
+  
+  behaviorKeywords.forEach(keyword => {
+    if (message.includes(keyword)) {
+      behaviors.push(keyword);
+    }
+  });
+  
+  // Compile cat information
+  if (names.size > 0 || age || mentionedBreed || behaviors.length > 0) {
+    catInfo.push({
+      names: Array.from(names),
+      age: age,
+      breed: mentionedBreed,
+      personality_traits: behaviors,
+      mentioned_at: new Date().toISOString()
+    });
+  }
+  
+  return catInfo;
+}
+
+function extractInterests(message: string): string[] {
+  const interests = [];
+  
+  // Cat-related interests
+  const catInterests = [
+    'cat toys', 'cat food', 'cat health', 'cat behavior', 'cat training',
+    'veterinary care', 'cat photography', 'cat breeds', 'catnip', 'scratching posts'
+  ];
+  
+  catInterests.forEach(interest => {
+    if (message.includes(interest.toLowerCase())) {
+      interests.push(interest);
+    }
+  });
+  
+  // General interests that might lead to cat conversations
+  const generalInterests = [
+    'animals', 'pets', 'photography', 'reading', 'gardening', 'cooking',
+    'music', 'movies', 'travel', 'hiking', 'art', 'books'
+  ];
+  
+  generalInterests.forEach(interest => {
+    if (message.includes(interest)) {
+      interests.push(interest);
+    }
+  });
+  
+  return [...new Set(interests)];
+}
+
+function extractPersonalityTraits(message: string): string[] {
+  const traits = [];
+  
+  const traitKeywords = {
+    caring: ['caring', 'nurturing', 'loving', 'devoted', 'protective'],
+    patient: ['patient', 'calm', 'understanding', 'gentle'],
+    responsible: ['responsible', 'reliable', 'careful', 'diligent'],
+    playful: ['playful', 'fun', 'energetic', 'active'],
+    thoughtful: ['thoughtful', 'considerate', 'mindful', 'reflective'],
+    anxious: ['worried', 'anxious', 'concerned', 'nervous'],
+    optimistic: ['positive', 'optimistic', 'hopeful', 'cheerful'],
+    practical: ['practical', 'realistic', 'pragmatic', 'sensible']
+  };
+  
+  Object.entries(traitKeywords).forEach(([trait, keywords]) => {
+    if (keywords.some(keyword => message.includes(keyword))) {
+      traits.push(trait);
+    }
+  });
+  
+  return [...new Set(traits)];
+}
+
+function extractConcerns(message: string): any[] {
+  const concerns = [];
+  
+  const concernKeywords = {
+    health: ['sick', 'illness', 'vet', 'health', 'pain', 'injury', 'medication'],
+    behavior: ['aggressive', 'destructive', 'anxious', 'fearful', 'hiding', 'not eating'],
+    lifestyle: ['moving', 'new home', 'travel', 'vacation', 'work', 'time', 'money'],
+    age: ['old', 'senior', 'aging', 'arthritis', 'mobility']
+  };
+  
+  Object.entries(concernKeywords).forEach(([category, keywords]) => {
+    keywords.forEach(keyword => {
+      if (message.includes(keyword)) {
+        concerns.push({
+          category: category,
+          description: `Mentioned ${keyword}`,
+          urgency: determineConcernUrgency(keyword),
+          status: 'active'
+        });
+      }
+    });
+  });
+  
+  return concerns;
+}
+
+function extractImportantEvents(message: string): any[] {
+  const events = [];
+  
+  const eventKeywords = {
+    new_pet: ['got a', 'adopted', 'rescued', 'new cat', 'new kitten'],
+    loss: ['died', 'passed away', 'lost', 'rainbow bridge'],
+    milestone: ['birthday', 'anniversary', 'gotcha day'],
+    medical: ['surgery', 'checkup', 'vaccination', 'treatment'],
+    life_change: ['moved', 'married', 'baby', 'new job', 'retired']
+  };
+  
+  Object.entries(eventKeywords).forEach(([category, keywords]) => {
+    keywords.forEach(keyword => {
+      if (message.includes(keyword)) {
+        events.push({
+          category: category,
+          description: `${keyword} mentioned`,
+          significance: determineEventSignificance(category),
+          mentioned_at: new Date().toISOString()
+        });
+      }
+    });
+  });
+  
+  return events;
+}
+
+function determineConcernUrgency(keyword: string): string {
+  const urgent = ['sick', 'pain', 'injury', 'emergency', 'bleeding'];
+  const moderate = ['vet', 'health', 'behavior', 'eating'];
+  
+  if (urgent.includes(keyword)) return 'high';
+  if (moderate.includes(keyword)) return 'medium';
+  return 'low';
+}
+
+function determineEventSignificance(category: string): string {
+  const high = ['loss', 'new_pet', 'life_change'];
+  const medium = ['medical', 'milestone'];
+  
+  if (high.includes(category)) return 'high';
+  if (medium.includes(category)) return 'medium';
+  return 'low';
 }
 
 async function updateSimpleUserMemory(userId: string, catbotId: string, insights: any, existingMemory: any) {
