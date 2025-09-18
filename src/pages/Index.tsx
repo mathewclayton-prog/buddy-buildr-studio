@@ -83,12 +83,21 @@ const Index = () => {
       const uniqueTags = Array.from(new Set(allTags)).sort();
       setAvailableTags(uniqueTags);
       
-      // Organize into sections
-      // Popular and Trending: Limited to 7 on desktop, 4 on mobile (one row)
+      // Organize into sections with no duplicates
+      // Priority: Popular > Trending > Recent
+      
+      // 1. Most Popular (top 7 by like_count)
       const popular = [...catbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 7);
-      const trendingData = [...catbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 7);
-      // Recent: Show all catbots
-      const recent = [...catbots].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      const popularIds = new Set(popular.map(c => c.id));
+      
+      // 2. Trending (top 7 by interaction_count, excluding Popular)
+      const remainingAfterPopular = catbots.filter(c => !popularIds.has(c.id));
+      const trendingData = [...remainingAfterPopular].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 7);
+      const trendingIds = new Set(trendingData.map(c => c.id));
+      
+      // 3. Recent (by created_at, excluding Popular and Trending)
+      const remainingAfterTrending = remainingAfterPopular.filter(c => !trendingIds.has(c.id));
+      const recent = [...remainingAfterTrending].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       setMostPopular(popular);
       setTrending(trendingData);
