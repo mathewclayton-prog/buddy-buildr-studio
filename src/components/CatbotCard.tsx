@@ -2,9 +2,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { MessageCircle, Plus, PawPrint } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { LikeButton } from "@/components/LikeButton";
 import { StatsDisplay } from "@/components/StatsDisplay";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
 
 interface Catbot {
   id: string;
@@ -27,6 +29,10 @@ interface CatbotCardProps {
 }
 
 export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardProps) => {
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
   const getDefaultAvatar = () => {
     const colors = [
       "from-red-400 to-pink-400", 
@@ -45,12 +51,33 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
     );
   };
 
+  const handleChatClick = (e: React.MouseEvent) => {
+    if (variant === 'chat' && !user) {
+      e.preventDefault();
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to start chatting with catbots.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+  };
+
   const CardWrapper = ({ children }: { children: React.ReactNode }) => {
     if (variant === 'chat') {
       return (
-        <Link to={`/chat/${catbot.id}`} className="block">
-          {children}
-        </Link>
+        <div onClick={handleChatClick} className="block cursor-pointer">
+          {user ? (
+            <Link to={`/chat/${catbot.id}`} className="block">
+              {children}
+            </Link>
+          ) : (
+            <div className="block">
+              {children}
+            </div>
+          )}
+        </div>
       );
     } else {
       return (

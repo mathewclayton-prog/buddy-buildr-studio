@@ -6,10 +6,10 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import LLMStatus from "@/components/LLMStatus";
-import { Bot, Send, ArrowLeft, User, MoreVertical, Brain } from "lucide-react";
+import { Bot, Send, ArrowLeft, User, MoreVertical, Brain, Lock } from "lucide-react";
 import { Character, ChatMessage, ChatSession } from "@/types/character";
-import { storageService } from "@/lib/storage";
 import { localLLM } from "@/services/localLLM";
+import { ChatService } from "@/services/chatService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -20,84 +20,116 @@ const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   
   const [character, setCharacter] = useState<Character | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [loadingMessages, setLoadingMessages] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Redirect to auth if not logged in
   useEffect(() => {
-    if (!characterId) return;
+    if (!authLoading && !user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to start chatting with catbots.",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+  }, [user, authLoading, navigate, toast]);
+
+  useEffect(() => {
+    if (!characterId || !user) return;
     
     const loadCharacter = async () => {
-      // First try to get from local storage (for locally created characters)
-      let char = storageService.getCharacter(characterId);
-      
-      // If not found locally, try to fetch from Supabase (for public catbots)
-      if (!char) {
-        try {
-          const { data, error } = await supabase
-            .from('catbots')
-            .select('id, name, description, public_profile, training_description, personality, avatar_url, created_at')
-            .eq('id', characterId)
-            .single();
+      try {
+        // Fetch catbot from Supabase
+        const { data, error } = await supabase
+          .from('catbots')
+          .select('id, name, description, public_profile, training_description, personality, avatar_url, created_at')
+          .eq('id', characterId)
+          .single();
+        
+        if (error) throw error;
+        
+        if (data) {
+          // Convert Supabase catbot to Character format
+          const char: Character = {
+            id: data.id,
+            name: data.name,
+            publicProfile: data.public_profile || (data.description ? data.description.substring(0, 250) : ''),
+            trainingDescription: data.training_description || data.description || '',
+            personalityTraits: data.personality ? [data.personality] : ['friendly'],
+            avatar: data.avatar_url || undefined,
+            createdAt: new Date(data.created_at),
+          };
           
-          if (error) throw error;
-          
-          if (data) {
-            // Convert Supabase catbot to Character format with backward compatibility
-            char = {
-              id: data.id,
-              name: data.name,
-              publicProfile: data.public_profile || (data.description ? data.description.substring(0, 250) : ''),
-              trainingDescription: data.training_description || data.description || '',
-              personalityTraits: data.personality ? [data.personality] : ['friendly'],
-              avatar: data.avatar_url || undefined,
-              createdAt: new Date(data.created_at),
-            };
-          }
-        } catch (error) {
-          console.error('Error fetching catbot:', error);
+          setCharacter(char);
+          await loadChatSession(characterId, char);
         }
-      }
-      
-      if (!char) {
+      } catch (error) {
+        console.error('Error fetching catbot:', error);
         toast({
           title: "Character Not Found",
           description: "The character you're looking for doesn't exist.",
           variant: "destructive",
         });
         navigate("/browse");
-        return;
-      }
-      
-      setCharacter(char);
-      
-      // Load existing chat session or create initial message
-      const existingSession = storageService.getChatSession(characterId);
-      if (existingSession) {
-        setMessages(existingSession.messages);
-      } else {
-        // Generate dynamic character-specific opening message
-        const openingContent = OpeningMessageGenerator.generateOpening(char, {
-          includeQuestion: true,
-          maxLength: 250
-        });
-        
-        const greeting: ChatMessage = {
-          id: crypto.randomUUID(),
-          content: openingContent,
-          isUser: false,
-          timestamp: new Date(),
-        };
-        setMessages([greeting]);
       }
     };
     
     loadCharacter();
-  }, [characterId, navigate, toast]);
+  }, [characterId, user, navigate, toast]);
+
+  const loadChatSession = async (catbotId: string, char: Character) => {
+    if (!user) return;
+    
+    try {
+      setLoadingMessages(true);
+      
+      // Check for existing chat session
+      const existingSession = await ChatService.getExistingSession(catbotId, user.id);
+
+      let currentSessionId: string;
+
+      if (existingSession) {
+        currentSessionId = existingSession.id;
+        
+        // Load existing messages
+        const loadedMessages = await ChatService.getChatMessages(currentSessionId);
+        setMessages(loadedMessages);
+      } else {
+        // Create new session
+        const newSession = await ChatService.createChatSession(catbotId, user.id, `Chat with ${char.name}`);
+        currentSessionId = newSession.id;
+
+        // Generate and save opening message
+        const openingContent = OpeningMessageGenerator.generateOpening(char, {
+          includeQuestion: true,
+          maxLength: 250
+        });
+
+        const greeting = await ChatService.saveMessage(currentSessionId, openingContent, false);
+        setMessages([greeting]);
+      }
+      
+      setSessionId(currentSessionId);
+    } catch (error) {
+      console.error('Error loading chat session:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load chat session. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setLoadingMessages(false);
+    }
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -163,54 +195,50 @@ const Chat = () => {
 
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || newMessage.trim();
-    if (!textToSend || !character) return;
+    if (!textToSend || !character || !sessionId || !user) return;
 
-    const userMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      content: textToSend,
-      isUser: true,
-      timestamp: new Date(),
-    };
+    try {
+      // Save user message to database
+      const userMessage = await ChatService.saveMessage(sessionId, textToSend, true);
 
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setNewMessage("");
-    setIsTyping(true);
+      const updatedMessages = [...messages, userMessage];
+      setMessages(updatedMessages);
+      setNewMessage("");
+      setIsTyping(true);
 
-    // Generate AI response
-    setTimeout(async () => {
-      try {
-        const responseContent = await generateResponse(userMessage.content, character);
-        
-        const aiResponse: ChatMessage = {
-          id: crypto.randomUUID(),
-          content: responseContent,
-          isUser: false,
-          timestamp: new Date(),
-        };
+      // Generate AI response
+      setTimeout(async () => {
+        try {
+          const responseContent = await generateResponse(userMessage.content, character);
+          
+          // Save AI response to database
+          const aiResponse = await ChatService.saveMessage(sessionId, responseContent, false);
 
-        const finalMessages = [...updatedMessages, aiResponse];
-        setMessages(finalMessages);
-        setIsTyping(false);
+          const finalMessages = [...updatedMessages, aiResponse];
+          setMessages(finalMessages);
+          setIsTyping(false);
 
-        // Save chat session
-        const session: ChatSession = {
-          id: character.id,
-          characterId: character.id,
-          messages: finalMessages,
-          createdAt: new Date(),
-        };
-        storageService.saveChatSession(session);
-      } catch (error) {
-        console.error("Error generating response:", error);
-        setIsTyping(false);
-        toast({
-          title: "Error",
-          description: "Failed to generate response. Please try again.",
-          variant: "destructive",
-        });
-      }
-    }, 1000 + Math.random() * 1000);
+          // Update session timestamp
+          await ChatService.updateSessionTimestamp(sessionId);
+            
+        } catch (error) {
+          console.error("Error generating response:", error);
+          setIsTyping(false);
+          toast({
+            title: "Error",
+            description: "Failed to generate response. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }, 1000 + Math.random() * 1000);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send message. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
 
@@ -249,8 +277,39 @@ const Chat = () => {
     );
   };
 
-  if (!character) {
-    return <div>Loading...</div>;
+  // Show auth loading state
+  if (authLoading) {
+    return <div className="h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  // Show auth required state
+  if (!user) {
+    return (
+      <div className="h-screen flex flex-col bg-background">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center space-y-4">
+            <div className="h-16 w-16 bg-muted rounded-full flex items-center justify-center mx-auto">
+              <Lock className="h-8 w-8 text-muted-foreground" />
+            </div>
+            <h2 className="text-xl font-semibold">Authentication Required</h2>
+            <p className="text-muted-foreground">Please sign in to start chatting with catbots.</p>
+            <Button onClick={() => navigate("/auth")}>Sign In</Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!character || loadingMessages) {
+    return (
+      <div className="h-screen flex flex-col bg-background">
+        <Navigation />
+        <div className="flex-1 flex items-center justify-center">
+          <div>Loading chat...</div>
+        </div>
+      </div>
+    );
   }
 
   return (
