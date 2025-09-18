@@ -83,14 +83,16 @@ const Index = () => {
       const uniqueTags = Array.from(new Set(allTags)).sort();
       setAvailableTags(uniqueTags);
       
-      // Organize into sections (limit to 12 each for display)
-      const popular = [...catbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 12);
-      const recent = [...catbots].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 12);
-      const trendingData = [...catbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 12);
+      // Organize into sections
+      // Popular and Trending: Limited to 7 on desktop, 4 on mobile (one row)
+      const popular = [...catbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 7);
+      const trendingData = [...catbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 7);
+      // Recent: Show all catbots
+      const recent = [...catbots].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
       
       setMostPopular(popular);
-      setMostRecent(recent);
       setTrending(trendingData);
+      setMostRecent(recent);
     } catch (error) {
       console.error('Error loading catbots:', error);
     } finally {
@@ -267,8 +269,45 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 overflow-x-auto">
-                      {mostPopular.map((catbot, index) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                      {mostPopular.slice(0, window.innerWidth >= 1024 ? 7 : 4).map((catbot, index) => (
+                        <div 
+                          key={catbot.id}
+                          className="animate-fade-in"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <CatbotCard 
+                            catbot={catbot} 
+                            variant="chat"
+                            delay={0}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                )}
+
+                {/* Trending Section */}
+                {trending.length > 0 && (
+                  <section className="mb-12">
+                    <div className="flex items-center justify-between mb-6">
+                      <div className="flex items-center gap-2">
+                        <TrendingUp className="h-5 w-5 text-primary" />
+                        <h2 className="text-2xl font-bold">Trending</h2>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => {
+                        setSearchQuery("");
+                        setSelectedTags([]);
+                        // Sort all by interaction count and show in search results
+                        const sorted = [...allCatbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0));
+                        setFilteredCatbots(sorted);
+                        setSearchQuery("trending");
+                      }}>
+                        View All
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                      {trending.slice(0, window.innerWidth >= 1024 ? 7 : 4).map((catbot, index) => (
                         <div 
                           key={catbot.id}
                           className="animate-fade-in"
@@ -306,43 +345,6 @@ const Index = () => {
                     </div>
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {mostRecent.map((catbot, index) => (
-                        <div 
-                          key={catbot.id}
-                          className="animate-fade-in"
-                          style={{ animationDelay: `${index * 50}ms` }}
-                        >
-                          <CatbotCard 
-                            catbot={catbot} 
-                            variant="chat"
-                            delay={0}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                  </section>
-                )}
-
-                {/* Trending Section */}
-                {trending.length > 0 && (
-                  <section className="mb-12">
-                    <div className="flex items-center justify-between mb-6">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-primary" />
-                        <h2 className="text-2xl font-bold">Trending</h2>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setSearchQuery("");
-                        setSelectedTags([]);
-                        // Sort all by interaction count and show in search results
-                        const sorted = [...allCatbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0));
-                        setFilteredCatbots(sorted);
-                        setSearchQuery("trending");
-                      }}>
-                        View All
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
-                      {trending.map((catbot, index) => (
                         <div 
                           key={catbot.id}
                           className="animate-fade-in"
