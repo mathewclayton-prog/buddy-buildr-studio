@@ -180,10 +180,12 @@ export async function upsertCharacterTrainingData(
       catbot_id: characterId,
       training_description: trainingData.training_description,
       personality: trainingData.personality,
+    }, {
+      onConflict: 'catbot_id'
     });
 
   if (error) {
-    console.error('Error upserting character training data:', error);
+    console.error('Error upserting character training data for catbot:', characterId, error);
     throw error;
   }
 }
