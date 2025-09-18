@@ -17,7 +17,7 @@ import { useToast } from "@/hooks/use-toast";
 import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
-import { getCharacterForEdit } from "@/lib/characterQueries";
+import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
 const PERSONALITY_OPTIONS = [{
   value: "Friendly",
   label: "Friendly",
@@ -161,15 +161,20 @@ const CreateCharacter = () => {
     }
     setIsLoading(true);
     try {
+      // Separate catbot data (for main table) from training data (for separate table)
       const catbotData = {
         name: name.trim(),
         public_profile: publicProfile.trim(),
-        training_description: trainingDescription.trim(),
-        personality: personality,
         tags: tags.length > 0 ? tags : null,
         avatar_url: avatarType === "upload" ? avatar : null,
         is_public: isPublic
       };
+
+      const trainingData = {
+        training_description: trainingDescription.trim(),
+        personality: personality
+      };
+
       if (isEditMode) {
         // Update existing catbot
         const {
@@ -177,6 +182,10 @@ const CreateCharacter = () => {
           error
         } = await supabase.from('catbots').update(catbotData).eq('id', catbotId).eq('user_id', user.id).select().single();
         if (error) throw error;
+
+        // Update training data
+        await upsertCharacterTrainingData(catbotId, trainingData);
+
         toast({
           title: "Catbot Updated!",
           description: `${catbotData.name} has been updated successfully.`
@@ -195,6 +204,10 @@ const CreateCharacter = () => {
           error
         } = await supabase.from('catbots').insert([newCatbotData]).select().single();
         if (error) throw error;
+
+        // Insert training data for the new catbot
+        await upsertCharacterTrainingData(data.id, trainingData);
+
         toast({
           title: "Catbot Created!",
           description: `${catbotData.name} has been created successfully.`
