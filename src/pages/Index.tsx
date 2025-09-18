@@ -119,7 +119,7 @@ const Index = () => {
           
           <h1 className="text-4xl md:text-5xl font-bold mb-3 text-black">Create Your Own Catbot</h1>
           
-          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
+          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own cat to life or build a purrfect companion.</p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {user ? <>
