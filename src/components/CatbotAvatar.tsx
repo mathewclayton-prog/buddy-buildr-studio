@@ -1,4 +1,4 @@
-import { PawPrint } from "lucide-react";
+import { Bot } from "lucide-react";
 
 /**
  * Renders a catbot avatar - either an uploaded image or a default colored icon
@@ -55,7 +55,7 @@ export const CatbotAvatar = ({
       className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft animate-pulse hover:animate-purr cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}
       style={{ animationDuration: '3s' }}
     >
-      <PawPrint className={`${iconSizes[size]} text-white`} />
+      <Bot className={`${iconSizes[size]} text-white`} />
     </div>
   );
 };

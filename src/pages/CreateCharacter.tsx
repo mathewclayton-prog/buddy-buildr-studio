@@ -8,7 +8,7 @@ import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Navigation from "@/components/Navigation";
-import { X, Upload, PawPrint, Bot, Palette, Globe, Lock, Camera, Loader2 } from "lucide-react";
+import { X, Upload, Bot, Palette, Globe, Lock, Camera, Loader2 } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -427,7 +427,7 @@ const CreateCharacter = () => {
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <PawPrint className="h-5 w-5 text-primary" />
+                <Bot className="h-5 w-5 text-primary" />
                 Cat Details
               </CardTitle>
               

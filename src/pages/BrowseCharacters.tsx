@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
 import { CatbotCard } from "@/components/CatbotCard";
 import { TagFilter } from "@/components/TagFilter";
-import { Bot, MessageCircle, Plus, Users, Search, Sparkles, PawPrint } from "lucide-react";
+import { Bot, MessageCircle, Plus, Users, Search, Sparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { getPublicCharacters, type PublicCharacter } from "@/lib/characterQueries";
@@ -69,7 +69,7 @@ const BrowseCharacters = () => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
     return <div className={`h-20 w-20 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center shadow-soft`}>
-        <PawPrint className="h-10 w-10 text-white" />
+        <Bot className="h-10 w-10 text-white" />
       </div>;
   };
   return <div className="min-h-screen bg-background">

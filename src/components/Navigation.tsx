@@ -1,4 +1,4 @@
-import { Bot, Plus, PawPrint, LogOut, User, Home, Settings, ChevronDown } from "lucide-react";
+import { Bot, Plus, Search, LogOut, User, Home, Settings, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
@@ -92,12 +92,12 @@ const Navigation = () => {
               </Link>
 
               <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
-                <PawPrint className="h-4 w-4" />
+                <Search className="h-4 w-4" />
                 Explore Cats
               </Link>
 
               <Link to="/my-cats" className={navLinkClass(location.pathname === "/my-cats")}>
-                <PawPrint className="h-4 w-4" />
+                <User className="h-4 w-4" />
                 My Cats
               </Link>
 
@@ -145,7 +145,7 @@ const Navigation = () => {
               </Link>
 
               <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
-                <PawPrint className="h-4 w-4" />
+                <Search className="h-4 w-4" />
                 Explore Cats
               </Link>
 

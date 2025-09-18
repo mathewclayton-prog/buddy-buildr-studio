@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageCircle, Edit, Trash, Eye, EyeOff, Sparkles, Users, BarChart3, Shield, Database, UserCheck, Plus, RotateCcw, Globe, Lock, PawPrint, Trash2 } from "lucide-react";
+import { MessageCircle, Edit, Trash, Eye, EyeOff, Sparkles, Users, BarChart3, Shield, Database, UserCheck, Plus, RotateCcw, Globe, Lock, Bot, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
@@ -225,7 +225,7 @@ const MyCatbots = () => {
                 />
               ) : (
                 <div className="w-full h-full bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center">
-                  <PawPrint className="h-6 w-6 text-primary" />
+                  <Bot className="h-6 w-6 text-primary" />
                 </div>
               )}
             </div>
@@ -320,7 +320,7 @@ const MyCatbots = () => {
   }) => (
     <div className="text-center py-12">
       <div className="w-20 h-20 mx-auto mb-4 rounded-full bg-muted flex items-center justify-center">
-        <PawPrint className="h-10 w-10 text-muted-foreground" />
+        <Bot className="h-10 w-10 text-muted-foreground" />
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
       <p className="text-muted-foreground mb-6 max-w-md mx-auto">{description}</p>

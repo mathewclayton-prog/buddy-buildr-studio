@@ -3,8 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CatbotCard } from "@/components/CatbotCard";
-import { PawTrail } from "@/components/PawTrail";
-import { Bot, Plus, Users, Sparkles, PawPrint, MessageCircle, ArrowRight } from "lucide-react";
+import { Bot, Plus, Users, Sparkles, MessageCircle, ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -52,7 +51,7 @@ const Index = () => {
     const colorIndex = catbot.name.charCodeAt(0) % colors.length;
     return (
       <div className={`w-full h-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
-        <PawPrint className="h-12 w-12 text-white" />
+        <Bot className="h-12 w-12 text-white" />
       </div>
     );
   };
@@ -69,7 +68,7 @@ const Index = () => {
           
           <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own feline friend to life or build a purrfect companion.</p>
 
-          <PawTrail className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             {user ? <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/create" className="flex items-center gap-3">
@@ -81,13 +80,13 @@ const Index = () => {
               </> : <>
                 <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
                   <Link to="/auth" className="flex items-center gap-3">
-                    <PawPrint className="h-5 w-5 animate-wiggle" />
+                    <ArrowRight className="h-5 w-5 animate-wiggle" />
                     Get Started
                     <Sparkles className="h-4 w-4 animate-float" />
                   </Link>
                 </Button>
               </>}
-          </PawTrail>
+          </div>
         </div>
 
         {/* Popular Catbots Section */}
