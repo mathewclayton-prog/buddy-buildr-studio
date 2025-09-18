@@ -146,7 +146,7 @@ const Index = () => {
         <section className="mt-4 mb-4">
           <div className="text-center mb-8">
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Start chatting now...
+              Or start chatting to one of our cats now...
             </p>
           </div>
 
