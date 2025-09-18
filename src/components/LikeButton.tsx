@@ -107,10 +107,10 @@ export const LikeButton = ({ catbotId, initialLikeCount, className }: LikeButton
         size="sm"
         onClick={handleLikeClick}
         disabled={isLoading}
-        className={`flex items-center gap-1 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-all duration-300 hover:scale-110 ${className}`}
+        className={`h-6 px-1 py-0 leading-none hover:scale-100 flex items-center gap-1 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-all duration-300 ${className}`}
       >
         <Heart 
-          className={`h-4 w-4 transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500 animate-scale-pulse' : 'hover:animate-bounce-soft'}`} 
+          className={`h-3 w-3 transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500 animate-scale-pulse' : 'hover:animate-bounce-soft'}`} 
         />
         <span className="text-xs font-medium">{likeCount}</span>
       </Button>

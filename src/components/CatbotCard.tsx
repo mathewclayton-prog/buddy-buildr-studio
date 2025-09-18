@@ -116,7 +116,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       </div>
 
       {/* Content Section - Ultra-compact spacing */}
-      <CardContent className="p-1 flex flex-col flex-1">
+      <CardContent className="px-1 pt-1 pb-0.5 flex flex-col flex-1">
         {/* Description - minimal spacing */}
         <p className="text-xs text-muted-foreground line-clamp-2 leading-tight">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
@@ -139,7 +139,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         )}
         
         {/* Stats and Like Button */}
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-between mt-0.5">
           <StatsDisplay 
             interactionCount={catbot.interaction_count || 0}
           />

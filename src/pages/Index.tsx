@@ -143,7 +143,7 @@ const Index = () => {
         </div>
 
         {/* Start Chatting Section */}
-        <section className="mt-6 mb-8">
+        <section className="mt-4 mb-4">
           <div className="text-center mb-8">
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Start chatting now...
@@ -252,8 +252,8 @@ const Index = () => {
               <>
                 {/* Most Popular Section */}
                 {mostPopular.length > 0 && (
-        <section className="mb-6">
-                    <div className="flex items-center justify-between mb-6">
+        <section className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Heart className="h-5 w-5 text-primary" />
                         <h2 className="text-lg font-bold">Most Popular</h2>
@@ -289,8 +289,8 @@ const Index = () => {
 
                 {/* Trending Section */}
                 {trending.length > 0 && (
-        <section className="mb-6">
-                    <div className="flex items-center justify-between mb-6">
+        <section className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-primary" />
                         <h2 className="text-lg font-bold">Trending</h2>
@@ -326,8 +326,8 @@ const Index = () => {
 
                 {/* Most Recent Section */}
                 {mostRecent.length > 0 && (
-                  <section className="mb-6">
-                    <div className="flex items-center justify-between mb-6">
+                  <section className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <Clock className="h-5 w-5 text-primary" />
                         <h2 className="text-lg font-bold">Most Recent</h2>
