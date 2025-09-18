@@ -161,12 +161,17 @@ const CreateCharacter = () => {
     }
     setIsLoading(true);
     try {
+      // Debug avatar state before saving
+      console.debug('Saving catbot - mode:', isEditMode ? 'edit' : 'create', {
+        avatarType,
+        avatar
+      });
       // Separate catbot data (for main table) from training data (for separate table)
       const catbotData = {
         name: name.trim(),
         public_profile: publicProfile.trim(),
         tags: tags.length > 0 ? tags : null,
-        avatar_url: avatarType === "upload" ? avatar : null,
+        avatar_url: avatar || null,
         is_public: isPublic
       };
 
@@ -216,11 +221,11 @@ const CreateCharacter = () => {
         // Redirect to the new catbot
         navigate(`/chat/${data.id}`);
       }
-    } catch (error) {
-      console.error('Error creating catbot:', error);
+    } catch (error: any) {
+      console.error('Error saving catbot:', error);
       toast({
         title: "Error",
-        description: "Failed to create catbot. Please try again.",
+        description: error?.message ? `Failed to save catbot: ${error.message}` : "Failed to save catbot. Please try again.",
         variant: "destructive"
       });
     } finally {
@@ -329,6 +334,7 @@ const CreateCharacter = () => {
       // Set the avatar URL
       setAvatar(result.data.publicUrl);
       setAvatarType("upload");
+      console.debug('Image uploaded, avatar URL:', result.data.publicUrl);
       toast({
         title: "Success",
         description: `${selectedFile.type === 'image/gif' ? 'Animated GIF' : 'Image'} uploaded successfully`
