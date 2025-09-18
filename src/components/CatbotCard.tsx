@@ -111,7 +111,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         
         {/* Overlay Title */}
         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3">
-          <h3 className="text-white font-bold text-lg leading-tight">{catbot.name}</h3>
+          <h3 className="text-white font-bold text-xs md:text-sm lg:text-xs xl:text-sm leading-tight">{catbot.name}</h3>
         </div>
       </div>
 
