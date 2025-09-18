@@ -252,7 +252,7 @@ const Index = () => {
               <>
                 {/* Most Popular Section */}
                 {mostPopular.length > 0 && (
-                  <section className="mb-12">
+        <section className="mb-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Heart className="h-5 w-5 text-primary" />
@@ -289,7 +289,7 @@ const Index = () => {
 
                 {/* Trending Section */}
                 {trending.length > 0 && (
-                  <section className="mb-12">
+        <section className="mb-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-primary" />
@@ -326,7 +326,7 @@ const Index = () => {
 
                 {/* Most Recent Section */}
                 {mostRecent.length > 0 && (
-                  <section className="mb-12">
+                  <section className="mb-6">
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Clock className="h-5 w-5 text-primary" />
