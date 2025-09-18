@@ -267,7 +267,7 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3 overflow-x-auto">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 overflow-x-auto">
                       {mostPopular.map((catbot, index) => (
                         <div 
                           key={catbot.id}
@@ -304,7 +304,7 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {mostRecent.map((catbot, index) => (
                         <div 
                           key={catbot.id}
@@ -341,7 +341,7 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {trending.map((catbot, index) => (
                         <div 
                           key={catbot.id}
