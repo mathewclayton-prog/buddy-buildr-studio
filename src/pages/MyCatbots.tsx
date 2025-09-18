@@ -42,13 +42,7 @@ const MyCatbots = () => {
 
   const fetchMyCatbots = async () => {
     try {
-      const { data, error } = await supabase
-        .from('catbots')
-        .select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags')
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await getUserCharacters(user?.id || '');
       setCatbots(data || []);
     } catch (error) {
       console.error('Error fetching catbots:', error);

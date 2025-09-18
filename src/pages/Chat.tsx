@@ -13,6 +13,7 @@ import { ChatService } from "@/services/chatService";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { getCharacterForChat } from "@/lib/characterQueries";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
 
@@ -48,14 +49,8 @@ const Chat = () => {
     
     const loadCharacter = async () => {
       try {
-        // Fetch catbot from Supabase
-        const { data, error } = await supabase
-          .from('catbots')
-          .select('id, name, description, public_profile, training_description, personality, avatar_url, created_at')
-          .eq('id', characterId)
-          .single();
-        
-        if (error) throw error;
+        // Fetch catbot from Supabase using secure function
+        const data = await getCharacterForChat(characterId);
         
         if (data) {
           // Convert Supabase catbot to Character format

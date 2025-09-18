@@ -31,8 +31,7 @@ const BrowseCharacters = () => {
       filtered = filtered.filter(catbot => 
         catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
         (catbot.public_profile || catbot.description) && 
-        (catbot.public_profile || catbot.description)!.toLowerCase().includes(searchQuery.toLowerCase()) || 
-        catbot.personality && catbot.personality.toLowerCase().includes(searchQuery.toLowerCase())
+        (catbot.public_profile || catbot.description)!.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 

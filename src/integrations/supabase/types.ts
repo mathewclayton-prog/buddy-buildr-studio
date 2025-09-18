@@ -112,6 +112,33 @@ export type Database = {
           },
         ]
       }
+      catbot_training_data: {
+        Row: {
+          catbot_id: string
+          created_at: string
+          id: string
+          personality: string | null
+          training_description: string | null
+          updated_at: string
+        }
+        Insert: {
+          catbot_id: string
+          created_at?: string
+          id?: string
+          personality?: string | null
+          training_description?: string | null
+          updated_at?: string
+        }
+        Update: {
+          catbot_id?: string
+          created_at?: string
+          id?: string
+          personality?: string | null
+          training_description?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       catbots: {
         Row: {
           avatar_url: string | null
@@ -123,10 +150,8 @@ export type Database = {
           last_active_at: string | null
           like_count: number
           name: string
-          personality: string | null
           public_profile: string | null
           tags: string[] | null
-          training_description: string | null
           updated_at: string
           user_id: string
           voice_id: string | null
@@ -141,10 +166,8 @@ export type Database = {
           last_active_at?: string | null
           like_count?: number
           name: string
-          personality?: string | null
           public_profile?: string | null
           tags?: string[] | null
-          training_description?: string | null
           updated_at?: string
           user_id: string
           voice_id?: string | null
@@ -159,10 +182,8 @@ export type Database = {
           last_active_at?: string | null
           like_count?: number
           name?: string
-          personality?: string | null
           public_profile?: string | null
           tags?: string[] | null
-          training_description?: string | null
           updated_at?: string
           user_id?: string
           voice_id?: string | null

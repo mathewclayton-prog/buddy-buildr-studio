@@ -14,7 +14,6 @@ interface Catbot {
   name: string;
   description: string | null;
   public_profile?: string | null;
-  personality: string | null;
   avatar_url: string | null;
   is_public: boolean;
   created_at: string;
@@ -37,7 +36,7 @@ const Index = () => {
       const {
         data,
         error
-      } = await supabase.from('catbots').select('id, name, description, public_profile, personality, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags').eq('is_public', true).order('created_at', {
+      } = await supabase.from('catbots').select('id, name, description, public_profile, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags').eq('is_public', true).order('created_at', {
         ascending: false
       }).limit(60);
       if (error) throw error;

@@ -13,8 +13,7 @@ export class ChatService {
         catbots (
           id,
           name,
-          avatar_url,
-          personality
+          avatar_url
         )
       `)
       .eq('user_id', userId)

@@ -13,7 +13,6 @@ interface Catbot {
   name: string;
   description?: string | null; // legacy field for backward compatibility
   public_profile?: string | null;
-  personality?: string | null;
   avatar_url: string | null;
   is_public?: boolean;
   created_at?: string;
