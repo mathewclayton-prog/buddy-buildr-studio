@@ -119,7 +119,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
       {/* Content Section - Compact spacing with flex-grow */}
       <CardContent className="p-1.5 flex flex-col flex-1">
         {/* Description - closer to title */}
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed min-h-[2.5rem] mb-1.5">
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-tight min-h-[2rem] mb-1">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
