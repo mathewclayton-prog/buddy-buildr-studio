@@ -17,8 +17,6 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit } from "@/lib/characterQueries";
-import { VoiceSelector } from "@/components/VoiceSelector";
-import { type VoiceId } from "@/utils/voiceMapping";
 const PERSONALITY_OPTIONS = [{
   value: "Friendly",
   label: "Friendly",
@@ -59,7 +57,7 @@ const CreateCharacter = () => {
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedVoiceId, setSelectedVoiceId] = useState<VoiceId>('XB0fDUnXU5powFXDhCwa'); // Default to Charlotte
+  
 
   // Image upload states
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -101,7 +99,7 @@ const CreateCharacter = () => {
       setTrainingDescription(data.training_description || data.description || ""); // Use legacy description if no training_description
       setPersonality(data.personality || "");
       setIsPublic(data.is_public);
-      setSelectedVoiceId((data as any).voice_id || 'XB0fDUnXU5powFXDhCwa'); // Default to Charlotte
+      
       if (data.avatar_url) {
         setAvatar(data.avatar_url);
         setAvatarType("upload");
@@ -160,7 +158,7 @@ const CreateCharacter = () => {
         public_profile: publicProfile.trim(),
         training_description: trainingDescription.trim(),
         personality: personality,
-        voice_id: selectedVoiceId,
+        
         avatar_url: avatarType === "upload" ? avatar : null,
         is_public: isPublic
       };
@@ -498,12 +496,6 @@ const CreateCharacter = () => {
                   </Select>
                 </div>
 
-                {/* Voice Selection */}
-                <VoiceSelector
-                  selectedVoiceId={selectedVoiceId}
-                  onVoiceSelect={setSelectedVoiceId}
-                  characterName={name || "Your Catbot"}
-                />
 
                 {/* Avatar Section */}
                 <div className="space-y-4">

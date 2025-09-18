@@ -15,10 +15,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
-import AudioControls from "@/components/AudioControls";
-import VoiceIndicator from "@/components/VoiceIndicator";
-import VoiceInput from "@/components/VoiceInput";
-import VoiceConversation from "@/components/VoiceConversation";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -30,9 +26,7 @@ const Chat = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [newMessage, setNewMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const [voiceMode, setVoiceMode] = useState<'text' | 'voice' | 'realtime'>('text');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const voiceConversationRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!characterId) return;
@@ -108,18 +102,6 @@ const Chat = () => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
-
-  // Auto-scroll to voice conversation when realtime mode is activated
-  useEffect(() => {
-    if (voiceMode === 'realtime') {
-      setTimeout(() => {
-        voiceConversationRef.current?.scrollIntoView({ 
-          behavior: "smooth", 
-          block: "center" 
-        });
-      }, 100);
-    }
-  }, [voiceMode]);
 
   const generateResponse = async (userMessage: string, character: Character): Promise<string> => {
     // Get conversation history for context (last 20 messages)
@@ -231,32 +213,6 @@ const Chat = () => {
     }, 1000 + Math.random() * 1000);
   };
 
-  const handleVoiceTranscription = (transcribedText: string) => {
-    // Auto-send the transcribed text
-    sendMessage(transcribedText);
-  };
-
-  const handleConversationUpdate = (transcription: string, isUser: boolean) => {
-    const newMessage: ChatMessage = {
-      id: crypto.randomUUID(),
-      content: transcription,
-      isUser,
-      timestamp: new Date(),
-    };
-
-    setMessages(prev => [...prev, newMessage]);
-
-    // Save to session if we have a character
-    if (character) {
-      const session: ChatSession = {
-        id: character.id,
-        characterId: character.id,
-        messages: [...messages, newMessage],
-        createdAt: new Date(),
-      };
-      storageService.saveChatSession(session);
-    }
-  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -335,42 +291,12 @@ const Chat = () => {
                 <p className="text-sm text-muted-foreground">
                   {character.personalityTraits[0]} • Online
                 </p>
-                <VoiceIndicator />
                 <LLMStatus />
                 {user && <MemoryIndicator catbotId={character.id} />}
               </div>
             </div>
           </div>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant={voiceMode === 'text' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setVoiceMode('text')}
-            >
-              Text
-            </Button>
-            <Button
-              variant={voiceMode === 'voice' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setVoiceMode('voice')}
-            >
-              Voice
-            </Button>
-            <Button
-              variant={voiceMode === 'realtime' ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setVoiceMode('realtime')}
-              className="relative"
-            >
-              Live
-              {voiceMode === 'realtime' && (
-                <Badge variant="secondary" className="ml-2 text-xs animate-pulse">
-                  ↓ Scroll to chat
-                </Badge>
-              )}
-            </Button>
-          </div>
           
           <Button variant="ghost" size="icon">
             <MoreVertical className="h-5 w-5" />
@@ -431,14 +357,6 @@ const Chat = () => {
                           minute: '2-digit' 
                         })}
                       </p>
-                      {!message.isUser && (
-                        <AudioControls
-                          text={message.content}
-                          messageId={message.id}
-                          personality={character.personalityTraits[0]?.toLowerCase() || 'friendly'}
-                          className="ml-2"
-                        />
-                      )}
                     </div>
                   </div>
                 </div>
@@ -478,28 +396,10 @@ const Chat = () => {
             <div ref={messagesEndRef} />
           </div>
 
-          {/* Voice Conversation Mode */}
-          {voiceMode === 'realtime' && (
-            <div ref={voiceConversationRef} className="border-t bg-card p-4">
-              <VoiceConversation
-                character={character}
-                onConversationUpdate={handleConversationUpdate}
-              />
-            </div>
-          )}
-
           {/* Message Input Area - WhatsApp style */}
-          {(voiceMode === 'text' || voiceMode === 'voice') && (
-            <div className="border-t bg-card p-4">
-              <div className="flex gap-3 items-end">
-                {voiceMode === 'voice' && (
-                  <VoiceInput 
-                    onTranscription={handleVoiceTranscription}
-                    disabled={isTyping}
-                    className="flex-shrink-0"
-                  />
-                )}
-                <div className="flex-1 relative">
+          <div className="border-t bg-card p-4">
+            <div className="flex gap-3 items-end">
+              <div className="flex-1 relative">
                   <Input
                     value={newMessage}
                     onChange={(e) => setNewMessage(e.target.value)}
@@ -521,7 +421,6 @@ const Chat = () => {
                 </div>
               </div>
             </div>
-          )}
         </div>
       </div>
     </div>

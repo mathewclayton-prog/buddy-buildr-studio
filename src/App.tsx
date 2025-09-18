@@ -3,7 +3,6 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
-import GlobalAudioManager from "@/components/GlobalAudioManager";
 import Index from "./pages/Index";
 import CreateCharacter from "./pages/CreateCharacter";
 import BrowseCharacters from "./pages/BrowseCharacters";
@@ -26,7 +25,6 @@ const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <GlobalAudioManager />
       <Toaster />
       <Sonner />
       <BrowserRouter>
