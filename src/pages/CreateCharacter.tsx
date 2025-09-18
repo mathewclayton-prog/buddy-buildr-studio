@@ -134,10 +134,10 @@ const CreateCharacter = () => {
       return;
     }
 
-    if (publicProfile.length > 250) {
+    if (publicProfile.length > 80) {
       toast({
         title: "Validation Error",
-        description: "Public Profile must be 250 characters or less.",
+        description: "Public Profile must be 80 characters or less.",
         variant: "destructive"
       });
       return;
@@ -447,15 +447,15 @@ const CreateCharacter = () => {
                     id="publicProfile" 
                     value={publicProfile} 
                     onChange={e => setPublicProfile(e.target.value)} 
-                    placeholder="Write a catchy description that will attract users to chat with your cat. This appears on your cat's card when people browse." 
-                    rows={3} 
-                    maxLength={250} 
+                    placeholder="Write a punchy, engaging description in 80 characters or less. This appears on your cat's card when people browse." 
+                    rows={2} 
+                    maxLength={80}
                   />
                   <p className="text-sm text-muted-foreground">
-                    <span className={publicProfile.length > 250 ? "text-destructive font-medium" : ""}>
-                      {publicProfile.length}/250 characters
+                    <span className={publicProfile.length > 80 ? "text-destructive font-medium" : ""}>
+                      {publicProfile.length}/80 characters
                     </span>
-                    {" - This is what people see when browsing cats"}
+                    {" - Keep it brief and catchy for cards"}
                   </p>
                 </div>
 
