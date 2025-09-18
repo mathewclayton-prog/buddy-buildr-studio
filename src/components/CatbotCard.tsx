@@ -90,7 +90,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
   return (
     <CardWrapper>
       <Card 
-        className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-lift animate-fade-in bg-card border-0 flex flex-col h-full"
+        className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-lift-subtle animate-fade-in bg-card border-0 flex flex-col h-full"
         style={{ animationDelay: `${delay}ms` }}
       >
       {/* Hero Image Section - Flexible height to maintain aspect ratio */}
@@ -99,7 +99,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           <img 
             src={catbot.avatar_url} 
             alt={`${catbot.name} avatar`} 
-            className="w-full aspect-square object-cover group-hover:scale-110 transition-transform duration-500" 
+            className="w-full aspect-square object-cover group-hover:scale-105 transition-transform duration-500" 
             loading="lazy"
             decoding="async"
           />
@@ -115,23 +115,23 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         </div>
       </div>
 
-      {/* Content Section - Compact spacing with flex-grow */}
-      <CardContent className="p-1.5 flex flex-col flex-1">
-        {/* Description - closer to title */}
-        <p className="text-xs text-muted-foreground line-clamp-2 leading-tight min-h-[2rem] mb-1">
+      {/* Content Section - Ultra-compact spacing */}
+      <CardContent className="p-1 flex flex-col flex-1">
+        {/* Description - minimal spacing */}
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-tight">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
         {/* Tags */}
         {catbot.tags && catbot.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-1">
+          <div className="flex flex-wrap gap-0.5 mt-1">
             {catbot.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="outline" className="text-xs px-1 py-0">
+              <Badge key={tag} variant="outline" className="text-xs px-0.5 py-0">
                 {tag}
               </Badge>
             ))}
             {catbot.tags.length > 2 && (
-              <Badge variant="outline" className="text-xs px-1 py-0">
+              <Badge variant="outline" className="text-xs px-0.5 py-0">
                 +{catbot.tags.length - 2}
               </Badge>
             )}
@@ -139,7 +139,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         )}
         
         {/* Stats and Like Button */}
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mt-1">
           <StatsDisplay 
             interactionCount={catbot.interaction_count || 0}
           />

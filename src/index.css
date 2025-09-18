@@ -271,4 +271,13 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-primary);
   }
 
+  .hover-lift-subtle {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+
+  .hover-lift-subtle:hover {
+    transform: translateY(-2px) scale(1.01);
+    box-shadow: var(--shadow-primary);
+  }
+
 }
