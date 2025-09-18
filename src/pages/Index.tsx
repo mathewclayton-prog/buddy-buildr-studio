@@ -256,7 +256,7 @@ const Index = () => {
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Heart className="h-5 w-5 text-primary" />
-                        <h2 className="text-2xl font-bold">Most Popular</h2>
+                        <h2 className="text-lg font-bold">Most Popular</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSearchQuery("");
@@ -293,7 +293,7 @@ const Index = () => {
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <TrendingUp className="h-5 w-5 text-primary" />
-                        <h2 className="text-2xl font-bold">Trending</h2>
+                        <h2 className="text-lg font-bold">Trending</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSearchQuery("");
@@ -330,7 +330,7 @@ const Index = () => {
                     <div className="flex items-center justify-between mb-6">
                       <div className="flex items-center gap-2">
                         <Clock className="h-5 w-5 text-primary" />
-                        <h2 className="text-2xl font-bold">Most Recent</h2>
+                        <h2 className="text-lg font-bold">Most Recent</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
                         setSearchQuery("");
