@@ -91,10 +91,6 @@ const Navigation = () => {
                 Home
               </Link>
 
-              <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
-                <Search className="h-4 w-4" />
-                Explore Cats
-              </Link>
 
               <Link to="/my-cats" className={navLinkClass(location.pathname === "/my-cats")}>
                 <User className="h-4 w-4" />
@@ -144,10 +140,6 @@ const Navigation = () => {
                 Home
               </Link>
 
-              <Link to="/browse" className={navLinkClass(location.pathname === "/browse")}>
-                <Search className="h-4 w-4" />
-                Explore Cats
-              </Link>
 
               <Link to="/create" className={navLinkClass(location.pathname === "/create")}>
                 <Plus className="h-4 w-4" />

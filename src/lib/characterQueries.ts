@@ -43,6 +43,7 @@ export interface CharacterForEdit {
   personality?: string | null;
   avatar_url: string | null;
   is_public: boolean;
+  tags?: string[] | null;
   created_at: string;
   updated_at: string;
 }
@@ -142,7 +143,7 @@ export async function getCharacterForEdit(characterId: string, userId: string): 
   // First get the public character data (with ownership check)
   const { data: publicData, error: publicError } = await supabase
     .from('catbots')
-    .select('id, name, description, public_profile, avatar_url, is_public, created_at, updated_at')
+    .select('id, name, description, public_profile, avatar_url, is_public, tags, created_at, updated_at')
     .eq('id', characterId)
     .eq('user_id', userId) // Ensure user owns the character
     .single();

@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import Navigation from "@/components/Navigation";
-import { X, Upload, Bot, Palette, Globe, Lock, Camera, Loader2 } from "lucide-react";
+import { X, Upload, Bot, Palette, Globe, Lock, Camera, Loader2, Plus, Sparkles, Tag } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,6 +59,12 @@ const CreateCharacter = () => {
   const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
+  // Tag management states
+  const [tags, setTags] = useState<string[]>([]);
+  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
+  const [newTag, setNewTag] = useState("");
+  const [isGeneratingTags, setIsGeneratingTags] = useState(false);
+  
 
   // Image upload states
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -99,6 +106,7 @@ const CreateCharacter = () => {
       setTrainingDescription(data.training_description || data.description || ""); // Use legacy description if no training_description
       setPersonality(data.personality || "");
       setIsPublic(data.is_public);
+      setTags(data.tags || []);
       
       if (data.avatar_url) {
         setAvatar(data.avatar_url);
@@ -158,7 +166,7 @@ const CreateCharacter = () => {
         public_profile: publicProfile.trim(),
         training_description: trainingDescription.trim(),
         personality: personality,
-        
+        tags: tags.length > 0 ? tags : null,
         avatar_url: avatarType === "upload" ? avatar : null,
         is_public: isPublic
       };
@@ -396,6 +404,76 @@ const CreateCharacter = () => {
     }
   };
 
+  // Tag management functions
+  const generateAITags = async () => {
+    if (!name.trim() && !trainingDescription.trim()) {
+      toast({
+        title: "Missing Information",
+        description: "Please add a name and description to generate AI tags.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsGeneratingTags(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-tags', {
+        body: {
+          name: name.trim(),
+          description: publicProfile.trim(),
+          personality: personality,
+          training_description: trainingDescription.trim()
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.tags && Array.isArray(data.tags)) {
+        setSuggestedTags(data.tags);
+        toast({
+          title: "Tags Generated!",
+          description: `Generated ${data.tags.length} suggested tags for your catbot.`,
+        });
+      } else {
+        throw new Error('No tags generated');
+      }
+    } catch (error: any) {
+      console.error('Tag generation error:', error);
+      toast({
+        title: "Generation Failed",
+        description: error.message || "Failed to generate tags. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingTags(false);
+    }
+  };
+
+  const addTag = (tag: string) => {
+    const trimmedTag = tag.trim();
+    if (trimmedTag && !tags.includes(trimmedTag) && tags.length < 8) {
+      setTags([...tags, trimmedTag]);
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    setTags(tags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleAddNewTag = () => {
+    if (newTag.trim()) {
+      addTag(newTag.trim());
+      setNewTag("");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddNewTag();
+    }
+  };
+
   const handleAvatarUpload = () => {
     fileInputRef.current?.click();
   };
@@ -478,7 +556,7 @@ const CreateCharacter = () => {
                   </p>
                 </div>
 
-                {/* Personality Dropdown */}
+                 {/* Personality Dropdown */}
                 <div className="space-y-2">
                   <Label htmlFor="personality">Personality Type *</Label>
                   <Select value={personality} onValueChange={setPersonality}>
@@ -494,6 +572,104 @@ const CreateCharacter = () => {
                         </SelectItem>)}
                     </SelectContent>
                   </Select>
+                </div>
+
+                {/* Tags Section */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="flex items-center gap-2">
+                      <Tag className="h-4 w-4" />
+                      Tags
+                    </Label>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={generateAITags}
+                      disabled={isGeneratingTags || (!name.trim() && !trainingDescription.trim())}
+                    >
+                      {isGeneratingTags ? (
+                        <>
+                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-3 w-3 mr-2" />
+                          AI Suggest
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Current Tags */}
+                  {tags.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm">Current Tags ({tags.length}/8)</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {tags.map((tag, index) => (
+                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                            {tag}
+                            <button
+                              type="button"
+                              onClick={() => removeTag(tag)}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Suggested Tags */}
+                  {suggestedTags.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm">AI Suggested Tags</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestedTags.map((tag, index) => (
+                          <Badge 
+                            key={index} 
+                            variant="outline" 
+                            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
+                            onClick={() => addTag(tag)}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">Click to add suggested tags</p>
+                    </div>
+                  )}
+
+                  {/* Manual Tag Input */}
+                  <div className="space-y-2">
+                    <Label className="text-sm">Add Custom Tag</Label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={newTag}
+                        onChange={e => setNewTag(e.target.value)}
+                        onKeyPress={handleKeyPress}
+                        placeholder="Enter a tag..."
+                        maxLength={20}
+                        disabled={tags.length >= 8}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="icon"
+                        onClick={handleAddNewTag}
+                        disabled={!newTag.trim() || tags.length >= 8}
+                      >
+                        <Plus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Tags help users discover your catbot. Max 8 tags, 20 characters each.
+                    </p>
+                  </div>
                 </div>
 
 
@@ -619,7 +795,7 @@ const CreateCharacter = () => {
 
                 {/* Submit Button */}
                 <div className="flex gap-4 pt-4">
-                  <Button type="button" variant="outline" onClick={() => navigate("/browse")} className="flex-1">
+                  <Button type="button" variant="outline" onClick={() => navigate("/")} className="flex-1">
                     Cancel
                   </Button>
                   <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality || publicProfile.length > 250 || trainingDescription.length > 10000} className="flex-1">
