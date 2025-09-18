@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import CreateCharacter from "./pages/CreateCharacter";
@@ -24,10 +25,11 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <AuthProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+      <AuthProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/auth" element={<Auth />} />
@@ -51,6 +53,7 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
