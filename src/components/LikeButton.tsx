@@ -110,7 +110,7 @@ export const LikeButton = ({ catbotId, initialLikeCount, className }: LikeButton
         className={`h-6 px-1 py-0 leading-none hover:scale-100 flex items-center gap-1 text-muted-foreground hover:text-red-500 hover:bg-transparent transition-all duration-300 ${className}`}
       >
         <Heart 
-          className={`h-2.5 w-2.5 transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500 animate-scale-pulse' : 'hover:animate-bounce-soft'}`} 
+          className={`h-2.5 w-2.5 transition-all duration-300 ${isLiked ? 'fill-red-500 text-red-500' : 'hover:animate-bounce-soft'}`} 
         />
         <span className="text-xs font-medium">{likeCount}</span>
       </Button>
