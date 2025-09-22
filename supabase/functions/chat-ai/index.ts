@@ -260,7 +260,7 @@ serve(async (req) => {
 
     const { data: catbot, error: catbotError } = await supabase
       .from('catbots')
-      .select('name, training_description, personality')
+      .select('name, description, tags')
       .eq('id', catbotId)
       .single();
 
@@ -269,7 +269,7 @@ serve(async (req) => {
       throw new Error('Catbot not found or access denied');
     }
 
-    console.log('📋 Fetched catbot data:', { name: catbot.name, personality: catbot.personality });
+    console.log('📋 Fetched catbot data:', { name: catbot.name, description: catbot.description });
 
     // Quick emotional analysis (simplified for speed)
     const emotionalContext = getQuickEmotionalContext(userMessage);
@@ -292,7 +292,7 @@ serve(async (req) => {
         .order('thread_priority', { ascending: false })
         .limit(5) : Promise.resolve({ data: [] }),
       
-      getSpontaneousThought(catbotId, catbot.personality)
+      getSpontaneousThought(catbotId, catbot.tags || [])
     ]);
 
     const userMemory = memoryResult.data;
@@ -360,9 +360,9 @@ serve(async (req) => {
     console.error('Error in chat-ai function:', error);
     
     // Enhanced fallback with personality consistency
-    const catbot = { personality: 'friendly' };
+    const fallbackCatbot = { tags: ['friendly'] };
     
-    const fallbackResponse = getPersonalityFallbackResponse(catbot);
+    const fallbackResponse = getPersonalityFallbackResponse(fallbackCatbot);
     
     return new Response(JSON.stringify({ 
       response: fallbackResponse,
@@ -472,7 +472,7 @@ USER MEMORY:
 }
 
 // Simplified spontaneous thought fetching
-async function getSpontaneousThought(catbotId: string, personality: string): Promise<any> {
+async function getSpontaneousThought(catbotId: string, tags: string[]): Promise<any> {
   try {
     // Lower chance for speed
     if (Math.random() > 0.1) return null;
@@ -497,8 +497,9 @@ async function getSpontaneousThought(catbotId: string, personality: string): Pro
 
 // Enhanced personality prompt with optimized character context
 function buildFastPersonalityPrompt(catbot: any, memoryContext: string, emotionalContext: string, userMessage: string): string {
-  // Process character training description for optimal context
-  const structuredData = CharacterContextOptimizer.analyzeTrainingDescription(catbot.training_description || '');
+  // Process character description for optimal context
+  const primaryPersonality = catbot.tags && catbot.tags.length > 0 ? catbot.tags[0] : 'friendly';
+  const structuredData = CharacterContextOptimizer.analyzeTrainingDescription(catbot.description || '');
   const contextSelection = CharacterContextOptimizer.selectRelevantContext(
     structuredData, 
     userMessage, 
@@ -510,9 +511,9 @@ function buildFastPersonalityPrompt(catbot: any, memoryContext: string, emotiona
   
   console.log('🎯 Optimized context tokens:', contextSelection.token_count_estimate);
   
-  const mixedQuestionBank = generateMixedQuestions(catbot.personality);
+  const mixedQuestionBank = generateMixedQuestions(primaryPersonality);
   
-  return `You are ${catbot.name}, a ${catbot.personality} cat character who enjoys meaningful conversations.
+  return `You are ${catbot.name}, a ${primaryPersonality} cat character who enjoys meaningful conversations.
 
 ${optimizedCharacterContext}
 
@@ -520,17 +521,17 @@ ${emotionalContext}
 ${memoryContext}
 
 BALANCED CONVERSATION STRATEGY:
-${getBalancedConversationStrategy(catbot.personality)}
+${getBalancedConversationStrategy(primaryPersonality)}
 
 CAT BEHAVIOR:
 - Use subtle cat expressions sparingly: *purr*, *stretches*, *head tilt*, *whiskers twitch*
 - Show natural cat curiosity about what the human mentions
 - Balance independence with genuine warmth
-- ${catbot.personality === 'friendly' ? 'Be warm and welcoming, show excitement about their stories' : ''}
-- ${catbot.personality === 'playful' ? 'Be bouncy and energetic, easily intrigued by interesting topics' : ''}
-- ${catbot.personality === 'wise' ? 'Be thoughtful and measured, offer gentle wisdom from experience' : ''}
-- ${catbot.personality === 'mysterious' ? 'Speak in hints and implications, reference hidden knowledge' : ''}
-- ${catbot.personality === 'serious' ? 'Be focused and thoughtful, take conversations seriously' : ''}
+- ${primaryPersonality === 'friendly' ? 'Be warm and welcoming, show excitement about their stories' : ''}
+- ${primaryPersonality === 'playful' ? 'Be bouncy and energetic, easily intrigued by interesting topics' : ''}
+- ${primaryPersonality === 'wise' ? 'Be thoughtful and measured, offer gentle wisdom from experience' : ''}
+- ${primaryPersonality === 'mysterious' ? 'Speak in hints and implications, reference hidden knowledge' : ''}
+- ${primaryPersonality === 'serious' ? 'Be focused and thoughtful, take conversations seriously' : ''}
 
 CONVERSATION FLOW RULES:
 - PRIORITIZE responding to what the user is actually talking about or asking
@@ -546,7 +547,7 @@ CONVERSATION FLOW RULES:
 CONVERSATION GUIDANCE:
 ${mixedQuestionBank}
 
-BACKGROUND: ${catbot.training_description}
+BACKGROUND: ${catbot.description}
 
 Remember: You're a cat who enjoys good conversation. Be genuinely interested in whatever your human wants to discuss, and let cat topics emerge naturally when appropriate!`;
 }
@@ -1027,7 +1028,7 @@ function getPersonalityFallbackResponse(catbot: any): string {
     return "I'm having trouble processing that right now. Do you have any cats? I'd love to hear about them! 😸";
   }
 
-  const personality = catbot.personality?.toLowerCase() || "friendly";
+  const personality = (catbot.tags && catbot.tags.length > 0 ? catbot.tags[0] : "friendly").toLowerCase();
   
   const fallbackResponses: Record<string, string[]> = {
     friendly: [
