@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import Navigation from "@/components/Navigation";
 import LLMStatus from "@/components/LLMStatus";
 import { Bot, Send, ArrowLeft, User, MoreVertical, Brain, Lock } from "lucide-react";
@@ -29,7 +30,29 @@ const Chat = () => {
   const [isTyping, setIsTyping] = useState(false);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [loadingMessages, setLoadingMessages] = useState(true);
+  const [userAvatarUrl, setUserAvatarUrl] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Load user profile data
+  useEffect(() => {
+    const loadUserProfile = async () => {
+      if (user) {
+        try {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('avatar_url')
+            .eq('user_id', user.id)
+            .maybeSingle();
+          
+          setUserAvatarUrl(profile?.avatar_url || null);
+        } catch (error) {
+          console.error('Error loading user profile:', error);
+        }
+      }
+    };
+
+    loadUserProfile();
+  }, [user]);
 
   // Redirect to auth if not logged in
   useEffect(() => {
@@ -390,9 +413,12 @@ const Chat = () => {
                   
                   {message.isUser && (
                     <div className="flex-shrink-0 mb-1">
-                      <div className="h-6 w-6 rounded-full bg-primary flex items-center justify-center animate-wiggle">
-                        <User className="h-3 w-3 text-white" />
-                      </div>
+                      <Avatar className="h-6 w-6">
+                        <AvatarImage src={userAvatarUrl || undefined} />
+                        <AvatarFallback className="bg-primary text-primary-foreground">
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
                     </div>
                   )}
                   
