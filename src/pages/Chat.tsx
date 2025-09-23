@@ -398,14 +398,14 @@ const Chat = () => {
                         <img
                           src={character.avatar}
                           alt={character.name}
-                          className="h-6 w-6 rounded-full object-cover hover:animate-purr cursor-pointer"
+                          className="h-10 w-10 rounded-full object-cover hover:animate-purr cursor-pointer"
                         />
                       ) : (
                         <div 
-                          className="h-6 w-6 rounded-full flex items-center justify-center hover:animate-purr cursor-pointer"
+                          className="h-10 w-10 rounded-full flex items-center justify-center hover:animate-purr cursor-pointer"
                           style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
                         >
-                          <Bot className="h-3 w-3 text-white" />
+                          <Bot className="h-5 w-5 text-white" />
                         </div>
                       )}
                     </div>
@@ -413,10 +413,10 @@ const Chat = () => {
                   
                   {message.isUser && (
                     <div className="flex-shrink-0 mb-1">
-                      <Avatar className="h-6 w-6">
+                      <Avatar className="h-10 w-10">
                         <AvatarImage src={userAvatarUrl || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          <User className="h-3 w-3" />
+                          <User className="h-5 w-5" />
                         </AvatarFallback>
                       </Avatar>
                     </div>
