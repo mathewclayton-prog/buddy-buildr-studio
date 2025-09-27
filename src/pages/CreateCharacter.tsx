@@ -18,28 +18,7 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
-const PERSONALITY_OPTIONS = [{
-  value: "Friendly",
-  label: "Friendly",
-  description: "Warm, welcoming, and approachable"
-}, {
-  value: "Mysterious",
-  label: "Mysterious",
-  description: "Enigmatic and intriguing"
-}, {
-  value: "Wise",
-  label: "Wise",
-  description: "Knowledgeable and thoughtful"
-}, {
-  value: "Playful",
-  label: "Playful",
-  description: "Fun-loving and energetic"
-}, {
-  value: "Serious",
-  label: "Serious",
-  description: "Focused and professional"
-}];
-const COLOR_OPTIONS = ["#EF4444", "#10B981", "#3B82F6", "#EAB308"];
+// Constants removed - personality dropdown and color options no longer needed
 const CreateCharacter = () => {
   const {
     user
@@ -51,9 +30,12 @@ const CreateCharacter = () => {
   const [name, setName] = useState("");
   const [publicProfile, setPublicProfile] = useState("");
   const [trainingDescription, setTrainingDescription] = useState("");
-  const [personality, setPersonality] = useState("");
+  const [greeting, setGreeting] = useState("");
+  const [advancedDefinition, setAdvancedDefinition] = useState("");
+  const [creationMode, setCreationMode] = useState<"standard" | "enhanced">("standard");
+  const [suggestedStarters, setSuggestedStarters] = useState<string[]>(["", "", ""]);
+  const [longDescription, setLongDescription] = useState("");
   const [avatar, setAvatar] = useState<string>("");
-  const [avatarColor, setAvatarColor] = useState(COLOR_OPTIONS[0]);
   const [avatarType, setAvatarType] = useState<"upload" | "color" | "ai">("color");
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
   const [isPublic, setIsPublic] = useState(true);
@@ -102,9 +84,13 @@ const CreateCharacter = () => {
 
       // Populate form with existing data, handling backward compatibility
       setName(data.name);
-      setPublicProfile(data.public_profile || (data.description ? data.description.substring(0, 250) : "")); // Use legacy description if no public_profile
+      setPublicProfile(data.public_profile || (data.description ? data.description.substring(0, 40) : "")); // Use legacy description if no public_profile
       setTrainingDescription(data.training_description || data.description || ""); // Use legacy description if no training_description
-      setPersonality(data.personality || "");
+      setGreeting((data as any).greeting || "");
+      setAdvancedDefinition((data as any).advanced_definition || "");
+      setCreationMode((data as any).creation_mode || "standard");
+      setSuggestedStarters((data as any).suggested_starters || ["", "", ""]);
+      setLongDescription((data as any).long_description || "");
       setIsPublic(data.is_public);
       setTags(data.tags || []);
       
@@ -133,7 +119,7 @@ const CreateCharacter = () => {
       navigate("/auth");
       return;
     }
-    if (!name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality) {
+    if (!name.trim() || !publicProfile.trim() || !trainingDescription.trim()) {
       toast({
         title: "Validation Error",
         description: "Please fill in all required fields.",
@@ -172,12 +158,16 @@ const CreateCharacter = () => {
         public_profile: publicProfile.trim(),
         tags: tags.length > 0 ? tags : null,
         avatar_url: avatar || null,
-        is_public: isPublic
+        is_public: isPublic,
+        greeting: greeting.trim() || null,
+        advanced_definition: advancedDefinition.trim() || null,
+        creation_mode: creationMode,
+        suggested_starters: suggestedStarters.filter(s => s.trim()),
+        long_description: longDescription.trim() || null
       };
 
       const trainingData = {
-        training_description: trainingDescription.trim(),
-        personality: personality
+        training_description: trainingDescription.trim()
       };
 
       if (isEditMode) {
@@ -376,10 +366,10 @@ const CreateCharacter = () => {
 
   // Generate AI avatar
   const handleGenerateAvatar = async () => {
-    if (!user?.id || !name.trim() || !trainingDescription.trim() || !personality) {
+    if (!user?.id || !name.trim() || !trainingDescription.trim()) {
       toast({
         title: "Missing Information",
-        description: "Please fill in name, personality, and description before generating an avatar.",
+        description: "Please fill in name and description before generating an avatar.",
         variant: "destructive"
       });
       return;
@@ -392,7 +382,7 @@ const CreateCharacter = () => {
         body: {
           name: name.trim(),
           description: trainingDescription.trim(),
-          personality,
+          personality: "friendly", // Default value for avatar generation
           userId: user.id
         }
       });
@@ -440,7 +430,7 @@ const CreateCharacter = () => {
         body: {
           name: name.trim(),
           description: publicProfile.trim(),
-          personality: personality,
+          personality: "friendly", // Default value for tag generation
           training_description: trainingDescription.trim()
         }
       });
@@ -500,9 +490,7 @@ const CreateCharacter = () => {
     if (avatarType === "upload" && avatar) {
       return <img src={avatar} alt="Character preview" className="h-16 w-16 rounded-lg object-cover shadow-soft" />;
     }
-    return <div className="h-16 w-16 rounded-lg flex items-center justify-center shadow-soft" style={{
-      backgroundColor: avatarColor
-    }}>
+    return <div className="h-16 w-16 rounded-lg bg-gradient-to-br from-orange-400 to-orange-500 flex items-center justify-center shadow-soft">
         <Bot className="h-8 w-8 text-white" />
       </div>;
   };
@@ -544,13 +532,13 @@ const CreateCharacter = () => {
                     id="publicProfile" 
                     value={publicProfile} 
                     onChange={e => setPublicProfile(e.target.value)} 
-                    placeholder="Write a punchy, engaging description in 80 characters or less. This appears on your cat's card when people browse." 
+                     placeholder="Write a punchy, engaging description in 40 characters or less. This appears on your cat's card when people browse." 
                     rows={2} 
-                    maxLength={80}
+                    maxLength={40}
                   />
                   <p className="text-sm text-muted-foreground">
-                    <span className={publicProfile.length > 80 ? "text-destructive font-medium" : ""}>
-                      {publicProfile.length}/80 characters
+                    <span className={publicProfile.length > 40 ? "text-destructive font-medium" : ""}>
+                      {publicProfile.length}/40 characters
                     </span>
                     {" - Keep it brief and catchy for cards"}
                   </p>
@@ -575,23 +563,113 @@ const CreateCharacter = () => {
                   </p>
                 </div>
 
-                 {/* Personality Dropdown */}
-                <div className="space-y-2">
-                  <Label htmlFor="personality">Personality Type *</Label>
-                  <Select value={personality} onValueChange={setPersonality}>
-                    <SelectTrigger className="bg-background">
-                      <SelectValue placeholder="Choose a cat personality" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background border border-border shadow-lg z-50">
-                      {PERSONALITY_OPTIONS.map(option => <SelectItem key={option.value} value={option.value} className="hover:bg-accent">
-                          <div>
-                            <div className="font-medium">{option.label}</div>
-                            <div className="text-sm text-muted-foreground">{option.description}</div>
-                          </div>
-                        </SelectItem>)}
-                    </SelectContent>
-                  </Select>
+                {/* Creation Mode Toggle */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-medium">Creation Mode</Label>
+                    <div className="flex items-center space-x-2">
+                      <Label htmlFor="creation-mode" className="text-sm font-normal">
+                        {creationMode === "standard" ? "Standard" : "Enhanced"}
+                      </Label>
+                      <Switch
+                        id="creation-mode"
+                        checked={creationMode === "enhanced"}
+                        onCheckedChange={(checked) => setCreationMode(checked ? "enhanced" : "standard")}
+                      />
+                    </div>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {creationMode === "standard" 
+                      ? "Standard mode provides essential fields for creating your cat." 
+                      : "Enhanced mode includes advanced features like dialog examples and conversation starters."}
+                  </p>
                 </div>
+
+                {/* Greeting Field */}
+                <div className="space-y-2">
+                  <Label htmlFor="greeting">Opening Message</Label>
+                  <Textarea 
+                    id="greeting" 
+                    value={greeting} 
+                    onChange={e => setGreeting(e.target.value)} 
+                    placeholder="How should your cat greet users when they start a conversation? This sets the scene and tone." 
+                    rows={3} 
+                    maxLength={4000}
+                  />
+                  <p className="text-sm text-muted-foreground">
+                    <span className={greeting.length > 4000 ? "text-destructive font-medium" : ""}>
+                      {greeting.length}/4000 characters
+                    </span>
+                    {" - Sets the opening scene for conversations"}
+                  </p>
+                </div>
+
+                {/* Enhanced Mode Fields */}
+                {creationMode === "enhanced" && (
+                  <>
+                    {/* Advanced Definition */}
+                    <div className="space-y-2">
+                      <Label htmlFor="advancedDefinition">Advanced Definition</Label>
+                      <Textarea 
+                        id="advancedDefinition" 
+                        value={advancedDefinition} 
+                        onChange={e => setAdvancedDefinition(e.target.value)} 
+                        placeholder="Use dialog examples to show your cat's speaking style. Use {{char}} for your cat's name and {{user}} for the user. Example:&#10;{{user}}: Hello!&#10;{{char}}: *purrs softly* Well hello there! I was just lounging in the sunbeam by the window." 
+                        rows={8} 
+                        maxLength={32000}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        <span className={advancedDefinition.length > 32000 ? "text-destructive font-medium" : ""}>
+                          {advancedDefinition.length}/32000 characters
+                        </span>
+                        {" - Dialog examples with variables like {{char}} and {{user}}"}
+                      </p>
+                    </div>
+
+                    {/* Conversation Starters */}
+                    <div className="space-y-4">
+                      <Label>Conversation Starters</Label>
+                      {suggestedStarters.map((starter, index) => (
+                        <div key={index} className="space-y-2">
+                          <Label htmlFor={`starter-${index}`} className="text-sm">Starter {index + 1}</Label>
+                          <Input
+                            id={`starter-${index}`}
+                            value={starter}
+                            onChange={e => {
+                              const newStarters = [...suggestedStarters];
+                              newStarters[index] = e.target.value;
+                              setSuggestedStarters(newStarters);
+                            }}
+                            placeholder="Example conversation starter..."
+                            maxLength={200}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {starter.length}/200 characters
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Long Description */}
+                    <div className="space-y-2">
+                      <Label htmlFor="longDescription">Extended Description</Label>
+                      <Textarea 
+                        id="longDescription" 
+                        value={longDescription} 
+                        onChange={e => setLongDescription(e.target.value)} 
+                        placeholder="Additional details about your cat's background, environment, or special traits." 
+                        rows={4} 
+                        maxLength={500}
+                      />
+                      <p className="text-sm text-muted-foreground">
+                        <span className={longDescription.length > 500 ? "text-destructive font-medium" : ""}>
+                          {longDescription.length}/500 characters
+                        </span>
+                        {" - Extended background information"}
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 {/* Tags Section */}
                 <div className="space-y-4">
@@ -694,13 +772,13 @@ const CreateCharacter = () => {
 
                 {/* Avatar Section */}
                 <div className="space-y-4">
-                  <Label>Character Avatar</Label>
+                  <Label>Cat Avatar</Label>
                   
                   {/* Avatar Type Toggle */}
                   <div className="flex gap-2">
                     <Button type="button" variant={avatarType === "color" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("color")}>
                       <Palette className="h-4 w-4 mr-2" />
-                      Color Icon
+                      Default Icon
                     </Button>
                     <Button type="button" variant={avatarType === "upload" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("upload")}>
                       <Upload className="h-4 w-4 mr-2" />
@@ -708,18 +786,13 @@ const CreateCharacter = () => {
                     </Button>
                     <Button type="button" variant={avatarType === "ai" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("ai")}>
                       <div className="h-4 w-4 mr-2">✨</div>
-                      AI Generated
+                      Generate Image
                     </Button>
                   </div>
 
-                  {/* Color Picker */}
+                  {/* Default Icon - Always Orange */}
                   {avatarType === "color" && <div className="space-y-2">
-                      <Label>Icon Color</Label>
-                      <div className="flex gap-2 flex-wrap">
-                        {COLOR_OPTIONS.map(color => <button key={color} type="button" className={`h-8 w-8 rounded-full border-2 hover:scale-110 transition-transform ${avatarColor === color ? "border-primary ring-2 ring-primary/20" : "border-border"}`} style={{
-                      backgroundColor: color
-                    }} onClick={() => setAvatarColor(color)} />)}
-                      </div>
+                      <p className="text-sm text-muted-foreground">Default icons use a consistent orange gradient design.</p>
                     </div>}
 
                   {/* Image Upload */}
@@ -764,7 +837,7 @@ const CreateCharacter = () => {
                             type="button" 
                             variant="outline" 
                             onClick={handleGenerateAvatar}
-                            disabled={isGeneratingAvatar || !name.trim() || !trainingDescription.trim() || !personality}
+                            disabled={isGeneratingAvatar || !name.trim() || !trainingDescription.trim()}
                             className="w-full"
                           >
                             {isGeneratingAvatar ? (
@@ -779,9 +852,9 @@ const CreateCharacter = () => {
                               </>
                             )}
                           </Button>
-                          {!name.trim() || !trainingDescription.trim() || !personality ? (
+                          {!name.trim() || !trainingDescription.trim() ? (
                             <p className="text-xs text-muted-foreground mt-1">
-                              Fill in name, personality, and description first
+                              Fill in name and description first
                             </p>
                           ) : (
                             <p className="text-xs text-muted-foreground mt-1">
@@ -817,7 +890,7 @@ const CreateCharacter = () => {
                   <Button type="button" variant="outline" onClick={() => navigate("/")} className="flex-1">
                     Cancel
                   </Button>
-                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || !personality || publicProfile.length > 250 || trainingDescription.length > 10000} className="flex-1">
+                  <Button type="submit" variant="hero" disabled={isLoading || !name.trim() || !publicProfile.trim() || !trainingDescription.trim() || publicProfile.length > 40 || trainingDescription.length > 10000} className="flex-1">
                     {isLoading ? isEditMode ? "Updating..." : "Creating..." : isEditMode ? "Update Catbot" : "Create Catbot"}
                   </Button>
                 </div>

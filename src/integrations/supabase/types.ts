@@ -141,48 +141,63 @@ export type Database = {
       }
       catbots: {
         Row: {
+          advanced_definition: string | null
           avatar_url: string | null
           created_at: string
+          creation_mode: string | null
           description: string | null
+          greeting: string | null
           id: string
           interaction_count: number
           is_public: boolean
           last_active_at: string | null
           like_count: number
+          long_description: string | null
           name: string
           public_profile: string | null
+          suggested_starters: string[] | null
           tags: string[] | null
           updated_at: string
           user_id: string
           voice_id: string | null
         }
         Insert: {
+          advanced_definition?: string | null
           avatar_url?: string | null
           created_at?: string
+          creation_mode?: string | null
           description?: string | null
+          greeting?: string | null
           id?: string
           interaction_count?: number
           is_public?: boolean
           last_active_at?: string | null
           like_count?: number
+          long_description?: string | null
           name: string
           public_profile?: string | null
+          suggested_starters?: string[] | null
           tags?: string[] | null
           updated_at?: string
           user_id: string
           voice_id?: string | null
         }
         Update: {
+          advanced_definition?: string | null
           avatar_url?: string | null
           created_at?: string
+          creation_mode?: string | null
           description?: string | null
+          greeting?: string | null
           id?: string
           interaction_count?: number
           is_public?: boolean
           last_active_at?: string | null
           like_count?: number
+          long_description?: string | null
           name?: string
           public_profile?: string | null
+          suggested_starters?: string[] | null
           tags?: string[] | null
           updated_at?: string
           user_id?: string
