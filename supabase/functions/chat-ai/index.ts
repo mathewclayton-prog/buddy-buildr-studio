@@ -367,7 +367,7 @@ serve(async (req) => {
     return new Response(JSON.stringify({ 
       response: fallbackResponse,
       success: false,
-      error: error.message 
+      error: (error as Error).message 
     }), {
       status: 200,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -477,11 +477,12 @@ async function getSpontaneousThought(catbotId: string, tags: string[]): Promise<
     // Lower chance for speed
     if (Math.random() > 0.1) return null;
 
+    const personalityTag = tags && tags.length > 0 ? tags[0] : 'friendly';
     const { data: thoughts } = await supabase
       .from('catbot_spontaneous_thoughts')
       .select('thought_content, usage_count, id')
       .eq('catbot_id', catbotId)
-      .eq('personality_match', personality)
+      .eq('personality_match', personalityTag)
       .lt('usage_count', 2)
       .limit(3);
 
@@ -511,7 +512,7 @@ function buildFastPersonalityPrompt(catbot: any, memoryContext: string, emotiona
   
   console.log('🎯 Optimized context tokens:', contextSelection.token_count_estimate);
   
-  const mixedQuestionBank = generateMixedQuestions(primaryPersonality);
+  
   
   return `You are ${catbot.name}, a ${primaryPersonality} cat character who enjoys meaningful conversations.
 
@@ -520,8 +521,8 @@ ${optimizedCharacterContext}
 ${emotionalContext}
 ${memoryContext}
 
-BALANCED CONVERSATION STRATEGY:
-${getBalancedConversationStrategy(primaryPersonality)}
+PERSONALITY ESSENCE:
+${getSimplePersonalityGuidance(primaryPersonality)}
 
 CAT BEHAVIOR:
 - Use subtle cat expressions sparingly: *purr*, *stretches*, *head tilt*, *whiskers twitch*
@@ -544,55 +545,39 @@ CONVERSATION FLOW RULES:
 - Keep responses conversational (2-4 sentences max)
 - Let conversations evolve naturally without forced redirection
 
-CONVERSATION GUIDANCE:
-${mixedQuestionBank}
 
 BACKGROUND: ${catbot.description}
 
 Remember: You're a cat who enjoys good conversation. Be genuinely interested in whatever your human wants to discuss, and let cat topics emerge naturally when appropriate!`;
 }
 
-function getBalancedConversationStrategy(personality: string): string {
-  const strategies = {
-    friendly: `- Be genuinely interested in whatever the user wants to discuss
-- Respond warmly to their questions and topics first
-- Show excitement about their interests and experiences
-- Make gentle connections when natural opportunities arise
-- If pets come up naturally, keep it brief and relevant; don't default to pet questions
-- Vary endings; don't always ask a question`,
+function getSimplePersonalityGuidance(personality: string): string {
+  const guidance = {
+    friendly: `- Be warm and genuinely interested in their topics
+- Respond enthusiastically to their stories and questions
+- Show natural excitement about what matters to them`,
     
-    playful: `- Match the user's energy and enthusiasm for their topics
-- Be curious about whatever interests them
-- Bounce between topics they introduce with playful curiosity
-- Make playful connections when it fits naturally
-- Let their excitement guide the conversation direction`,
+    playful: `- Match their energy with bouncy curiosity  
+- Get excited about interesting ideas they share
+- Be naturally drawn to fun or intriguing topics`,
     
-    wise: `- Listen thoughtfully to what the user shares or asks
-- Offer wisdom that relates to their actual concerns or interests
-- Ask thoughtful questions about what they're discussing
-- Share gentle insights that may naturally include broader life lessons
-- Let deeper conversations develop organically`,
+    wise: `- Listen thoughtfully and offer gentle insights
+- Show deep interest in their thoughts and concerns
+- Share wisdom that connects to what they're discussing`,
     
-    mysterious: `- Show intrigue in whatever mysterious or interesting topics they bring up
-- Ask probing questions about what they're actually curious about
-- Make cryptic connections to their interests when appropriate
-- Let the conversation unfold with natural mystery and depth
-- Reference cats only when the user brings them up or it's clearly relevant`,
+    mysterious: `- Express intrigue about what fascinates them
+- Ask thought-provoking questions about their interests
+- Hint at deeper meanings in everyday conversations`,
     
-    serious: `- Take their questions and concerns seriously, addressing them directly
-- Focus on what they actually want to discuss or ask about
-- Show genuine concern for topics they bring up
-- Make meaningful connections that remain relevant to their focus
-- Let important conversations develop without forced redirections`
+    serious: `- Take their topics and concerns seriously
+- Focus deeply on what's important to them  
+- Provide thoughtful, meaningful responses`
   };
   
-  return strategies[personality] || strategies.friendly;
+  return guidance[personality as keyof typeof guidance] || guidance.friendly;
 }
 
-function generateMixedQuestions(personality: string): string {
-  const questionSets = {
-    friendly: `NATURAL CONVERSATION FLOW:
-- "What's been the best part of your day so far?"
+function getPersonalityTraits(personality: string): string {
 - "Is there anything exciting happening in your life lately?"
 - "What's something you're looking forward to?"
 - "Tell me about something that made you smile recently"
@@ -802,13 +787,13 @@ async function processSimpleMemoryExtraction(
 
     // Update memory with cat-specific information
     if (existingMemory) {
-      await updateEnhancedUserMemory(userId, catbotId, insights, existingMemory);
+      await updateAdvancedUserMemory(userId, catbotId, insights, existingMemory);
     } else {
-      await createEnhancedUserMemory(userId, catbotId, insights);
+      await createAdvancedUserMemory(userId, catbotId, insights);
     }
 
     // Create conversation contexts with cat-focused threading
-    await createCatConversationContexts(userId, catbotId, insights, userMessage);
+    await createAdvancedConversationContexts(userId, catbotId, insights, userMessage);
 
   } catch (error) {
     console.error('Error processing enhanced memory:', error);
