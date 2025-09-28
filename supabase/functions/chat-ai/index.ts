@@ -577,17 +577,7 @@ function getSimplePersonalityGuidance(personality: string): string {
   return guidance[personality as keyof typeof guidance] || guidance.friendly;
 }
 
-function getPersonalityTraits(personality: string): string {
-- "Is there anything exciting happening in your life lately?"
-- "What's something you're looking forward to?"
-- "Tell me about something that made you smile recently"
-
-OPTIONAL TOPIC SHIFTS (only if conversation stalls):
-- "Want to switch gears or keep exploring this?"
-- "Is there another topic on your mind today?"
-
-NATURAL CLOSINGS (no question):
-- "Thanks for sharing—that really matters."
+console.log('Starting getPersonalityTraits function');
 - "I’m here if you want to dive deeper anytime."
 - "That sounds meaningful; we can pick it up whenever you like."
 
