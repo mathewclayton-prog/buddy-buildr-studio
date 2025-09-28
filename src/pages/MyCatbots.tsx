@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MessageCircle, Edit, Trash, Eye, EyeOff, Sparkles, Users, BarChart3, Shield, Database, UserCheck, Plus, RotateCcw, Globe, Lock, Bot, Trash2 } from "lucide-react";
+import { MessageCircle, Edit, Trash, Eye, EyeOff, Sparkles, Users, BarChart3, Shield, Database, UserCheck, Plus, Globe, Lock, Bot, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import Navigation from "@/components/Navigation";
@@ -22,7 +22,7 @@ const MyCatbots = () => {
   const [allCatbots, setAllCatbots] = useState<any[]>([]);
   const [allUsers, setAllUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [cleanupLoading, setCleanupLoading] = useState(false);
+  
   const [adminStats, setAdminStats] = useState({
     totalUsers: 0,
     totalCatbots: 0,
@@ -165,40 +165,6 @@ const MyCatbots = () => {
     }
   };
 
-  const cleanupAutoCats = async () => {
-    setCleanupLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('cleanup-auto-cats', {
-        headers: {
-          Authorization: `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-        },
-      });
-
-      if (error) throw error;
-
-      if (data.success) {
-        await fetchMyCatbots(); // Refresh the list
-        if (isAdmin) {
-          await fetchAdminData(); // Refresh admin data too
-        }
-        toast({
-          title: "Success",
-          description: data.message,
-        });
-      } else {
-        throw new Error(data.error || 'Unknown error occurred');
-      }
-    } catch (error) {
-      console.error('Error cleaning up auto-generated catbots:', error);
-      toast({
-        title: "Error",
-        description: "Failed to cleanup auto-generated catbots. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setCleanupLoading(false);
-    }
-  };
 
   const privateCatbots = catbots.filter(catbot => !catbot.is_public);
   const publicCatbots = catbots.filter(catbot => catbot.is_public);
@@ -365,23 +331,12 @@ const MyCatbots = () => {
               {isAdmin ? "Manage your AI companions and oversee the platform" : "Manage your AI companions and see how they're performing"}
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button 
-              variant="outline" 
-              onClick={cleanupAutoCats}
-              disabled={cleanupLoading}
-              className="flex items-center gap-2"
-            >
-              <RotateCcw className={`h-4 w-4 ${cleanupLoading ? 'animate-spin' : ''}`} />
-              Delete Auto-Generated Cats
-            </Button>
-            <Button asChild>
-              <Link to="/create" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create New Catbot
-              </Link>
-            </Button>
-          </div>
+          <Button asChild>
+            <Link to="/create" className="flex items-center gap-2">
+              <Plus className="h-4 w-4" />
+              Create New Catbot
+            </Link>
+          </Button>
         </div>
 
         <Tabs defaultValue="private" className="space-y-6">
@@ -548,23 +503,6 @@ const MyCatbots = () => {
                   </CardContent>
                 </Card>
 
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Platform Actions</CardTitle>
-                    <CardDescription>Administrative tools and actions</CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
-                    <Button 
-                      onClick={cleanupAutoCats} 
-                      disabled={cleanupLoading}
-                      variant="outline"
-                      className="w-full justify-start"
-                    >
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      {cleanupLoading ? "Cleaning up..." : "Cleanup Auto Cats"}
-                    </Button>
-                  </CardContent>
-                </Card>
               </div>
             </TabsContent>
           )}
