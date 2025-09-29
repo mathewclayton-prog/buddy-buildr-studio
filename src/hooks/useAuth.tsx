@@ -39,6 +39,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
+  const getRedirectUrl = () => {
+    const origin = window.location.origin;
+    // Use stable domain to avoid Supabase redirect errors from ephemeral preview URLs
+    if (origin.includes('lovableproject.com')) {
+      return 'https://buddy-buildr-studio.lovable.app/';
+    }
+    return `${origin}/`;
+  };
+
   const signIn = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -48,7 +57,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signUp = async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = getRedirectUrl();
     
     const { error } = await supabase.auth.signUp({
       email,
@@ -62,7 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signInWithGoogle = async () => {
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = getRedirectUrl();
     
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
