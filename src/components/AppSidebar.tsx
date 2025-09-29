@@ -101,6 +101,8 @@ export function AppSidebar({ searchQuery, setSearchQuery }: AppSidebarProps) {
     { title: "Create a Cat", url: "/create", icon: Plus },
     { title: "Home", url: "/", icon: Home },
     ...(user ? [{ title: "My Cats", url: "/my-cats", icon: User }] : []),
+    { title: "Search", url: "/#search", icon: Search },
+    ...(user ? [{ title: "Profile", url: "/profile", icon: User }] : []),
   ];
 
   return (
@@ -124,6 +126,34 @@ export function AppSidebar({ searchQuery, setSearchQuery }: AppSidebarProps) {
       </SidebarHeader>
 
       <SidebarContent>
+        {/* Navigation Menu */}
+        <SidebarGroup>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {menuItems.map((item) => (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton asChild>
+                    <Link 
+                      to={item.url} 
+                      className={getNavClass(isActive(item.url))}
+                      onClick={item.title === "Search" ? (e) => {
+                        e.preventDefault();
+                        const searchInput = document.querySelector('input[placeholder*="Search"]') as HTMLInputElement;
+                        if (searchInput) {
+                          searchInput.focus();
+                        }
+                      } : undefined}
+                    >
+                      <item.icon className="h-4 w-4" />
+                      {!collapsed && <span>{item.title}</span>}
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
         {/* Search Section */}
         {!collapsed && (
           <SidebarGroup>
@@ -143,74 +173,19 @@ export function AppSidebar({ searchQuery, setSearchQuery }: AppSidebarProps) {
             </SidebarGroupContent>
           </SidebarGroup>
         )}
-
-        {/* Navigation Menu */}
-        <SidebarGroup>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {menuItems.map((item) => (
-                <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
-                    <Link to={item.url} className={getNavClass(isActive(item.url))}>
-                      <item.icon className="h-4 w-4" />
-                      {!collapsed && <span>{item.title}</span>}
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
       </SidebarContent>
 
-      {/* Profile Footer */}
-      <SidebarFooter className="border-t p-2">
-        {user ? (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <button className={`w-full flex items-center gap-2 p-2 rounded-md hover:bg-accent transition-colors ${collapsed ? 'justify-center' : ''}`}>
-                {avatarUrl ? (
-                  <img 
-                    src={avatarUrl} 
-                    alt="Profile" 
-                    className="h-6 w-6 rounded-full object-cover flex-shrink-0"
-                  />
-                ) : (
-                  <User className="h-4 w-4 flex-shrink-0" />
-                )}
-                {!collapsed && (
-                  <>
-                    <span className="text-sm truncate flex-1 text-left">
-                      {loading ? "..." : getTruncatedName(displayName)}
-                    </span>
-                    <ChevronDown className="h-3 w-3 flex-shrink-0" />
-                  </>
-                )}
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem asChild>
-                <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
-                  <User className="h-4 w-4" />
-                  View Profile
-                </Link>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={signOut} className="flex items-center gap-2 cursor-pointer">
-                <LogOut className="h-4 w-4" />
-                Sign Out
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        ) : (
+      {/* Footer - Only show for non-authenticated users */}
+      {!user && (
+        <SidebarFooter className="border-t p-2">
           <SidebarMenuButton asChild>
             <Link to="/auth" className="flex items-center gap-2 justify-center p-2 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors rounded-md">
               <User className="h-4 w-4" />
               {!collapsed && <span>Sign In</span>}
             </Link>
           </SidebarMenuButton>
-        )}
-      </SidebarFooter>
+        </SidebarFooter>
+      )}
     </Sidebar>
   );
 }
