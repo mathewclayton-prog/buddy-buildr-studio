@@ -80,10 +80,10 @@ const Index = () => {
         <div className="container mx-auto px-4 pt-16 pb-16">
 
           {/* Start Chatting Section */}
-          <section className="mt-4 mb-4">
-            <div className="text-center mb-8">
-              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                Or start chatting to one of our cats now...
+          <section className="mt-8 mb-6">
+            <div className="text-left mb-6">
+              <p className="text-lg text-muted-foreground">
+                Start chatting to one of our cats or create your own...
               </p>
             </div>
           </section>
