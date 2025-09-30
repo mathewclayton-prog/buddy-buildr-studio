@@ -183,7 +183,7 @@ const Navigation = () => {
                 Search
               </button>
 
-              <Link to="/auth" className="px-3 py-2 rounded-md text-sm font-medium text-black bg-black/10 hover:bg-black/20 transition-colors flex items-center gap-2">
+              <Link to="/auth" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition-colors flex items-center gap-2">
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Sign In</span>
               </Link>
