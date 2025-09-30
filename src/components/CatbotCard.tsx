@@ -110,13 +110,13 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
         )}
         
         {/* Overlay Title */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3">
+        <div className="absolute -bottom-2 left-0 right-0 bg-gradient-to-t from-black/70 via-black/40 to-transparent p-3">
           <h3 className="text-white font-bold text-xs md:text-sm lg:text-xs xl:text-sm leading-tight">{catbot.name}</h3>
         </div>
       </div>
 
       {/* Content Section - Ultra-compact spacing */}
-      <CardContent className="px-1 pt-1 pb-0.5 flex flex-col flex-1 bg-black">
+      <CardContent className="px-1 pt-3 pb-0.5 flex flex-col flex-1 bg-black">
         {/* Description - minimal spacing */}
         <p className="text-xs text-white line-clamp-2 leading-tight">
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
