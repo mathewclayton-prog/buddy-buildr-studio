@@ -79,25 +79,6 @@ const Index = () => {
           
           <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own cat to life or build a purrfect companion.</p>
 
-          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
-            {user ? <>
-                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
-                  <Link to="/create" className="flex items-center gap-3">
-                    <Plus className="h-5 w-5 animate-bounce-soft" />
-                    Create Catbot
-                    <Sparkles className="h-4 w-4 animate-float" />
-                  </Link>
-                </Button>
-              </> : <>
-                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
-                  <Link to="/auth" className="flex items-center gap-3">
-                    <ArrowRight className="h-5 w-5 animate-wiggle" />
-                    Get Started
-                    <Sparkles className="h-4 w-4 animate-float" />
-                  </Link>
-                </Button>
-              </>}
-          </div>
         </div>
 
         {/* Start Chatting Section */}
