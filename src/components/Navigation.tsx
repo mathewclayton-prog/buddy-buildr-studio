@@ -85,7 +85,7 @@ const Navigation = () => {
   return <header className="border-b bg-white backdrop-blur-sm sticky top-0 z-50 text-black">
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity text-black">
-          <span className="text-xl font-bold text-black">MiCat.Online</span>
+          <span className="font-bold text-black" style={{fontSize: '25px'}}>MiCat.Online</span>
         </Link>
 
         <nav className="flex items-center gap-4">
