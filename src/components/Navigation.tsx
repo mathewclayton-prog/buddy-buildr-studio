@@ -88,21 +88,20 @@ const Navigation = () => {
           <span className="text-xl font-bold text-black">MiCat.Online</span>
         </Link>
 
-        {/* Desktop Search Bar */}
-        <div className="hidden md:flex w-48">
-          <div className="relative w-full">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input 
-              type="text" 
-              placeholder="Search catbots..." 
-              value={searchQuery} 
-              onChange={e => setSearchQuery(e.target.value)} 
-              className="pl-10 bg-background"
-            />
-          </div>
-        </div>
-
         <nav className="flex items-center gap-4">
+          {/* Desktop Search Bar */}
+          <div className="hidden md:flex w-48">
+            <div className="relative w-full px-3 py-2 rounded-md hover:bg-black/10 transition-colors">
+              <Search className="absolute left-6 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                type="text" 
+                placeholder="Search catbots..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)} 
+                className="pl-7 pr-3 py-0 h-auto bg-transparent border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+              />
+            </div>
+          </div>
           {user ? <>
               <Link to="/" className={navLinkClass(location.pathname === "/")}>
                 <Home className="h-4 w-4" />
