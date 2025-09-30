@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearch } from "@/contexts/SearchContext";
 import { useState, useEffect } from "react";
-import heroGrassImage from "@/assets/hero-cat-grass.png";
+import heroGrassImage from "@/assets/hero-cat-grass-new.png";
 interface Catbot {
   id: string;
   name: string;
