@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearch } from "@/contexts/SearchContext";
 import { useState, useEffect } from "react";
+import heroGrassImage from "@/assets/hero-cat-grass.png";
 interface Catbot {
   id: string;
   name: string;
@@ -71,25 +72,52 @@ const Index = () => {
         <Navigation />
         
 
-        {/* Hero Section */}
-        <main className="container mx-auto px-4 pt-4 pb-16">
-          <div className="text-center max-w-4xl mx-auto animate-fade-in">
+        {/* Hero Section with Background Image */}
+        <main className="w-full aspect-[21/9] relative overflow-hidden" style={{backgroundImage: `url(${heroGrassImage})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
+          {/* Dark overlay for text contrast */}
+          <div className="absolute inset-0 bg-black/40"></div>
           
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-black">Create Your Own Catbot</h1>
-          
-          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own cat to life or build a purrfect companion.</p>
-
-        </div>
-
-        {/* Start Chatting Section */}
-        <section className="mt-4 mb-4">
-          <div className="text-center mb-8">
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Or start chatting to one of our cats now...
-            </p>
+          {/* Hero text overlay */}
+          <div className="relative z-10 flex items-center justify-center h-full">
+            <div className="text-center max-w-4xl mx-auto px-4 animate-fade-in">
+              <h1 className="text-4xl md:text-5xl font-bold mb-3 text-white drop-shadow-lg">Create Your Own Catbot</h1>
+              <p className="text-xl text-white/90 mb-6 max-w-2xl mx-auto drop-shadow-lg">Bring your own cat to life or build a purrfect companion.</p>
+              
+              {/* Action buttons */}
+              <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+                {user ? (
+                  <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
+                    <Link to="/create" className="flex items-center gap-3">
+                      <Plus className="h-5 w-5 animate-bounce-soft" />
+                      Create Catbot
+                      <Sparkles className="h-4 w-4 animate-float" />
+                    </Link>
+                  </Button>
+                ) : (
+                  <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
+                    <Link to="/auth" className="flex items-center gap-3">
+                      <ArrowRight className="h-5 w-5 animate-wiggle" />
+                      Get Started
+                      <Sparkles className="h-4 w-4 animate-float" />
+                    </Link>
+                  </Button>
+                )}
+              </div>
+            </div>
           </div>
+        </main>
 
-        </section>
+        {/* Content Container */}
+        <div className="container mx-auto px-4 pt-16 pb-16">
+
+          {/* Start Chatting Section */}
+          <section className="mt-4 mb-4">
+            <div className="text-center mb-8">
+              <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+                Or start chatting to one of our cats now...
+              </p>
+            </div>
+          </section>
 
         {/* Search Results */}
         {isSearching && (
@@ -285,7 +313,7 @@ const Index = () => {
           </>
         )}
 
-        </main>
+        </div>
         
         <Footer />
       </div>
