@@ -126,6 +126,7 @@ const Navigation = () => {
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
               >
                 <Search className="h-4 w-4" />
+                Search
               </button>
 
               <DropdownMenu>
@@ -179,6 +180,7 @@ const Navigation = () => {
                 onClick={() => setShowMobileSearch(!showMobileSearch)}
               >
                 <Search className="h-4 w-4" />
+                Search
               </button>
 
               <Link to="/auth" className="px-3 py-2 rounded-md text-sm font-medium text-black bg-black/10 hover:bg-black/20 transition-colors flex items-center gap-2">
