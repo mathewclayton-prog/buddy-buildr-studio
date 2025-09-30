@@ -82,7 +82,7 @@ const Index = () => {
           {/* Start Chatting Section */}
           <section className="mt-8 mb-6">
             <div className="text-left mb-6">
-              <p className="text-lg text-muted-foreground">
+              <p className="text-lg font-bold">
                 Start chatting to one of our cats or create your own...
               </p>
             </div>
