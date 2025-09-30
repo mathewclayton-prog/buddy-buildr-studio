@@ -1,11 +1,10 @@
-import { Bot, Plus, Search, LogOut, User, Home, Settings, ChevronDown, Filter } from "lucide-react";
+import { Bot, Plus, Search, LogOut, User, Home, Settings, ChevronDown } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useSearch } from "@/contexts/SearchContext";
 import { Input } from "@/components/ui/input";
-import { TagFilter } from "@/components/TagFilter";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -13,18 +12,12 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Button } from "@/components/ui/button";
 
 
 const Navigation = () => {
   const location = useLocation();
   const { user, signOut } = useAuth();
-  const { searchQuery, setSearchQuery, selectedTags, setSelectedTags, availableTags } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [displayName, setDisplayName] = useState<string>("");
   const [avatarUrl, setAvatarUrl] = useState<string>("");
   const [loading, setLoading] = useState(true);
@@ -96,39 +89,16 @@ const Navigation = () => {
         </Link>
 
         {/* Desktop Search Bar */}
-        <div className="hidden md:flex flex-1 max-w-lg mx-8">
-          <div className="flex items-center gap-2 w-full">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="text" 
-                placeholder="Search catbots..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
-                className="pl-10 bg-background"
-              />
-            </div>
-            {availableTags.length > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    {selectedTags.length > 0 && (
-                      <span className="bg-primary text-primary-foreground rounded-full text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center">
-                        {selectedTags.length}
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white border shadow-lg z-50">
-                  <TagFilter
-                    availableTags={availableTags}
-                    selectedTags={selectedTags}
-                    onTagsChange={setSelectedTags}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
+        <div className="hidden md:flex w-48">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="text" 
+              placeholder="Search catbots..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="pl-10 bg-background"
+            />
           </div>
         </div>
 
@@ -223,38 +193,15 @@ const Navigation = () => {
       {/* Mobile Search Dropdown */}
       {showMobileSearch && (
         <div className="md:hidden border-t bg-white px-4 py-3">
-          <div className="flex items-center gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input 
-                type="text" 
-                placeholder="Search catbots..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)} 
-                className="pl-10 bg-background"
-              />
-            </div>
-            {availableTags.length > 0 && (
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <Filter className="h-4 w-4" />
-                    {selectedTags.length > 0 && (
-                      <span className="bg-primary text-primary-foreground rounded-full text-xs px-1.5 py-0.5 min-w-[1.25rem] h-5 flex items-center justify-center">
-                        {selectedTags.length}
-                      </span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-80 bg-white border shadow-lg z-50">
-                  <TagFilter
-                    availableTags={availableTags}
-                    selectedTags={selectedTags}
-                    onTagsChange={setSelectedTags}
-                  />
-                </PopoverContent>
-              </Popover>
-            )}
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input 
+              type="text" 
+              placeholder="Search catbots..." 
+              value={searchQuery} 
+              onChange={e => setSearchQuery(e.target.value)} 
+              className="pl-10 bg-background"
+            />
           </div>
         </div>
       )}
