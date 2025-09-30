@@ -122,22 +122,6 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
           {catbot.public_profile || catbot.description || "A mysterious catbot with lots to share"}
         </p>
         
-        {/* Tags */}
-        {catbot.tags && catbot.tags.length > 0 && (
-          <div className="flex flex-wrap gap-0.5 mt-1">
-            {catbot.tags.slice(0, 2).map(tag => (
-              <Badge key={tag} variant="outline" className="text-xs px-0.5 py-0">
-                {tag}
-              </Badge>
-            ))}
-            {catbot.tags.length > 2 && (
-              <Badge variant="outline" className="text-xs px-0.5 py-0">
-                +{catbot.tags.length - 2}
-              </Badge>
-            )}
-          </div>
-        )}
-        
         {/* Stats and Like Button */}
         <div className="flex items-center justify-between mt-0.5">
           <StatsDisplay 
