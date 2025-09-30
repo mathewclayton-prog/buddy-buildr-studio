@@ -1,14 +1,12 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CatbotCard } from "@/components/CatbotCard";
-import { TagFilter } from "@/components/TagFilter";
 import { Bot, Plus, Users, Sparkles, MessageCircle, ArrowRight, Search, TrendingUp, Clock, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
-import { supabase } from "@/integrations/supabase/client";
+import { useSearch } from "@/contexts/SearchContext";
 import { useState, useEffect } from "react";
 interface Catbot {
   id: string;
@@ -25,88 +23,39 @@ interface Catbot {
 
 const Index = () => {
   const { user } = useAuth();
-  const [allCatbots, setAllCatbots] = useState<Catbot[]>([]);
-  const [filteredCatbots, setFilteredCatbots] = useState<Catbot[]>([]);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [availableTags, setAvailableTags] = useState<string[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { allCatbots, filteredCatbots, isSearching, loading, clearSearch } = useSearch();
   
   // Organized sections
   const [mostPopular, setMostPopular] = useState<Catbot[]>([]);
   const [mostRecent, setMostRecent] = useState<Catbot[]>([]);
   const [trending, setTrending] = useState<Catbot[]>([]);
-  
-  const isSearching = searchQuery.trim() !== "" || selectedTags.length > 0;
+  // Organize catbots when data changes
   useEffect(() => {
-    loadAllCatbots();
-  }, []);
-
-  useEffect(() => {
-    if (isSearching) {
-      let filtered = allCatbots;
-
-      // Filter by search query
-      if (searchQuery.trim() !== "") {
-        filtered = filtered.filter(catbot => 
-          catbot.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-          (catbot.description && catbot.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
-          (catbot.public_profile && catbot.public_profile.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
-      }
-
-      // Filter by selected tags
-      if (selectedTags.length > 0) {
-        filtered = filtered.filter(catbot => 
-          catbot.tags && catbot.tags.some(tag => selectedTags.includes(tag))
-        );
-      }
-
-      setFilteredCatbots(filtered);
+    if (allCatbots.length > 0) {
+      organizeCatbotSections();
     }
-  }, [allCatbots, searchQuery, selectedTags, isSearching]);
-  const loadAllCatbots = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('catbots')
-        .select('id, name, description, public_profile, avatar_url, created_at, updated_at, is_public, like_count, interaction_count, tags')
-        .eq('is_public', true)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      
-      const catbots = data || [];
-      setAllCatbots(catbots);
-      
-      // Extract all available tags
-      const allTags = catbots.flatMap(catbot => catbot.tags || []);
-      const uniqueTags = Array.from(new Set(allTags)).sort();
-      setAvailableTags(uniqueTags);
-      
-      // Organize into sections with no duplicates
-      // Priority: Popular > Trending > Recent
-      
-      // 1. Most Popular (top 7 by like_count)
-      const popular = [...catbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 7);
-      const popularIds = new Set(popular.map(c => c.id));
-      
-      // 2. Trending (top 7 by interaction_count, excluding Popular)
-      const remainingAfterPopular = catbots.filter(c => !popularIds.has(c.id));
-      const trendingData = [...remainingAfterPopular].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 7);
-      const trendingIds = new Set(trendingData.map(c => c.id));
-      
-      // 3. Recent (by created_at, excluding Popular and Trending)
-      const remainingAfterTrending = remainingAfterPopular.filter(c => !trendingIds.has(c.id));
-      const recent = [...remainingAfterTrending].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      setMostPopular(popular);
-      setTrending(trendingData);
-      setMostRecent(recent);
-    } catch (error) {
-      console.error('Error loading catbots:', error);
-    } finally {
-      setLoading(false);
-    }
+  }, [allCatbots]);
+
+  const organizeCatbotSections = () => {
+    // Organize into sections with no duplicates
+    // Priority: Popular > Trending > Recent
+    
+    // 1. Most Popular (top 7 by like_count)
+    const popular = [...allCatbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0)).slice(0, 7);
+    const popularIds = new Set(popular.map(c => c.id));
+    
+    // 2. Trending (top 7 by interaction_count, excluding Popular)
+    const remainingAfterPopular = allCatbots.filter(c => !popularIds.has(c.id));
+    const trendingData = [...remainingAfterPopular].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0)).slice(0, 7);
+    const trendingIds = new Set(trendingData.map(c => c.id));
+    
+    // 3. Recent (by created_at, excluding Popular and Trending)
+    const remainingAfterTrending = remainingAfterPopular.filter(c => !trendingIds.has(c.id));
+    const recent = [...remainingAfterTrending].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    
+    setMostPopular(popular);
+    setTrending(trendingData);
+    setMostRecent(recent);
   };
   const getDefaultAvatar = (catbot: Catbot) => {
     const colors = ["from-red-400 to-pink-400", "from-blue-400 to-purple-400", "from-green-400 to-blue-400", "from-yellow-400 to-orange-400", "from-purple-400 to-pink-400", "from-indigo-400 to-purple-400"];
@@ -159,34 +108,6 @@ const Index = () => {
             </p>
           </div>
 
-          {/* Search and Filter Bar */}
-          {allCatbots.length > 0 && (
-            <div className="max-w-4xl mx-auto mb-8 animate-fade-in space-y-4">
-              <div className="max-w-md mx-auto">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input 
-                    type="text" 
-                    placeholder="Search catbots by name, description, or personality..." 
-                    value={searchQuery} 
-                    onChange={e => setSearchQuery(e.target.value)} 
-                    className="pl-10 bg-card shadow-soft" 
-                  />
-                </div>
-              </div>
-              
-              {/* Tag Filter */}
-              {availableTags.length > 0 && (
-                <div className="flex justify-center">
-                  <TagFilter
-                    availableTags={availableTags}
-                    selectedTags={selectedTags}
-                    onTagsChange={setSelectedTags}
-                  />
-                </div>
-              )}
-            </div>
-          )}
         </section>
 
         {/* Search Results */}
@@ -224,10 +145,7 @@ const Index = () => {
                 <p className="text-muted-foreground mb-4">
                   Try adjusting your search or browse all available catbots
                 </p>
-                <Button variant="outline" onClick={() => {
-                  setSearchQuery("");
-                  setSelectedTags([]);
-                }}>
+                <Button variant="outline" onClick={clearSearch}>
                   Clear Search
                 </Button>
               </div>
@@ -268,12 +186,8 @@ const Index = () => {
                         <h2 className="text-lg font-bold">Most Popular</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
-                        setSearchQuery("");
-                        setSelectedTags([]);
-                        // Sort all by popularity and show in search results
-                        const sorted = [...allCatbots].sort((a, b) => (b.like_count || 0) - (a.like_count || 0));
-                        setFilteredCatbots(sorted);
-                        setSearchQuery("popularity");
+                        clearSearch();
+                        // This will be handled by the search context
                       }}>
                         View All
                       </Button>
@@ -305,12 +219,8 @@ const Index = () => {
                         <h2 className="text-lg font-bold">Trending</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
-                        setSearchQuery("");
-                        setSelectedTags([]);
-                        // Sort all by interaction count and show in search results
-                        const sorted = [...allCatbots].sort((a, b) => (b.interaction_count || 0) - (a.interaction_count || 0));
-                        setFilteredCatbots(sorted);
-                        setSearchQuery("trending");
+                        clearSearch();
+                        // This will be handled by the search context
                       }}>
                         View All
                       </Button>
@@ -342,12 +252,8 @@ const Index = () => {
                         <h2 className="text-lg font-bold">Most Recent</h2>
                       </div>
                       <Button variant="outline" size="sm" onClick={() => {
-                        setSearchQuery("");
-                        setSelectedTags([]);
-                        // Sort all by creation date and show in search results
-                        const sorted = [...allCatbots].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-                        setFilteredCatbots(sorted);
-                        setSearchQuery("recent");
+                        clearSearch();
+                        // This will be handled by the search context
                       }}>
                         View All
                       </Button>
