@@ -114,7 +114,7 @@ const Navigation = () => {
                 My Cats
               </Link>
 
-              <Link to="/create" className={navLinkClass(location.pathname === "/create")}>
+              <Link to="/create" className="px-3 py-2 rounded-md text-sm font-medium text-white bg-orange-500 hover:bg-orange-600 transition-colors flex items-center gap-2">
                 <Plus className="h-4 w-4" />
                 <span className="hidden sm:inline">Create a Cat</span>
                 <span className="sm:hidden">Create</span>
