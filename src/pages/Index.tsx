@@ -1,16 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CatbotCard } from "@/components/CatbotCard";
 import { TagFilter } from "@/components/TagFilter";
-import { AppSidebar } from "@/components/AppSidebar";
 import { Bot, Plus, Users, Sparkles, MessageCircle, ArrowRight, Search, TrendingUp, Clock, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useState, useEffect } from "react";
-import { SidebarTrigger } from "@/components/ui/sidebar";
 interface Catbot {
   id: string;
   name: string;
@@ -118,31 +117,77 @@ const Index = () => {
       </div>
     );
   };
-  return (
-    <div className="flex min-h-screen w-full">
-      <AppSidebar 
-        searchQuery={searchQuery}
-        setSearchQuery={setSearchQuery}
-      />
-      
-      <div className="flex-1 flex flex-col min-h-screen bg-background">
-        {/* Mobile trigger */}
-        <header className="md:hidden p-2 border-b">
-          <SidebarTrigger />
-        </header>
+  return <>
+      <div className="min-h-screen bg-background">
+        <Navigation />
+        
 
-        {/* Main Content */}
-        <main className="flex-1 container mx-auto px-4 pt-4 pb-16">
-          {/* Tag Filter */}
-          {availableTags.length > 0 && (
-            <div className="mb-6 flex justify-center">
-              <TagFilter
-                availableTags={availableTags}
-                selectedTags={selectedTags}
-                onTagsChange={setSelectedTags}
-              />
+        {/* Hero Section */}
+        <main className="container mx-auto px-4 pt-4 pb-16">
+          <div className="text-center max-w-4xl mx-auto animate-fade-in">
+          
+          <h1 className="text-4xl md:text-5xl font-bold mb-3 text-black">Create Your Own Catbot</h1>
+          
+          <p className="text-xl text-muted-foreground mb-6 max-w-2xl mx-auto"> Bring your own cat to life or build a purrfect companion.</p>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            {user ? <>
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
+                  <Link to="/create" className="flex items-center gap-3">
+                    <Plus className="h-5 w-5 animate-bounce-soft" />
+                    Create Catbot
+                    <Sparkles className="h-4 w-4 animate-float" />
+                  </Link>
+                </Button>
+              </> : <>
+                <Button variant="hero" size="lg" asChild className="px-8 py-4 text-lg hover-scale">
+                  <Link to="/auth" className="flex items-center gap-3">
+                    <ArrowRight className="h-5 w-5 animate-wiggle" />
+                    Get Started
+                    <Sparkles className="h-4 w-4 animate-float" />
+                  </Link>
+                </Button>
+              </>}
+          </div>
+        </div>
+
+        {/* Start Chatting Section */}
+        <section className="mt-4 mb-4">
+          <div className="text-center mb-8">
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Or start chatting to one of our cats now...
+            </p>
+          </div>
+
+          {/* Search and Filter Bar */}
+          {allCatbots.length > 0 && (
+            <div className="max-w-4xl mx-auto mb-8 animate-fade-in space-y-4">
+              <div className="max-w-md mx-auto">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input 
+                    type="text" 
+                    placeholder="Search catbots by name, description, or personality..." 
+                    value={searchQuery} 
+                    onChange={e => setSearchQuery(e.target.value)} 
+                    className="pl-10 bg-card shadow-soft" 
+                  />
+                </div>
+              </div>
+              
+              {/* Tag Filter */}
+              {availableTags.length > 0 && (
+                <div className="flex justify-center">
+                  <TagFilter
+                    availableTags={availableTags}
+                    selectedTags={selectedTags}
+                    onTagsChange={setSelectedTags}
+                  />
+                </div>
+              )}
             </div>
           )}
+        </section>
 
         {/* Search Results */}
         {isSearching && (
@@ -155,7 +200,7 @@ const Index = () => {
             </div>
 
             {filteredCatbots.length > 0 ? (
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                 {filteredCatbots.map((catbot, index) => (
                   <div 
                     key={catbot.id}
@@ -196,7 +241,7 @@ const Index = () => {
             {loading ? (
               // Loading skeleton
               <section className="mb-16">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   {[...Array(12)].map((_, index) => (
                     <Card key={index} className="animate-pulse shadow-card overflow-hidden animate-fade-in" style={{ animationDelay: `${index * 100}ms` }}>
                       <div className="h-32 bg-muted animate-scale-pulse" />
@@ -233,8 +278,8 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                      {mostPopular.slice(0, window.innerWidth >= 1024 ? 5 : 3).map((catbot, index) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                      {mostPopular.slice(0, window.innerWidth >= 1024 ? 7 : 4).map((catbot, index) => (
                         <div 
                           key={catbot.id}
                           className="animate-fade-in"
@@ -270,8 +315,8 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
-                      {trending.slice(0, window.innerWidth >= 1024 ? 5 : 3).map((catbot, index) => (
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
+                      {trending.slice(0, window.innerWidth >= 1024 ? 7 : 4).map((catbot, index) => (
                         <div 
                           key={catbot.id}
                           className="animate-fade-in"
@@ -307,7 +352,7 @@ const Index = () => {
                         View All
                       </Button>
                     </div>
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                       {mostRecent.map((catbot, index) => (
                         <div 
                           key={catbot.id}
@@ -328,7 +373,7 @@ const Index = () => {
             ) : (
               // Empty state - show sample cards
               <section className="mb-16">
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3">
                   {[{
                     id: "sample",
                     name: "Be the first!",
@@ -357,7 +402,6 @@ const Index = () => {
         
         <Footer />
       </div>
-    </div>
-  );
+    </>;
 };
 export default Index;

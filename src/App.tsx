@@ -4,7 +4,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
-import { SidebarProvider } from "@/components/ui/sidebar";
 import Index from "./pages/Index";
 import CreateCharacter from "./pages/CreateCharacter";
 
@@ -31,121 +30,29 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-          <Routes>
-            {/* Standalone pages without sidebar */}
-            <Route path="/auth" element={<Auth />} />
-            
-            {/* Main app pages with sidebar */}
-            <Route path="/" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Index />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/create" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <CreateCharacter />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/edit/:catbotId" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <CreateCharacter />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/browse" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Index />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/my-cats" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <MyCatbots />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/chat/:characterId" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Chat />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/profile" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Profile />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/about" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <About />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/contact" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Contact />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/blog" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Blog />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/terms" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Terms />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/privacy" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Privacy />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/community-guidelines" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <CommunityGuidelines />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/help" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <Help />
-                </div>
-              </SidebarProvider>
-            } />
-            <Route path="/faq" element={
-              <SidebarProvider>
-                <div className="flex min-h-screen w-full">
-                  <FAQ />
-                </div>
-              </SidebarProvider>
-            } />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/create" element={<CreateCharacter />} />
+          <Route path="/edit/:catbotId" element={<CreateCharacter />} />
+          <Route path="/browse" element={<Index />} />
+          
+          <Route path="/my-cats" element={<MyCatbots />} />
+          <Route path="/chat/:characterId" element={<Chat />} />
+          <Route path="/profile" element={<Profile />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/blog" element={<Blog />} />
+          <Route path="/terms" element={<Terms />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/community-guidelines" element={<CommunityGuidelines />} />
+          <Route path="/help" element={<Help />} />
+          <Route path="/faq" element={<FAQ />} />
+          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
 );
