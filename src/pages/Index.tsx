@@ -74,7 +74,7 @@ const Index = () => {
 
         {/* Hero Section with Background Image */}
         <main className="w-full aspect-[9/2] relative overflow-hidden" style={{backgroundImage: `url(${heroGrassImage})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
-          <div className="absolute inset-0 flex items-start pt-8">
+          <div className="absolute inset-0 flex items-end pb-8">
             <div className="container mx-auto px-4">
               <h1 className="text-2xl font-bold text-white drop-shadow-lg text-left" style={{fontSize: '25px'}}>
                 Talk to a catbot or create your own.
