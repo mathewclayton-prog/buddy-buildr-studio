@@ -73,7 +73,7 @@ const Index = () => {
         
 
         {/* Hero Section with Background Image */}
-        <main className="w-full aspect-[21/9] relative overflow-hidden" style={{backgroundImage: `url(${heroGrassImage})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
+        <main className="w-full aspect-[9/2] relative overflow-hidden" style={{backgroundImage: `url(${heroGrassImage})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
           {/* Dark overlay for text contrast */}
           <div className="absolute inset-0 bg-black/40"></div>
           
