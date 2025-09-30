@@ -90,7 +90,7 @@ export const CatbotCard = ({ catbot, variant = 'chat', delay = 0 }: CatbotCardPr
   return (
     <CardWrapper>
       <Card 
-        className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-lift-subtle animate-fade-in bg-card border border-orange-500 flex flex-col h-80 w-full"
+        className="group cursor-pointer overflow-hidden shadow-card hover:shadow-primary transition-all duration-300 hover-lift-subtle animate-fade-in bg-card border border-orange-500 flex flex-col h-60 w-full"
         style={{ animationDelay: `${delay}ms` }}
       >
       {/* Hero Image Section - Flexible height to maintain aspect ratio */}
