@@ -84,16 +84,7 @@ const Index = () => {
         </main>
 
         {/* Content Container */}
-        <div className="container mx-auto px-4 pt-2 pb-16">
-
-          {/* Start Chatting Section */}
-          <section className="mt-0 mb-6">
-            <div className="text-left mb-2">
-              <p className="text-lg font-bold">
-                Start chatting to one of our cats or create your own...
-              </p>
-            </div>
-          </section>
+        <div className="container mx-auto px-4 py-4">{/* Reduced padding */}
 
         {/* Search Results */}
         {isSearching && (
