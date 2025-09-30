@@ -76,7 +76,7 @@ const Index = () => {
         <main className="w-full aspect-[9/2] relative overflow-hidden" style={{backgroundImage: `url(${heroGrassImage})`, backgroundSize: 'cover', backgroundPosition: 'center'}}>
           <div className="absolute inset-0 flex items-start pt-8">
             <div className="container mx-auto px-4">
-              <h1 className="text-xl font-bold text-white drop-shadow-lg text-left">
+              <h1 className="text-2xl font-bold text-white drop-shadow-lg text-left" style={{fontSize: '25px'}}>
                 Chat to a catbot or create your own.
               </h1>
             </div>
