@@ -8,22 +8,22 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 42 100% 97%;
+    --background: 0 0% 100%;
     --foreground: 20 5% 10%;
 
-    --card: 42 100% 99%;
+    --card: 0 0% 100%;
     --card-foreground: 20 5% 10%;
 
-    --popover: 42 100% 99%;
+    --popover: 0 0% 100%;
     --popover-foreground: 20 5% 10%;
 
     --primary: 25 95% 53%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 42 50% 92%;
+    --secondary: 0 0% 96%;
     --secondary-foreground: 20 5% 10%;
 
-    --muted: 42 50% 92%;
+    --muted: 0 0% 96%;
     --muted-foreground: 20 5% 40%;
 
     --accent: 35 100% 60%;
@@ -32,15 +32,15 @@ All colors MUST be HSL.
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 42 30% 88%;
-    --input: 42 30% 90%;
+    --border: 0 0% 90%;
+    --input: 0 0% 94%;
     --ring: 25 95% 53%;
 
     /* Custom AI-themed tokens */
     --nav-orange: 25 95% 53%;
     --nav-orange-foreground: 0 0% 100%;
     --gradient-primary: linear-gradient(135deg, hsl(25 95% 53%), hsl(35 100% 60%));
-    --gradient-secondary: linear-gradient(135deg, hsl(42 100% 98%), hsl(42 50% 92%));
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 100%), hsl(0 0% 96%));
     --gradient-hero: linear-gradient(135deg, hsl(25 95% 53%), hsl(35 100% 60%), hsl(45 100% 65%));
     --shadow-soft: 0 2px 20px -4px hsl(25 95% 53% / 0.15);
     --shadow-card: 0 4px 25px -8px hsl(20 5% 15% / 0.08);
@@ -48,7 +48,7 @@ All colors MUST be HSL.
 
     --radius: 0.5rem;
 
-    --sidebar-background: 0 0% 98%;
+    --sidebar-background: 0 0% 100%;
 
     --sidebar-foreground: 240 5.3% 26.1%;
 
