@@ -67,8 +67,7 @@ export default function ComingSoon() {
           <h1 className="text-5xl md:text-7xl font-bold bg-gradient-to-r from-primary via-primary/80 to-primary bg-clip-text text-transparent animate-fade-in">
             MiCat.Online
           </h1>
-          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl">Create your own A.I. cat companions
-Sign-up to become a beta tester</p>
+          <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl px-[26px]">Create your own A.I. cat companions. Sign-up to become a beta tester.</p>
         </div>
 
         {/* Email Signup Form */}
