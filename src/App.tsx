@@ -24,6 +24,7 @@ import CommunityGuidelines from "./pages/CommunityGuidelines";
 import Help from "./pages/Help";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
+import AdminDashboard from "./pages/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -89,6 +90,7 @@ const App = () => {
                 <Route path="/community-guidelines" element={<CommunityGuidelines />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/faq" element={<FAQ />} />
+                <Route path="/admin" element={<AdminDashboard />} />
 
                 {/* Dev routes - for accessing full app during Coming Soon mode */}
                 <Route path="/dev" element={<Index />} />
@@ -108,6 +110,7 @@ const App = () => {
                 <Route path="/dev/community-guidelines" element={<CommunityGuidelines />} />
                 <Route path="/dev/help" element={<Help />} />
                 <Route path="/dev/faq" element={<FAQ />} />
+                <Route path="/dev/admin" element={<AdminDashboard />} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
