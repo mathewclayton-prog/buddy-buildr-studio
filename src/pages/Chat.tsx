@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCharacterForChat } from "@/lib/characterQueries";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
+import { validateContent } from "@/utils/contentModeration";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
@@ -165,10 +166,24 @@ const Chat = () => {
 
     try {
       if (localLLM.isReady() && isSupabaseCatbot) {
-        return await localLLM.generateResponse(character.id, userMessage, conversationHistory, user?.id);
+        const response = await localLLM.generateResponse(character.id, userMessage, conversationHistory, user?.id);
+        return response;
       }
-    } catch (error) {
-      console.error("LLM generation failed, using fallback:", error);
+    } catch (error: any) {
+      console.error("LLM generation failed:", error);
+      
+      // Check if it's a moderation error
+      if (error.message === 'inappropriate_content') {
+        toast({
+          title: "Message Blocked",
+          description: "Your message was blocked by our content filter.",
+          variant: "destructive",
+        });
+        throw error;
+      }
+      
+      // For other errors, continue to fallback
+      console.log("Using fallback response");
     }
 
     // Fallback to simple responses if LLM not available
@@ -214,6 +229,17 @@ const Chat = () => {
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || newMessage.trim();
     if (!textToSend || !character || !sessionId || !user) return;
+
+    // Validate message content before sending
+    const validation = validateContent(textToSend);
+    if (!validation.isValid) {
+      toast({
+        title: "Message Not Allowed",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       // Save user message to database

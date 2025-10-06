@@ -67,6 +67,12 @@ class LocalLLMService {
         throw new Error(error.message || "Failed to generate response");
       }
 
+      // Check if response contains moderation error
+      if (data?.error === 'inappropriate_content') {
+        const moderationError = new Error('inappropriate_content');
+        throw moderationError;
+      }
+
       if (data?.response) {
         console.log("✅ Generated response:", data.response);
         return data.response;

@@ -192,6 +192,38 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Content moderation keywords
+const PROHIBITED_KEYWORDS = [
+  // Sexual/explicit content
+  'porn', 'xxx', 'sex', 'nude', 'nsfw', 'explicit', 'erotic', 'adult', 'hentai',
+  'sexy', 'seductive', 'aroused', 'orgasm', 'masturbat', 'genitalia', 'penis', 'vagina',
+  
+  // Violence
+  'kill', 'murder', 'torture', 'abuse', 'violent', 'gore', 'blood', 'death', 'weapon',
+  'gun', 'knife', 'bomb', 'suicide', 'harm',
+  
+  // Hate speech
+  'racist', 'nazi', 'hate', 'slur', 'bigot',
+  
+  // Illegal activities
+  'drug', 'illegal', 'trafficking', 'terrorism', 'exploit'
+];
+
+function validateMessageContent(text: string): { isValid: boolean; message?: string } {
+  const lowerText = text.toLowerCase();
+  
+  for (const keyword of PROHIBITED_KEYWORDS) {
+    if (lowerText.includes(keyword)) {
+      return {
+        isValid: false,
+        message: 'Your message contains inappropriate content and cannot be processed.'
+      };
+    }
+  }
+  
+  return { isValid: true };
+}
+
 function getSimplePersonalityGuidance(personality: string): string {
   const guidance = {
     friendly: `Be warm, welcoming, and naturally encouraging. Show genuine interest in what the user shares and respond with positivity.`,
@@ -545,6 +577,22 @@ serve(async (req) => {
   try {
     const { catbotId, userMessage, conversationHistory = [], userId } = await req.json();
 
+    // Validate user message content
+    const validation = validateMessageContent(userMessage);
+    if (!validation.isValid) {
+      console.warn('⚠️ Blocked inappropriate user message');
+      return new Response(
+        JSON.stringify({ 
+          error: 'inappropriate_content',
+          message: validation.message
+        }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+
     console.log('🤖 Processing chat request for catbot:', catbotId);
 
     // Get catbot data
@@ -625,6 +673,24 @@ serve(async (req) => {
 
     if (!aiResponse) {
       throw new Error('No response from OpenAI');
+    }
+
+    // Validate AI response before sending to user
+    const aiValidation = validateMessageContent(aiResponse);
+    if (!aiValidation.isValid) {
+      console.warn('⚠️ AI generated inappropriate content, using safe fallback');
+      
+      const safeResponse = "I apologize, but I need to rephrase that response. Let me think of a better way to answer your question. Could you rephrase what you'd like to know?";
+      
+      return new Response(
+        JSON.stringify({ response: safeResponse }),
+        { 
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json' 
+          } 
+        }
+      );
     }
 
     console.log('✅ Generated response:', aiResponse);
