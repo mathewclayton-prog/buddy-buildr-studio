@@ -593,6 +593,14 @@ export type Database = {
           total_sessions: number
         }[]
       }
+      calculate_stickiness: {
+        Args: { p_date?: string }
+        Returns: {
+          dau: number
+          mau: number
+          stickiness_ratio: number
+        }[]
+      }
       get_bounce_rate_trend: {
         Args: { p_days_back?: number }
         Returns: {
@@ -606,6 +614,18 @@ export type Database = {
         Returns: {
           avatar_url: string
           display_name: string
+        }[]
+      }
+      get_cohort_retention: {
+        Args: { p_weeks_back?: number }
+        Returns: {
+          cohort_size: number
+          cohort_week: string
+          week_0: number
+          week_1: number
+          week_2: number
+          week_3: number
+          week_4: number
         }[]
       }
       get_session_duration_distribution: {

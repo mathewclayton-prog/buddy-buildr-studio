@@ -59,6 +59,22 @@ interface SessionStats {
   bouncedSessions: number;
 }
 
+interface StickinessStats {
+  dau: number;
+  mau: number;
+  stickinessRatio: number;
+}
+
+interface CohortData {
+  cohort_week: string;
+  cohort_size: number;
+  week_0: number;
+  week_1: number;
+  week_2: number;
+  week_3: number;
+  week_4: number;
+}
+
 const AdminDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -89,6 +105,14 @@ const AdminDashboard = () => {
   });
   const [sessionDistribution, setSessionDistribution] = useState<ChartDataPoint[]>([]);
   const [bounceRateTrend, setBounceRateTrend] = useState<ChartDataPoint[]>([]);
+  
+  // Retention analytics
+  const [stickinessStats, setStickinessStats] = useState<StickinessStats>({
+    dau: 0,
+    mau: 0,
+    stickinessRatio: 0
+  });
+  const [cohortData, setCohortData] = useState<CohortData[]>([]);
 
   // Check admin status
   useEffect(() => {
@@ -139,7 +163,8 @@ const AdminDashboard = () => {
         loadMessageData(),
         loadTrafficSources(),
         loadTopCatbots(),
-        loadSessionAnalytics()
+        loadSessionAnalytics(),
+        loadRetentionAnalytics()
       ]);
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -338,6 +363,44 @@ const AdminDashboard = () => {
     }
   };
 
+  const loadRetentionAnalytics = async () => {
+    try {
+      // Load stickiness (DAU/MAU ratio)
+      const { data: stickinessData, error: stickinessError } = await supabase.rpc('calculate_stickiness');
+      
+      if (stickinessError) throw stickinessError;
+      
+      // Load cohort retention
+      const { data: cohortRetentionData, error: cohortError } = await supabase.rpc('get_cohort_retention', {
+        p_weeks_back: 12
+      });
+      
+      if (cohortError) throw cohortError;
+
+      if (stickinessData && stickinessData[0]) {
+        setStickinessStats({
+          dau: stickinessData[0].dau || 0,
+          mau: stickinessData[0].mau || 0,
+          stickinessRatio: stickinessData[0].stickiness_ratio || 0
+        });
+      }
+
+      if (cohortRetentionData) {
+        setCohortData(cohortRetentionData.map((d: any) => ({
+          cohort_week: new Date(d.cohort_week).toLocaleDateString(),
+          cohort_size: d.cohort_size,
+          week_0: d.week_0,
+          week_1: d.week_1,
+          week_2: d.week_2,
+          week_3: d.week_3,
+          week_4: d.week_4
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading retention analytics:', error);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -429,6 +492,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="growth">User Growth</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
+            <TabsTrigger value="retention">Retention</TabsTrigger>
             <TabsTrigger value="traffic">Traffic Sources</TabsTrigger>
             <TabsTrigger value="catbots">Top Catbots</TabsTrigger>
           </TabsList>
@@ -607,6 +671,139 @@ const AdminDashboard = () => {
                     />
                   </LineChart>
                 </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="retention" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>User Stickiness (DAU/MAU Ratio)</CardTitle>
+                <CardDescription>How frequently active users return to your platform</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Daily Active Users</p>
+                    <p className="text-3xl font-bold">{stickinessStats.dau}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Monthly Active Users</p>
+                    <p className="text-3xl font-bold">{stickinessStats.mau}</p>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-sm text-muted-foreground">Stickiness Ratio</p>
+                    <p className="text-3xl font-bold">{stickinessStats.stickinessRatio.toFixed(1)}%</p>
+                    <p className="text-xs text-muted-foreground">
+                      {stickinessStats.stickinessRatio >= 20 ? '✅ Good stickiness' : '⚠️ Room for improvement'}
+                    </p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Cohort Retention Analysis (Last 12 Weeks)</CardTitle>
+                <CardDescription>Percentage of users who return each week after signup</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b">
+                        <th className="text-left p-2 font-medium">Cohort Week</th>
+                        <th className="text-left p-2 font-medium">Size</th>
+                        <th className="text-center p-2 font-medium">Week 0</th>
+                        <th className="text-center p-2 font-medium">Week 1</th>
+                        <th className="text-center p-2 font-medium">Week 2</th>
+                        <th className="text-center p-2 font-medium">Week 3</th>
+                        <th className="text-center p-2 font-medium">Week 4</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {cohortData.map((cohort, idx) => (
+                        <tr key={idx} className="border-b hover:bg-muted/50">
+                          <td className="p-2 font-medium">{cohort.cohort_week}</td>
+                          <td className="p-2">{cohort.cohort_size}</td>
+                          <td className="text-center p-2">
+                            <span className="inline-block px-2 py-1 rounded" style={{
+                              backgroundColor: 'hsl(var(--primary) / 0.2)',
+                              color: 'hsl(var(--primary))'
+                            }}>
+                              {cohort.week_0.toFixed(0)}%
+                            </span>
+                          </td>
+                          <td className="text-center p-2">
+                            {cohort.week_1 !== null && (
+                              <span className="inline-block px-2 py-1 rounded" style={{
+                                backgroundColor: cohort.week_1 >= 40 ? 'hsl(142, 76%, 36% / 0.2)' : 
+                                                 cohort.week_1 >= 20 ? 'hsl(48, 96%, 53% / 0.2)' : 
+                                                 'hsl(0, 84%, 60% / 0.2)',
+                                color: cohort.week_1 >= 40 ? 'hsl(142, 76%, 36%)' : 
+                                       cohort.week_1 >= 20 ? 'hsl(48, 96%, 53%)' : 
+                                       'hsl(0, 84%, 60%)'
+                              }}>
+                                {cohort.week_1.toFixed(0)}%
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center p-2">
+                            {cohort.week_2 !== null && (
+                              <span className="inline-block px-2 py-1 rounded" style={{
+                                backgroundColor: cohort.week_2 >= 40 ? 'hsl(142, 76%, 36% / 0.2)' : 
+                                                 cohort.week_2 >= 20 ? 'hsl(48, 96%, 53% / 0.2)' : 
+                                                 'hsl(0, 84%, 60% / 0.2)',
+                                color: cohort.week_2 >= 40 ? 'hsl(142, 76%, 36%)' : 
+                                       cohort.week_2 >= 20 ? 'hsl(48, 96%, 53%)' : 
+                                       'hsl(0, 84%, 60%)'
+                              }}>
+                                {cohort.week_2.toFixed(0)}%
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center p-2">
+                            {cohort.week_3 !== null && (
+                              <span className="inline-block px-2 py-1 rounded" style={{
+                                backgroundColor: cohort.week_3 >= 40 ? 'hsl(142, 76%, 36% / 0.2)' : 
+                                                 cohort.week_3 >= 20 ? 'hsl(48, 96%, 53% / 0.2)' : 
+                                                 'hsl(0, 84%, 60% / 0.2)',
+                                color: cohort.week_3 >= 40 ? 'hsl(142, 76%, 36%)' : 
+                                       cohort.week_3 >= 20 ? 'hsl(48, 96%, 53%)' : 
+                                       'hsl(0, 84%, 60%)'
+                              }}>
+                                {cohort.week_3.toFixed(0)}%
+                              </span>
+                            )}
+                          </td>
+                          <td className="text-center p-2">
+                            {cohort.week_4 !== null && (
+                              <span className="inline-block px-2 py-1 rounded" style={{
+                                backgroundColor: cohort.week_4 >= 40 ? 'hsl(142, 76%, 36% / 0.2)' : 
+                                                 cohort.week_4 >= 20 ? 'hsl(48, 96%, 53% / 0.2)' : 
+                                                 'hsl(0, 84%, 60% / 0.2)',
+                                color: cohort.week_4 >= 40 ? 'hsl(142, 76%, 36%)' : 
+                                       cohort.week_4 >= 20 ? 'hsl(48, 96%, 53%)' : 
+                                       'hsl(0, 84%, 60%)'
+                              }}>
+                                {cohort.week_4.toFixed(0)}%
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {cohortData.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No cohort data available yet. Data will appear as users sign up and return.
+                    </div>
+                  )}
+                </div>
+                <div className="mt-4 text-xs text-muted-foreground space-y-1">
+                  <p>📊 <strong>How to read:</strong> Each row shows a signup week. Percentages show how many users returned in subsequent weeks.</p>
+                  <p>🟢 Green (≥40%): Excellent retention | 🟡 Yellow (20-40%): Good retention | 🔴 Red (&lt;20%): Needs improvement</p>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
