@@ -56,13 +56,13 @@ const App = () => {
             <Sonner />
             <BrowserRouter>
               <Routes>
+                {/* Main routes */}
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/create" element={<CreateCharacter />} />
                 <Route path="/edit/:catbotId" element={<CreateCharacter />} />
                 <Route path="/browse" element={<Index />} />
-                
                 <Route path="/my-cats" element={<MyCatbots />} />
                 <Route path="/chat/:characterId" element={<Chat />} />
                 <Route path="/profile" element={<Profile />} />
@@ -74,6 +74,26 @@ const App = () => {
                 <Route path="/community-guidelines" element={<CommunityGuidelines />} />
                 <Route path="/help" element={<Help />} />
                 <Route path="/faq" element={<FAQ />} />
+
+                {/* Dev routes - for accessing full app during Coming Soon mode */}
+                <Route path="/dev" element={<Index />} />
+                <Route path="/dev/auth" element={<Auth />} />
+                <Route path="/dev/reset-password" element={<ResetPassword />} />
+                <Route path="/dev/create" element={<CreateCharacter />} />
+                <Route path="/dev/edit/:catbotId" element={<CreateCharacter />} />
+                <Route path="/dev/browse" element={<Index />} />
+                <Route path="/dev/my-cats" element={<MyCatbots />} />
+                <Route path="/dev/chat/:characterId" element={<Chat />} />
+                <Route path="/dev/profile" element={<Profile />} />
+                <Route path="/dev/about" element={<About />} />
+                <Route path="/dev/contact" element={<Contact />} />
+                <Route path="/dev/blog" element={<Blog />} />
+                <Route path="/dev/terms" element={<Terms />} />
+                <Route path="/dev/privacy" element={<Privacy />} />
+                <Route path="/dev/community-guidelines" element={<CommunityGuidelines />} />
+                <Route path="/dev/help" element={<Help />} />
+                <Route path="/dev/faq" element={<FAQ />} />
+
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
