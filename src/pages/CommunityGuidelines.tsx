@@ -1,6 +1,6 @@
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { Check, X, AlertTriangle, Shield, Users } from "lucide-react";
+import { Check, X, AlertTriangle, Shield, Users, Copyright } from "lucide-react";
 
 const CommunityGuidelines = () => {
   return (
@@ -67,6 +67,65 @@ const CommunityGuidelines = () => {
                     <li className="flex items-start gap-2">
                       <X size={16} className="text-red-600 mt-1 flex-shrink-0" />
                       Make catbots designed to harass or upset users
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </section>
+
+            <section>
+              <div className="flex items-center gap-3 mb-6">
+                <Copyright className="text-primary" size={28} />
+                <h2 className="text-2xl font-semibold text-foreground">Intellectual Property & Copyright</h2>
+              </div>
+              
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-medium text-green-600 mb-4">
+                    <Check size={20} />
+                    Do:
+                  </h3>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <Check size={16} className="text-green-600 mt-1 flex-shrink-0" />
+                      Create original content and characters
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check size={16} className="text-green-600 mt-1 flex-shrink-0" />
+                      Use your own images or properly licensed content
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check size={16} className="text-green-600 mt-1 flex-shrink-0" />
+                      Give credit when inspired by others' work
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <Check size={16} className="text-green-600 mt-1 flex-shrink-0" />
+                      Report copyright violations you encounter
+                    </li>
+                  </ul>
+                </div>
+                
+                <div>
+                  <h3 className="flex items-center gap-2 text-lg font-medium text-red-600 mb-4">
+                    <X size={20} />
+                    Don't:
+                  </h3>
+                  <ul className="space-y-3 text-muted-foreground">
+                    <li className="flex items-start gap-2">
+                      <X size={16} className="text-red-600 mt-1 flex-shrink-0" />
+                      Use copyrighted characters from movies, TV, games, or books
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X size={16} className="text-red-600 mt-1 flex-shrink-0" />
+                      Copy images, text, or descriptions from other creators
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X size={16} className="text-red-600 mt-1 flex-shrink-0" />
+                      Use brand names, logos, or trademarks without permission
+                    </li>
+                    <li className="flex items-start gap-2">
+                      <X size={16} className="text-red-600 mt-1 flex-shrink-0" />
+                      Claim others' work as your own
                     </li>
                   </ul>
                 </div>
