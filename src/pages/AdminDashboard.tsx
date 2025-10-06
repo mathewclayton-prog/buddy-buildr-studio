@@ -75,6 +75,25 @@ interface CohortData {
   week_4: number;
 }
 
+interface FunnelStep {
+  step: string;
+  user_count: number;
+  conversion_rate: number;
+  drop_off_rate: number;
+}
+
+interface ActivationStats {
+  avgHours: number;
+  medianHours: number;
+  totalUsers: number;
+}
+
+interface MessagesPerSessionStats {
+  avgMessages: number;
+  medianMessages: number;
+  totalSessions: number;
+}
+
 const AdminDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -113,6 +132,19 @@ const AdminDashboard = () => {
     stickinessRatio: 0
   });
   const [cohortData, setCohortData] = useState<CohortData[]>([]);
+  
+  // Funnel analytics
+  const [funnelData, setFunnelData] = useState<FunnelStep[]>([]);
+  const [activationStats, setActivationStats] = useState<ActivationStats>({
+    avgHours: 0,
+    medianHours: 0,
+    totalUsers: 0
+  });
+  const [messagesPerSession, setMessagesPerSession] = useState<MessagesPerSessionStats>({
+    avgMessages: 0,
+    medianMessages: 0,
+    totalSessions: 0
+  });
 
   // Check admin status
   useEffect(() => {
@@ -164,7 +196,8 @@ const AdminDashboard = () => {
         loadTrafficSources(),
         loadTopCatbots(),
         loadSessionAnalytics(),
-        loadRetentionAnalytics()
+        loadRetentionAnalytics(),
+        loadFunnelAnalytics()
       ]);
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -401,6 +434,47 @@ const AdminDashboard = () => {
     }
   };
 
+  const loadFunnelAnalytics = async () => {
+    try {
+      // Load onboarding funnel
+      const { data: funnelAnalysisData, error: funnelError } = await supabase.rpc('analyze_onboarding_funnel');
+      
+      if (funnelError) throw funnelError;
+      
+      // Load time to first message
+      const { data: activationData, error: activationError } = await supabase.rpc('get_time_to_first_message');
+      
+      if (activationError) throw activationError;
+      
+      // Load messages per session
+      const { data: messagesData, error: messagesError } = await supabase.rpc('get_messages_per_session_stats');
+      
+      if (messagesError) throw messagesError;
+
+      if (funnelAnalysisData) {
+        setFunnelData(funnelAnalysisData);
+      }
+
+      if (activationData && activationData[0]) {
+        setActivationStats({
+          avgHours: activationData[0].avg_hours || 0,
+          medianHours: activationData[0].median_hours || 0,
+          totalUsers: activationData[0].total_users || 0
+        });
+      }
+
+      if (messagesData && messagesData[0]) {
+        setMessagesPerSession({
+          avgMessages: messagesData[0].avg_messages || 0,
+          medianMessages: messagesData[0].median_messages || 0,
+          totalSessions: messagesData[0].total_sessions_with_messages || 0
+        });
+      }
+    } catch (error) {
+      console.error('Error loading funnel analytics:', error);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -493,6 +567,7 @@ const AdminDashboard = () => {
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="retention">Retention</TabsTrigger>
+            <TabsTrigger value="funnels">Funnels</TabsTrigger>
             <TabsTrigger value="traffic">Traffic Sources</TabsTrigger>
             <TabsTrigger value="catbots">Top Catbots</TabsTrigger>
           </TabsList>
@@ -803,6 +878,106 @@ const AdminDashboard = () => {
                 <div className="mt-4 text-xs text-muted-foreground space-y-1">
                   <p>📊 <strong>How to read:</strong> Each row shows a signup week. Percentages show how many users returned in subsequent weeks.</p>
                   <p>🟢 Green (≥40%): Excellent retention | 🟡 Yellow (20-40%): Good retention | 🔴 Red (&lt;20%): Needs improvement</p>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="funnels" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Time to First Message</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{activationStats.medianHours.toFixed(1)}h</div>
+                  <p className="text-xs text-muted-foreground">
+                    Median activation time ({activationStats.totalUsers} users)
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {activationStats.medianHours < 5 ? '✅ Fast activation' : '⚠️ Could be faster'}
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Messages/Session</CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{messagesPerSession.avgMessages.toFixed(1)}</div>
+                  <p className="text-xs text-muted-foreground">
+                    Across {messagesPerSession.totalSessions} sessions
+                  </p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Median Messages/Session</CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{messagesPerSession.medianMessages.toFixed(1)}</div>
+                  <p className="text-xs text-muted-foreground">Typical session depth</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Onboarding Funnel (Last 30 Days)</CardTitle>
+                <CardDescription>User progression through key activation steps</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {funnelData.map((step, idx) => {
+                    const maxWidth = funnelData[0]?.user_count || 1;
+                    const widthPercent = (step.user_count / maxWidth) * 100;
+                    
+                    return (
+                      <div key={idx} className="space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="font-medium">{step.step}</span>
+                          <div className="flex items-center gap-4">
+                            <span className="text-muted-foreground">{step.user_count} users</span>
+                            <span className="font-bold text-primary">{step.conversion_rate.toFixed(1)}%</span>
+                            {step.drop_off_rate > 0 && (
+                              <span className="text-destructive text-xs">↓ {step.drop_off_rate.toFixed(1)}% drop</span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="relative h-12 bg-muted rounded-lg overflow-hidden">
+                          <div 
+                            className="absolute inset-y-0 left-0 flex items-center justify-center text-white font-medium text-sm transition-all duration-500"
+                            style={{
+                              width: `${widthPercent}%`,
+                              backgroundColor: `hsl(var(--primary) / ${0.5 + (step.conversion_rate / 200)})`
+                            }}
+                          >
+                            {widthPercent > 20 && `${step.conversion_rate.toFixed(0)}%`}
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {funnelData.length === 0 && (
+                  <div className="text-center py-8 text-muted-foreground">
+                    No funnel data available yet. Data will appear as users progress through onboarding.
+                  </div>
+                )}
+
+                <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">📊 Funnel Insights</h4>
+                  <ul className="text-sm text-muted-foreground space-y-1">
+                    <li>• Look for the biggest drop-off between steps to identify friction points</li>
+                    <li>• Ideal conversion from signup to first message: &gt;60%</li>
+                    <li>• Test improvements at high drop-off points to boost overall conversion</li>
+                  </ul>
                 </div>
               </CardContent>
             </Card>

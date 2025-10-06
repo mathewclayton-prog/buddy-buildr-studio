@@ -577,6 +577,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      analyze_onboarding_funnel: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          conversion_rate: number
+          drop_off_rate: number
+          step: string
+          user_count: number
+        }[]
+      }
       calculate_bounce_rate: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
@@ -628,11 +637,27 @@ export type Database = {
           week_4: number
         }[]
       }
+      get_messages_per_session_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avg_messages: number
+          median_messages: number
+          total_sessions_with_messages: number
+        }[]
+      }
       get_session_duration_distribution: {
         Args: { p_end_date?: string; p_start_date?: string }
         Returns: {
           duration_bucket: string
           session_count: number
+        }[]
+      }
+      get_time_to_first_message: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          avg_hours: number
+          median_hours: number
+          total_users: number
         }[]
       }
       has_role: {
