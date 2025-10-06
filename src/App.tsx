@@ -27,10 +27,12 @@ const queryClient = new QueryClient();
 
 // Check if we're in coming soon mode
 const isComingSoonMode = import.meta.env.VITE_COMING_SOON_MODE === 'true';
+// Check if user is accessing the dev route
+const isDevRoute = window.location.pathname.startsWith('/dev');
 
 const App = () => {
-  // Coming Soon mode - minimal providers
-  if (isComingSoonMode) {
+  // Coming Soon mode - minimal providers (unless accessing dev route)
+  if (isComingSoonMode && !isDevRoute) {
     return (
       <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
         <Toaster />
