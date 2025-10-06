@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      beta_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          notified: boolean
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          notified?: boolean
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          notified?: boolean
+        }
+        Relationships: []
+      }
       catbot_generation_jobs: {
         Row: {
           completed_count: number
