@@ -500,6 +500,13 @@ const Chat = () => {
                   </Button>
                 </div>
               </div>
+              
+              {/* AI Disclaimer */}
+              <div className="text-center pt-2">
+                <p className="text-xs text-muted-foreground/60">
+                  Remember: You're chatting with an AI. This is for fun - don't rely on it for advice or factual information.
+                </p>
+              </div>
             </div>
         </div>
       </div>
