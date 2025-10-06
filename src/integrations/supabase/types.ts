@@ -14,6 +14,44 @@ export type Database = {
   }
   public: {
     Tables: {
+      analytics_events: {
+        Row: {
+          catbot_id: string | null
+          created_at: string | null
+          event_type: string
+          id: string
+          metadata: Json | null
+          session_id: string | null
+          user_id: string | null
+        }
+        Insert: {
+          catbot_id?: string | null
+          created_at?: string | null
+          event_type: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          catbot_id?: string | null
+          created_at?: string | null
+          event_type?: string
+          id?: string
+          metadata?: Json | null
+          session_id?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "analytics_events_catbot_id_fkey"
+            columns: ["catbot_id"]
+            isOneToOne: false
+            referencedRelation: "catbots"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       beta_signups: {
         Row: {
           created_at: string
@@ -352,6 +390,48 @@ export type Database = {
           },
         ]
       }
+      page_views: {
+        Row: {
+          browser: string | null
+          created_at: string | null
+          device_type: string | null
+          id: string
+          page_path: string
+          referrer: string | null
+          session_id: string
+          user_id: string | null
+          utm_campaign: string | null
+          utm_medium: string | null
+          utm_source: string | null
+        }
+        Insert: {
+          browser?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          page_path: string
+          referrer?: string | null
+          session_id: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Update: {
+          browser?: string | null
+          created_at?: string | null
+          device_type?: string | null
+          id?: string
+          page_path?: string
+          referrer?: string | null
+          session_id?: string
+          user_id?: string | null
+          utm_campaign?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -459,6 +539,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_sessions: {
+        Row: {
+          ended_at: string | null
+          event_count: number | null
+          id: string
+          last_activity_at: string | null
+          page_count: number | null
+          session_id: string
+          started_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          ended_at?: string | null
+          event_count?: number | null
+          id?: string
+          last_activity_at?: string | null
+          page_count?: number | null
+          session_id: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          ended_at?: string | null
+          event_count?: number | null
+          id?: string
+          last_activity_at?: string | null
+          page_count?: number | null
+          session_id?: string
+          started_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -477,6 +590,10 @@ export type Database = {
           _user_id: string
         }
         Returns: boolean
+      }
+      update_session_activity: {
+        Args: { p_session_id: string; p_user_id: string }
+        Returns: undefined
       }
     }
     Enums: {
