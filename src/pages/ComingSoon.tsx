@@ -6,7 +6,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import heroCat from "@/assets/hero-cat-new.png";
+import heroImage from "@/assets/coming-soon-hero.png";
 
 const emailSchema = z.object({
   email: z
@@ -63,11 +63,11 @@ export default function ComingSoon() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-secondary/20 p-4">
       <main className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto space-y-8 animate-fade-in">
         {/* Hero Image */}
-        <div className="relative w-64 h-64 md:w-80 md:h-80 animate-scale-in">
+        <div className="relative w-full max-w-4xl h-64 md:h-80 animate-scale-in rounded-lg overflow-hidden shadow-2xl">
           <img
-            src={heroCat}
-            alt="CatBot mascot"
-            className="w-full h-full object-contain drop-shadow-2xl"
+            src={heroImage}
+            alt="Person relaxing with cat on sofa"
+            className="w-full h-full object-cover"
           />
         </div>
 
