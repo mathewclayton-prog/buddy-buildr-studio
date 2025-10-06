@@ -577,11 +577,42 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      calculate_bounce_rate: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          bounce_rate: number
+          bounced_sessions: number
+          total_sessions: number
+        }[]
+      }
+      calculate_session_duration: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          avg_duration_minutes: number
+          median_duration_minutes: number
+          total_sessions: number
+        }[]
+      }
+      get_bounce_rate_trend: {
+        Args: { p_days_back?: number }
+        Returns: {
+          bounce_rate: number
+          date: string
+          total_sessions: number
+        }[]
+      }
       get_catbot_creator_profile: {
         Args: { catbot_id: string }
         Returns: {
           avatar_url: string
           display_name: string
+        }[]
+      }
+      get_session_duration_distribution: {
+        Args: { p_end_date?: string; p_start_date?: string }
+        Returns: {
+          duration_bucket: string
+          session_count: number
         }[]
       }
       has_role: {

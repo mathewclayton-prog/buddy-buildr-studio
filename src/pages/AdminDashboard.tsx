@@ -45,6 +45,18 @@ interface ChartDataPoint {
   count?: number;
   name?: string;
   value?: number;
+  bucket?: string;
+  session_count?: number;
+  bounce_rate?: number;
+  total_sessions?: number;
+}
+
+interface SessionStats {
+  avgDuration: number;
+  medianDuration: number;
+  totalSessions: number;
+  bounceRate: number;
+  bouncedSessions: number;
 }
 
 const AdminDashboard = () => {
@@ -66,6 +78,17 @@ const AdminDashboard = () => {
   const [messageData, setMessageData] = useState<ChartDataPoint[]>([]);
   const [trafficSourceData, setTrafficSourceData] = useState<ChartDataPoint[]>([]);
   const [topCatbotsData, setTopCatbotsData] = useState<ChartDataPoint[]>([]);
+  
+  // Session analytics
+  const [sessionStats, setSessionStats] = useState<SessionStats>({
+    avgDuration: 0,
+    medianDuration: 0,
+    totalSessions: 0,
+    bounceRate: 0,
+    bouncedSessions: 0
+  });
+  const [sessionDistribution, setSessionDistribution] = useState<ChartDataPoint[]>([]);
+  const [bounceRateTrend, setBounceRateTrend] = useState<ChartDataPoint[]>([]);
 
   // Check admin status
   useEffect(() => {
@@ -115,7 +138,8 @@ const AdminDashboard = () => {
         loadUserGrowthData(),
         loadMessageData(),
         loadTrafficSources(),
-        loadTopCatbots()
+        loadTopCatbots(),
+        loadSessionAnalytics()
       ]);
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -263,6 +287,57 @@ const AdminDashboard = () => {
     setTopCatbotsData(chartData);
   };
 
+  const loadSessionAnalytics = async () => {
+    try {
+      // Load session duration stats
+      const { data: durationData, error: durationError } = await supabase.rpc('calculate_session_duration');
+      
+      if (durationError) throw durationError;
+      
+      // Load bounce rate
+      const { data: bounceData, error: bounceError } = await supabase.rpc('calculate_bounce_rate');
+      
+      if (bounceError) throw bounceError;
+      
+      // Load session distribution
+      const { data: distributionData, error: distributionError } = await supabase.rpc('get_session_duration_distribution');
+      
+      if (distributionError) throw distributionError;
+      
+      // Load bounce rate trend
+      const { data: trendData, error: trendError } = await supabase.rpc('get_bounce_rate_trend');
+      
+      if (trendError) throw trendError;
+
+      if (durationData && durationData[0] && bounceData && bounceData[0]) {
+        setSessionStats({
+          avgDuration: durationData[0].avg_duration_minutes || 0,
+          medianDuration: durationData[0].median_duration_minutes || 0,
+          totalSessions: durationData[0].total_sessions || 0,
+          bounceRate: bounceData[0].bounce_rate || 0,
+          bouncedSessions: bounceData[0].bounced_sessions || 0
+        });
+      }
+
+      if (distributionData) {
+        setSessionDistribution(distributionData.map((d: any) => ({
+          bucket: d.duration_bucket,
+          session_count: d.session_count
+        })));
+      }
+
+      if (trendData) {
+        setBounceRateTrend(trendData.map((d: any) => ({
+          date: new Date(d.date).toLocaleDateString(),
+          bounce_rate: d.bounce_rate,
+          total_sessions: d.total_sessions
+        })));
+      }
+    } catch (error) {
+      console.error('Error loading session analytics:', error);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -353,6 +428,7 @@ const AdminDashboard = () => {
           <TabsList>
             <TabsTrigger value="growth">User Growth</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
+            <TabsTrigger value="sessions">Sessions</TabsTrigger>
             <TabsTrigger value="traffic">Traffic Sources</TabsTrigger>
             <TabsTrigger value="catbots">Top Catbots</TabsTrigger>
           </TabsList>
@@ -426,6 +502,110 @@ const AdminDashboard = () => {
                       name="Messages"
                     />
                   </AreaChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="sessions" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{sessionStats.avgDuration.toFixed(1)} min</div>
+                  <p className="text-xs text-muted-foreground">Average session length</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Median Duration</CardTitle>
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{sessionStats.medianDuration.toFixed(1)} min</div>
+                  <p className="text-xs text-muted-foreground">Typical session length</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Bounce Rate</CardTitle>
+                  <Activity className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{sessionStats.bounceRate.toFixed(1)}%</div>
+                  <p className="text-xs text-muted-foreground">{sessionStats.bouncedSessions} of {sessionStats.totalSessions} sessions</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Session Duration Distribution</CardTitle>
+                <CardDescription>How long users spend in sessions</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                  <BarChart data={sessionDistribution}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="bucket" 
+                      stroke="hsl(var(--foreground))"
+                      fontSize={12}
+                    />
+                    <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Bar 
+                      dataKey="session_count" 
+                      fill="hsl(var(--primary))"
+                      name="Sessions"
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Bounce Rate Trend (Last 30 Days)</CardTitle>
+                <CardDescription>Daily bounce rate percentage</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={350}>
+                  <LineChart data={bounceRateTrend}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis 
+                      dataKey="date" 
+                      stroke="hsl(var(--foreground))"
+                      fontSize={12}
+                    />
+                    <YAxis stroke="hsl(var(--foreground))" fontSize={12} />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: 'hsl(var(--card))',
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px'
+                      }}
+                    />
+                    <Legend />
+                    <Line 
+                      type="monotone" 
+                      dataKey="bounce_rate" 
+                      stroke="hsl(var(--destructive))" 
+                      strokeWidth={2}
+                      name="Bounce Rate %"
+                    />
+                  </LineChart>
                 </ResponsiveContainer>
               </CardContent>
             </Card>
