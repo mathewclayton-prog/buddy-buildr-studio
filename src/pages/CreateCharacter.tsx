@@ -18,6 +18,7 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
+import { validateCharacterContent } from "@/utils/contentModeration";
 // Constants removed - personality dropdown and color options no longer needed
 const CreateCharacter = () => {
   const {
@@ -145,6 +146,26 @@ const CreateCharacter = () => {
       });
       return;
     }
+
+    // Content moderation check
+    const contentValidation = validateCharacterContent({
+      name,
+      publicProfile,
+      trainingDescription,
+      greeting,
+      longDescription,
+      advancedDefinition
+    });
+
+    if (!contentValidation.isValid) {
+      toast({
+        title: "Content Policy Violation",
+        description: contentValidation.message || "Your content violates our community guidelines. Please review and revise.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsLoading(true);
     try {
       // Debug avatar state before saving
