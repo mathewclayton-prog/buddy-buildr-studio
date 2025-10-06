@@ -18,12 +18,14 @@ import { getCharacterForChat } from "@/lib/characterQueries";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
 import { validateContent } from "@/utils/contentModeration";
+import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Chat = () => {
   const { characterId } = useParams<{ characterId: string }>();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user, loading: authLoading } = useAuth();
+  const { trackEvent } = useAnalytics();
   
   const [character, setCharacter] = useState<Character | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
@@ -126,6 +128,9 @@ const Chat = () => {
         // Create new session
         const newSession = await ChatService.createChatSession(catbotId, user.id, `Chat with ${char.name}`);
         currentSessionId = newSession.id;
+
+        // Track chat started event
+        trackEvent('chat_started', {}, catbotId);
 
         // Generate and save opening message
         const openingContent = OpeningMessageGenerator.generateOpening(char, {
@@ -244,6 +249,9 @@ const Chat = () => {
     try {
       // Save user message to database
       const userMessage = await ChatService.saveMessage(sessionId, textToSend, true);
+
+      // Track message sent event
+      trackEvent('message_sent', { message_length: textToSend.length }, character.id);
 
       const updatedMessages = [...messages, userMessage];
       setMessages(updatedMessages);

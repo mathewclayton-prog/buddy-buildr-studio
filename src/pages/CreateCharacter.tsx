@@ -19,15 +19,13 @@ import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
 import { validateCharacterContent } from "@/utils/contentModeration";
+import { useAnalytics } from "@/hooks/useAnalytics";
 // Constants removed - personality dropdown and color options no longer needed
 const CreateCharacter = () => {
-  const {
-    user
-  } = useAuth();
-  const {
-    catbotId
-  } = useParams();
+  const { user } = useAuth();
+  const { catbotId } = useParams();
   const isEditMode = !!catbotId;
+  const { trackEvent } = useAnalytics();
   const [name, setName] = useState("");
   const [publicProfile, setPublicProfile] = useState("");
   const [trainingDescription, setTrainingDescription] = useState("");
@@ -223,6 +221,14 @@ const CreateCharacter = () => {
 
         // Insert training data for the new catbot
         await upsertCharacterTrainingData(data.id, trainingData);
+
+        // Track catbot created event
+        trackEvent('catbot_created', {
+          creation_mode: creationMode,
+          is_public: isPublic,
+          has_avatar: !!avatar,
+          tag_count: tags.length
+        });
 
         toast({
           title: "Catbot Created!",

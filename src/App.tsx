@@ -1,10 +1,12 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { ThemeProvider } from "next-themes";
 import { AuthProvider } from "@/hooks/useAuth";
 import { SearchProvider } from "@/contexts/SearchContext";
+import { useAnalytics } from "@/hooks/useAnalytics";
+import { useEffect } from "react";
 import Index from "./pages/Index";
 import CreateCharacter from "./pages/CreateCharacter";
 import ComingSoon from "./pages/ComingSoon";
@@ -29,6 +31,18 @@ const queryClient = new QueryClient();
 const isComingSoonMode = import.meta.env.VITE_COMING_SOON_MODE === 'true';
 // Check if user is accessing the dev route
 const isDevRoute = window.location.pathname.startsWith('/dev');
+
+// Analytics tracker component
+const AnalyticsTracker = () => {
+  const location = useLocation();
+  const { trackPageView } = useAnalytics();
+
+  useEffect(() => {
+    trackPageView(location.pathname);
+  }, [location, trackPageView]);
+
+  return null;
+};
 
 const App = () => {
   // Coming Soon mode - minimal providers (unless accessing dev route)
@@ -55,6 +69,7 @@ const App = () => {
             <Toaster />
             <Sonner />
             <BrowserRouter>
+              <AnalyticsTracker />
               <Routes>
                 {/* Main routes */}
                 <Route path="/" element={<Index />} />
