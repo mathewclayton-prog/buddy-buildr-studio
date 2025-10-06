@@ -63,11 +63,11 @@ export default function ComingSoon() {
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-background to-secondary/20 p-4">
       <main className="flex flex-col items-center justify-center text-center max-w-4xl mx-auto space-y-8 animate-fade-in">
         {/* Hero Image */}
-        <div className="relative w-full max-w-4xl h-64 md:h-80 animate-scale-in rounded-lg overflow-hidden shadow-2xl">
+        <div className="relative w-full max-w-6xl animate-scale-in rounded-lg overflow-hidden shadow-2xl">
           <img
             src={heroImage}
             alt="Person relaxing with cat on sofa"
-            className="w-full h-full object-cover"
+            className="w-full h-auto object-cover"
           />
         </div>
 
