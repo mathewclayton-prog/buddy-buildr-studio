@@ -27,19 +27,31 @@ const queryClient = new QueryClient();
 // Check if we're in coming soon mode
 const isComingSoonMode = import.meta.env.VITE_COMING_SOON_MODE === 'true';
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AuthProvider>
-        <SearchProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            {isComingSoonMode ? (
-              <Routes>
-                <Route path="*" element={<ComingSoon />} />
-              </Routes>
-            ) : (
+const App = () => {
+  // Coming Soon mode - minimal providers
+  if (isComingSoonMode) {
+    return (
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            <Route path="*" element={<ComingSoon />} />
+          </Routes>
+        </BrowserRouter>
+      </ThemeProvider>
+    );
+  }
+
+  // Full app mode - all providers
+  return (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AuthProvider>
+          <SearchProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
@@ -61,12 +73,12 @@ const App = () => (
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
-            )}
-          </BrowserRouter>
-        </SearchProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </QueryClientProvider>
-);
+            </BrowserRouter>
+          </SearchProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
