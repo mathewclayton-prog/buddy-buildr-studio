@@ -60,51 +60,62 @@ const MyCatbots = () => {
     if (!user || !isAdmin) return;
 
     try {
-      // Fetch all catbots for admin view
-      const { data: allCatbotsData, error: catbotsError } = await supabase
+      // 1) Fetch all catbots (no embedded relations to avoid FK dependency)
+      const { data: rawCatbots, error: catbotsError } = await supabase
         .from('catbots')
-        .select(`
-          *,
-          profiles!catbots_user_id_fkey (
-            display_name,
-            avatar_url
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (catbotsError) {
         console.error('Error fetching all catbots:', catbotsError);
-      } else {
-        setAllCatbots(allCatbotsData || []);
       }
 
-      // Fetch all users with their catbot counts
-      const { data: usersData, error: usersError } = await supabase
+      // 2) Fetch all profiles separately and map by user_id
+      const { data: profilesData, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          *,
-          catbots(count)
-        `);
+        .select('id, user_id, display_name, avatar_url');
 
-      if (usersError) {
-        console.error('Error fetching users:', usersError);
-      } else {
-        setAllUsers(usersData || []);
+      if (profilesError) {
+        console.error('Error fetching profiles:', profilesError);
       }
 
-      // Calculate admin stats
-      if (allCatbotsData) {
-        const totalCatbots = allCatbotsData.length;
-        const publicCount = allCatbotsData.filter(c => c.is_public).length;
-        const privateCount = totalCatbots - publicCount;
+      const profileByUserId = new Map<string, { display_name: string | null; avatar_url: string | null }>();
+      (profilesData || []).forEach((p: any) => {
+        profileByUserId.set(p.user_id, { display_name: p.display_name, avatar_url: p.avatar_url });
+      });
 
-        setAdminStats({
-          totalUsers: usersData?.length || 0,
-          totalCatbots,
-          publicCatbots: publicCount,
-          privateCatbots: privateCount
-        });
-      }
+      // 3) Attach profile info to catbots to keep current UI shape (catbot.profiles.display_name)
+      const catbotsWithProfiles = (rawCatbots || []).map((c: any) => ({
+        ...c,
+        profiles: profileByUserId.get(c.user_id) || null,
+      }));
+
+      setAllCatbots(catbotsWithProfiles);
+
+      // 4) Build users list with catbot counts keeping existing UI structure (catbots: [{ count }])
+      const countsByUserId = new Map<string, number>();
+      (rawCatbots || []).forEach((c: any) => {
+        countsByUserId.set(c.user_id, (countsByUserId.get(c.user_id) || 0) + 1);
+      });
+
+      const usersWithCounts = (profilesData || []).map((p: any) => ({
+        ...p,
+        catbots: [{ count: countsByUserId.get(p.user_id) || 0 }],
+      }));
+
+      setAllUsers(usersWithCounts);
+
+      // 5) Calculate admin stats
+      const totalCatbots = (rawCatbots || []).length;
+      const publicCount = (rawCatbots || []).filter((c: any) => c.is_public).length;
+      const privateCount = totalCatbots - publicCount;
+
+      setAdminStats({
+        totalUsers: (profilesData || []).length,
+        totalCatbots,
+        publicCatbots: publicCount,
+        privateCatbots: privateCount,
+      });
     } catch (error) {
       console.error('Error fetching admin data:', error);
     }
