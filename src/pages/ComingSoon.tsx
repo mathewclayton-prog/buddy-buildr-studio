@@ -88,7 +88,7 @@ export default function ComingSoon() {
               🎉 You're on the list!
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              We'll send you an email as soon as CatBot launches.
+              We'll send you an email as soon as MiCat.Online launches.
             </p>
           </div>}
 
@@ -114,7 +114,7 @@ export default function ComingSoon() {
 
       {/* Footer */}
       <footer className="mt-16 text-sm text-muted-foreground">
-        <p>&copy; 2025 CatBot. All rights reserved.</p>
+        <p>&copy; 2025 MiCat.Online. All rights reserved.</p>
       </footer>
     </div>;
 }
