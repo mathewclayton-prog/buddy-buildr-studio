@@ -16,11 +16,14 @@ const Auth = () => {
     displayName: ""
   });
   const [error, setError] = useState("");
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
   const {
     user,
     signIn,
     signUp,
-    signInWithGoogle
+    signInWithGoogle,
+    resetPassword
   } = useAuth();
   const {
     toast
@@ -98,6 +101,26 @@ const Auth = () => {
     }
     // Don't set loading to false here - the redirect will handle it
   };
+
+  const handleResetPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError("");
+    
+    const { error } = await resetPassword(resetEmail);
+    
+    if (error) {
+      setError(error.message);
+    } else {
+      toast({
+        title: "Check your email",
+        description: "We've sent you a password reset link.",
+      });
+      setShowResetPassword(false);
+      setResetEmail("");
+    }
+    setIsLoading(false);
+  };
   return <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
         {/* Header */}
@@ -164,7 +187,16 @@ const Auth = () => {
                   </div>
                   
                   <div className="space-y-2">
-                    <Label htmlFor="signin-password">Password</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="signin-password">Password</Label>
+                      <button
+                        type="button"
+                        onClick={() => setShowResetPassword(true)}
+                        className="text-xs text-primary hover:underline"
+                      >
+                        Forgot password?
+                      </button>
+                    </div>
                     <div className="relative">
                       <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                       <Input id="signin-password" name="password" type="password" placeholder="Enter your password" className="pl-10" value={formData.password} onChange={handleInputChange} required />
@@ -227,6 +259,65 @@ const Auth = () => {
             Back to home
           </Link>
         </div>
+
+        {/* Password Reset Modal */}
+        {showResetPassword && (
+          <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md shadow-card">
+              <CardHeader>
+                <CardTitle>Reset Password</CardTitle>
+                <CardDescription>
+                  Enter your email address and we'll send you a link to reset your password.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleResetPassword} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="reset-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="reset-email"
+                        type="email"
+                        placeholder="Enter your email"
+                        className="pl-10"
+                        value={resetEmail}
+                        onChange={(e) => setResetEmail(e.target.value)}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {error && (
+                    <div className="flex items-center gap-2 text-destructive text-sm">
+                      <AlertCircle className="h-4 w-4" />
+                      {error}
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => {
+                        setShowResetPassword(false);
+                        setResetEmail("");
+                        setError("");
+                      }}
+                      disabled={isLoading}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="w-full" disabled={isLoading}>
+                      {isLoading ? "Sending..." : "Send Reset Link"}
+                    </Button>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </div>
     </div>;
 };

@@ -11,6 +11,7 @@ import ComingSoon from "./pages/ComingSoon";
 import MyCatbots from "./pages/MyCatbots";
 import Chat from "./pages/Chat";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Profile from "./pages/Profile";
 import About from "./pages/About";
 import Contact from "./pages/Contact";
@@ -55,6 +56,7 @@ const App = () => {
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/create" element={<CreateCharacter />} />
                 <Route path="/edit/:catbotId" element={<CreateCharacter />} />
                 <Route path="/browse" element={<Index />} />
