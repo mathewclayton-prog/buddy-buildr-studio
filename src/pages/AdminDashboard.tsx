@@ -94,6 +94,19 @@ interface MessagesPerSessionStats {
   totalSessions: number;
 }
 
+interface LiveStats {
+  activeNow: number;
+  messagesLastHour: number;
+  signupsToday: number;
+  sessionsToday: number;
+}
+
+interface RecentActivity {
+  event_type: string;
+  created_at: string;
+  catbot_name: string | null;
+}
+
 const AdminDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -146,6 +159,15 @@ const AdminDashboard = () => {
     totalSessions: 0
   });
 
+  // Live analytics
+  const [liveStats, setLiveStats] = useState<LiveStats>({
+    activeNow: 0,
+    messagesLastHour: 0,
+    signupsToday: 0,
+    sessionsToday: 0
+  });
+  const [recentActivity, setRecentActivity] = useState<RecentActivity[]>([]);
+
   // Check admin status
   useEffect(() => {
     const checkAdminStatus = async () => {
@@ -197,7 +219,8 @@ const AdminDashboard = () => {
         loadTopCatbots(),
         loadSessionAnalytics(),
         loadRetentionAnalytics(),
-        loadFunnelAnalytics()
+        loadFunnelAnalytics(),
+        loadLiveAnalytics()
       ]);
     } catch (error) {
       console.error('Error loading analytics:', error);
@@ -208,6 +231,17 @@ const AdminDashboard = () => {
       });
     }
   };
+
+  // Auto-refresh live stats every 30 seconds
+  useEffect(() => {
+    if (!isAdmin) return;
+    
+    const interval = setInterval(() => {
+      loadLiveAnalytics();
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isAdmin]);
 
   const loadOverviewStats = async () => {
     // Total users
@@ -475,6 +509,37 @@ const AdminDashboard = () => {
     }
   };
 
+  const loadLiveAnalytics = async () => {
+    try {
+      // Load live stats
+      const { data: liveStatsData, error: liveError } = await supabase.rpc('get_live_stats');
+      
+      if (liveError) throw liveError;
+      
+      // Load recent activity
+      const { data: activityData, error: activityError } = await supabase.rpc('get_recent_activity', {
+        p_limit: 20
+      });
+      
+      if (activityError) throw activityError;
+
+      if (liveStatsData && liveStatsData[0]) {
+        setLiveStats({
+          activeNow: liveStatsData[0].active_now || 0,
+          messagesLastHour: liveStatsData[0].messages_last_hour || 0,
+          signupsToday: liveStatsData[0].signups_today || 0,
+          sessionsToday: liveStatsData[0].sessions_today || 0
+        });
+      }
+
+      if (activityData) {
+        setRecentActivity(activityData);
+      }
+    } catch (error) {
+      console.error('Error loading live analytics:', error);
+    }
+  };
+
   if (authLoading || loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -561,8 +626,9 @@ const AdminDashboard = () => {
         </div>
 
         {/* Charts */}
-        <Tabs defaultValue="growth" className="space-y-4">
+        <Tabs defaultValue="live" className="space-y-4">
           <TabsList>
+            <TabsTrigger value="live">Live</TabsTrigger>
             <TabsTrigger value="growth">User Growth</TabsTrigger>
             <TabsTrigger value="messages">Messages</TabsTrigger>
             <TabsTrigger value="sessions">Sessions</TabsTrigger>
@@ -571,6 +637,103 @@ const AdminDashboard = () => {
             <TabsTrigger value="traffic">Traffic Sources</TabsTrigger>
             <TabsTrigger value="catbots">Top Catbots</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="live" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-4">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Active Now</CardTitle>
+                  <Activity className="h-4 w-4 text-green-500 animate-pulse" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{liveStats.activeNow}</div>
+                  <p className="text-xs text-muted-foreground">Last 5 minutes</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Messages (1h)</CardTitle>
+                  <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{liveStats.messagesLastHour}</div>
+                  <p className="text-xs text-muted-foreground">Messages sent</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Signups Today</CardTitle>
+                  <Users className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{liveStats.signupsToday}</div>
+                  <p className="text-xs text-muted-foreground">New users</p>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">Sessions Today</CardTitle>
+                  <Globe className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{liveStats.sessionsToday}</div>
+                  <p className="text-xs text-muted-foreground">Active sessions</p>
+                </CardContent>
+              </Card>
+            </div>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Recent Activity (Last 24 Hours)</CardTitle>
+                <CardDescription>Live feed of user actions • Auto-refreshes every 30s</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2 max-h-96 overflow-y-auto">
+                  {recentActivity.map((activity, idx) => {
+                    const timeAgo = new Date(activity.created_at);
+                    const now = new Date();
+                    const diffMs = now.getTime() - timeAgo.getTime();
+                    const diffMins = Math.floor(diffMs / 60000);
+                    const diffHours = Math.floor(diffMs / 3600000);
+                    
+                    const timeLabel = diffMins < 1 ? 'Just now' : 
+                                     diffMins < 60 ? `${diffMins}m ago` : 
+                                     `${diffHours}h ago`;
+
+                    const eventIcon = activity.event_type === 'message_sent' ? '💬' :
+                                     activity.event_type === 'chat_started' ? '🗨️' :
+                                     activity.event_type === 'catbot_created' ? '✨' :
+                                     activity.event_type === 'page_view' ? '👁️' : '📊';
+
+                    const eventLabel = activity.event_type.replace(/_/g, ' ');
+
+                    return (
+                      <div key={idx} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg">{eventIcon}</span>
+                          <div>
+                            <p className="text-sm font-medium capitalize">{eventLabel}</p>
+                            {activity.catbot_name && (
+                              <p className="text-xs text-muted-foreground">with {activity.catbot_name}</p>
+                            )}
+                          </div>
+                        </div>
+                        <span className="text-xs text-muted-foreground">{timeLabel}</span>
+                      </div>
+                    );
+                  })}
+                  {recentActivity.length === 0 && (
+                    <div className="text-center py-8 text-muted-foreground">
+                      No recent activity. Activity will appear as users interact with the platform.
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="growth" className="space-y-4">
             <Card>

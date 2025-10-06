@@ -610,6 +610,14 @@ export type Database = {
           stickiness_ratio: number
         }[]
       }
+      get_active_hours_heatmap: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          activity_count: number
+          day_of_week: number
+          hour_of_day: number
+        }[]
+      }
       get_bounce_rate_trend: {
         Args: { p_days_back?: number }
         Returns: {
@@ -637,12 +645,31 @@ export type Database = {
           week_4: number
         }[]
       }
+      get_live_stats: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          active_now: number
+          messages_last_hour: number
+          sessions_today: number
+          signups_today: number
+        }[]
+      }
       get_messages_per_session_stats: {
         Args: Record<PropertyKey, never>
         Returns: {
           avg_messages: number
           median_messages: number
           total_sessions_with_messages: number
+        }[]
+      }
+      get_recent_activity: {
+        Args: { p_limit?: number }
+        Returns: {
+          catbot_name: string
+          created_at: string
+          event_type: string
+          metadata: Json
+          user_id: string
         }[]
       }
       get_session_duration_distribution: {
