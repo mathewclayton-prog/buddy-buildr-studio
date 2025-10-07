@@ -682,12 +682,12 @@ const CreateCharacter = () => {
                 <div className="space-y-4">
                   <Label>Cat Avatar</Label>
                   
+                  <p className="text-sm text-muted-foreground">
+                    You can upload an image or a GIF (sorry no MP4s yet). Or click Generate Image if you would like us to create one based on your cat details.
+                  </p>
+                  
                   {/* Avatar Type Toggle */}
                   <div className="flex gap-2">
-                    <Button type="button" variant={avatarType === "color" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("color")}>
-                      <Palette className="h-4 w-4 mr-2" />
-                      Default Icon
-                    </Button>
                     <Button type="button" variant={avatarType === "upload" ? "default" : "outline"} size="sm" onClick={() => setAvatarType("upload")}>
                       <Upload className="h-4 w-4 mr-2" />
                       Upload Image
@@ -697,11 +697,6 @@ const CreateCharacter = () => {
                       Generate Image
                     </Button>
                   </div>
-
-                  {/* Default Icon - Always Orange */}
-                  {avatarType === "color" && <div className="space-y-2">
-                      <p className="text-sm text-muted-foreground">Default icons use a consistent orange gradient design.</p>
-                    </div>}
 
                   {/* Image Upload */}
                   {avatarType === "upload" && <div className="space-y-2">
