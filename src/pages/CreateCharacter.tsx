@@ -20,6 +20,7 @@ import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
 import { validateCharacterContent } from "@/utils/contentModeration";
 import { useAnalytics } from "@/hooks/useAnalytics";
+import { PREDEFINED_TAGS } from "@/constants/tags";
 // Constants removed - personality dropdown and color options no longer needed
 const CreateCharacter = () => {
   const { user } = useAuth();
@@ -40,11 +41,8 @@ const CreateCharacter = () => {
   const [isPublic, setIsPublic] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   
-  // Tag management states
+  // Tag management state
   const [tags, setTags] = useState<string[]>([]);
-  const [suggestedTags, setSuggestedTags] = useState<string[]>([]);
-  const [newTag, setNewTag] = useState("");
-  const [isGeneratingTags, setIsGeneratingTags] = useState(false);
   
 
   // Image upload states
@@ -441,73 +439,14 @@ const CreateCharacter = () => {
   };
 
   // Tag management functions
-  const generateAITags = async () => {
-    if (!name.trim() && !trainingDescription.trim()) {
-      toast({
-        title: "Missing Information",
-        description: "Please add a name and description to generate AI tags.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsGeneratingTags(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('generate-tags', {
-        body: {
-          name: name.trim(),
-          description: publicProfile.trim(),
-          personality: "friendly", // Default value for tag generation
-          training_description: trainingDescription.trim()
-        }
-      });
-
-      if (error) throw error;
-
-      if (data?.tags && Array.isArray(data.tags)) {
-        setSuggestedTags(data.tags);
-        toast({
-          title: "Tags Generated!",
-          description: `Generated ${data.tags.length} suggested tags for your catbot.`,
-        });
-      } else {
-        throw new Error('No tags generated');
-      }
-    } catch (error: any) {
-      console.error('Tag generation error:', error);
-      toast({
-        title: "Generation Failed",
-        description: error.message || "Failed to generate tags. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsGeneratingTags(false);
-    }
-  };
-
   const addTag = (tag: string) => {
-    const trimmedTag = tag.trim();
-    if (trimmedTag && !tags.includes(trimmedTag) && tags.length < 8) {
-      setTags([...tags, trimmedTag]);
+    if (!tags.includes(tag) && tags.length < 4) {
+      setTags([...tags, tag]);
     }
   };
 
   const removeTag = (tagToRemove: string) => {
     setTags(tags.filter(tag => tag !== tagToRemove));
-  };
-
-  const handleAddNewTag = () => {
-    if (newTag.trim()) {
-      addTag(newTag.trim());
-      setNewTag("");
-    }
-  };
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      handleAddNewTag();
-    }
   };
 
   const handleAvatarUpload = () => {
@@ -703,97 +642,61 @@ const CreateCharacter = () => {
                   <div className="flex items-center justify-between">
                     <Label className="flex items-center gap-2">
                       <Tag className="h-4 w-4" />
-                      Tags
+                      Tags ({tags.length}/4)
                     </Label>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={generateAITags}
-                      disabled={isGeneratingTags || (!name.trim() && !trainingDescription.trim())}
-                    >
-                      {isGeneratingTags ? (
-                        <>
-                          <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                          Generating...
-                        </>
-                      ) : (
-                        <>
-                          <Sparkles className="h-3 w-3 mr-2" />
-                          AI Suggest
-                        </>
-                      )}
-                    </Button>
                   </div>
 
-                  {/* Current Tags */}
+                  {/* Selected Tags */}
                   {tags.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="text-sm">Current Tags ({tags.length}/8)</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {tags.map((tag, index) => (
-                          <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                            {tag}
-                            <button
-                              type="button"
-                              onClick={() => removeTag(tag)}
-                              className="ml-1 hover:text-destructive"
-                            >
-                              <X className="h-3 w-3" />
-                            </button>
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Suggested Tags */}
-                  {suggestedTags.length > 0 && (
-                    <div className="space-y-2">
-                      <Label className="text-sm">AI Suggested Tags</Label>
-                      <div className="flex flex-wrap gap-2">
-                        {suggestedTags.map((tag, index) => (
-                          <Badge 
-                            key={index} 
-                            variant="outline" 
-                            className="cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors"
-                            onClick={() => addTag(tag)}
+                    <div className="flex flex-wrap gap-2">
+                      {tags.map((tag, index) => (
+                        <Badge key={index} variant="default" className="flex items-center gap-1">
+                          {tag}
+                          <button
+                            type="button"
+                            onClick={() => removeTag(tag)}
+                            className="ml-1 hover:text-destructive"
                           >
-                            <Plus className="h-3 w-3 mr-1" />
-                            {tag}
-                          </Badge>
-                        ))}
-                      </div>
-                      <p className="text-xs text-muted-foreground">Click to add suggested tags</p>
+                            <X className="h-3 w-3" />
+                          </button>
+                        </Badge>
+                      ))}
                     </div>
                   )}
 
-                  {/* Manual Tag Input */}
-                  <div className="space-y-2">
-                    <Label className="text-sm">Add Custom Tag</Label>
-                    <div className="flex gap-2">
-                      <Input
-                        value={newTag}
-                        onChange={e => setNewTag(e.target.value)}
-                        onKeyPress={handleKeyPress}
-                        placeholder="Enter a tag..."
-                        maxLength={20}
-                        disabled={tags.length >= 8}
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="icon"
-                        onClick={handleAddNewTag}
-                        disabled={!newTag.trim() || tags.length >= 8}
-                      >
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Tags help users discover your catbot. Max 8 tags, 20 characters each.
-                    </p>
+                  {/* Available Tags Grid */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                    {PREDEFINED_TAGS.map((tag) => {
+                      const isSelected = tags.includes(tag);
+                      const isDisabled = !isSelected && tags.length >= 4;
+                      
+                      return (
+                        <Badge
+                          key={tag}
+                          variant={isSelected ? "default" : "outline"}
+                          className={`cursor-pointer transition-colors text-center justify-center py-2 ${
+                            isDisabled 
+                              ? 'opacity-50 cursor-not-allowed' 
+                              : 'hover:bg-primary hover:text-primary-foreground'
+                          }`}
+                          onClick={() => {
+                            if (isDisabled) return;
+                            if (isSelected) {
+                              removeTag(tag);
+                            } else {
+                              addTag(tag);
+                            }
+                          }}
+                        >
+                          {tag}
+                        </Badge>
+                      );
+                    })}
                   </div>
+
+                  <p className="text-xs text-muted-foreground">
+                    Select up to 4 tags to help users discover your catbot
+                  </p>
                 </div>
 
 

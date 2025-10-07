@@ -3,12 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { CatbotCard } from "@/components/CatbotCard";
+import { TagFilter } from "@/components/TagFilter";
 import { Bot, Plus, Users, Sparkles, MessageCircle, ArrowRight, Search, TrendingUp, Clock, Heart } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useSearch } from "@/contexts/SearchContext";
 import { useState, useEffect } from "react";
 import heroGrassImage from "@/assets/hero-cat-sofa.png";
+import { PREDEFINED_TAGS } from "@/constants/tags";
 interface Catbot {
   id: string;
   name: string;
@@ -24,7 +26,7 @@ interface Catbot {
 
 const Index = () => {
   const { user } = useAuth();
-  const { allCatbots, filteredCatbots, isSearching, loading, clearSearch } = useSearch();
+  const { allCatbots, filteredCatbots, isSearching, loading, clearSearch, selectedTags, setSelectedTags } = useSearch();
   
   // Organized sections
   const [mostPopular, setMostPopular] = useState<Catbot[]>([]);
@@ -85,6 +87,17 @@ const Index = () => {
 
         {/* Content Container */}
         <div className="container mx-auto px-4 py-4">{/* Reduced padding */}
+
+        {/* Tag Filter - only show when not searching */}
+        {!isSearching && allCatbots.length > 0 && (
+          <div className="mb-8">
+            <TagFilter
+              availableTags={PREDEFINED_TAGS}
+              selectedTags={selectedTags}
+              onTagsChange={setSelectedTags}
+            />
+          </div>
+        )}
 
         {/* Search Results */}
         {isSearching && (
