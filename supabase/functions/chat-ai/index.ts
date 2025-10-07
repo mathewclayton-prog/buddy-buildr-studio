@@ -655,6 +655,15 @@ serve(async (req) => {
     // Check if this is an opening greeting request (no conversation history)
     const isOpeningGreeting = conversationHistory.length === 0;
 
+    // If this is an opening greeting and user has set a custom greeting, return it directly
+    if (isOpeningGreeting && catbot.greeting && userMessage === "START_CONVERSATION") {
+      console.log('📝 Using custom opening message from catbot.greeting');
+      return new Response(
+        JSON.stringify({ response: catbot.greeting }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Extract core identity that's always included (first 600 characters)
     const trainingDescription = catbot.training_description || '';
     const coreIdentity = trainingDescription.slice(0, 600);
