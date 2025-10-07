@@ -70,10 +70,14 @@ const MyCatbots = () => {
         console.error('Error fetching all catbots:', catbotsError);
       }
 
-      // 2) Fetch all profiles separately and map by user_id
-      const { data: profilesData, error: profilesError } = await supabase
-        .from('profiles')
-        .select('id, user_id, display_name, avatar_url');
+      // 2) Fetch only profiles for catbot creators (only public catbot creators are accessible)
+      const creatorUserIds = [...new Set((rawCatbots || []).map((c: any) => c.user_id))];
+      const { data: profilesData, error: profilesError } = creatorUserIds.length > 0
+        ? await supabase
+            .from('profiles')
+            .select('id, user_id, display_name, avatar_url')
+            .in('user_id', creatorUserIds)
+        : { data: [], error: null };
 
       if (profilesError) {
         console.error('Error fetching profiles:', profilesError);
