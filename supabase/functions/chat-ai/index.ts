@@ -691,7 +691,7 @@ serve(async (req) => {
       conversationHistory,
       800 // Increased from default 200
     );
-    const optimizedContext = CharacterContextOptimizer.buildOptimizedContext(contextResult, catbot.name);
+    const optimizedContext = CharacterContextOptimizer.buildOptimizedCharacterContext(contextResult);
 
     // Build quick emotional context
     const emotionalContext = getQuickEmotionalContext(userMessage, conversationHistory);
