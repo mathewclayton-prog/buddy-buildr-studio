@@ -323,7 +323,9 @@ function buildFastMemoryContext(userMemory: any, conversationThreads: any[], spo
   // Add recent conversation threads (last 2)
   if (conversationThreads && conversationThreads.length > 0) {
     const recentThreads = conversationThreads.slice(-2);
-    const threadTopics = recentThreads.map((thread: any) => thread.topic).join(', ');
+    const threadTopics = recentThreads
+      .map((thread: any) => thread.context_type || thread?.context_data?.topic || 'context')
+      .join(', ');
     context += `Recent topics: ${threadTopics}. `;
   }
   
@@ -346,7 +348,7 @@ function buildFastMemoryContext(userMemory: any, conversationThreads: any[], spo
 async function getSpontaneousThought(catbotId: string): Promise<string | null> {
   try {
     const { data } = await supabase
-      .from('spontaneous_thoughts')
+      .from('catbot_spontaneous_thoughts')
       .select('thought_content')
       .eq('catbot_id', catbotId)
       .order('created_at', { ascending: false })
@@ -621,16 +623,29 @@ serve(async (req) => {
 
     console.log('🤖 Processing chat request for catbot:', catbotId);
 
-    // Get catbot data with all necessary fields
-    const { data: catbot, error: catbotError } = await supabase
+    // Get catbot data (base fields)
+    const { data: baseCatbot, error: baseCatbotError } = await supabase
       .from('catbots')
-      .select('id, name, personality, training_description, greeting, advanced_definition, suggested_starters, public_profile, tags')
+      .select('id, name, greeting, advanced_definition, suggested_starters, public_profile, tags')
       .eq('id', catbotId)
-      .single();
+      .maybeSingle();
 
-    if (catbotError || !catbot) {
+    if (baseCatbotError || !baseCatbot) {
       throw new Error('Catbot not found');
     }
+
+    // Get training data (personality, training_description)
+    const { data: trainingData } = await supabase
+      .from('catbot_training_data')
+      .select('personality, training_description')
+      .eq('catbot_id', catbotId)
+      .maybeSingle();
+
+    const catbot = {
+      ...baseCatbot,
+      personality: trainingData?.personality ?? 'friendly',
+      training_description: trainingData?.training_description ?? ''
+    };
 
     // Get user memory (fast lookup)
     const { data: userMemory } = await supabase
@@ -642,11 +657,11 @@ serve(async (req) => {
 
     // Get recent conversation threads (last 3)
     const { data: conversationThreads } = await supabase
-      .from('conversation_threads')
-      .select('topic')
+      .from('conversation_contexts')
+      .select('context_type, context_data, last_referenced')
       .eq('user_id', userId)
       .eq('catbot_id', catbotId)
-      .order('updated_at', { ascending: false })
+      .order('last_referenced', { ascending: false })
       .limit(3);
 
     // Get spontaneous thought
