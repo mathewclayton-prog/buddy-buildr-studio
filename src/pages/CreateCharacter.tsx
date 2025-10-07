@@ -34,7 +34,6 @@ const CreateCharacter = () => {
   const [advancedDefinition, setAdvancedDefinition] = useState("");
   const [creationMode, setCreationMode] = useState<"standard" | "enhanced">("standard");
   const [suggestedStarters, setSuggestedStarters] = useState<string[]>(["", "", ""]);
-  const [longDescription, setLongDescription] = useState("");
   const [avatar, setAvatar] = useState<string>("");
   const [avatarType, setAvatarType] = useState<"upload" | "color" | "ai">("color");
   const [isGeneratingAvatar, setIsGeneratingAvatar] = useState(false);
@@ -87,7 +86,6 @@ const CreateCharacter = () => {
       setAdvancedDefinition((data as any).advanced_definition || "");
       setCreationMode((data as any).creation_mode || "standard");
       setSuggestedStarters((data as any).suggested_starters || ["", "", ""]);
-      setLongDescription((data as any).long_description || "");
       setIsPublic(data.is_public);
       setTags(data.tags || []);
       
@@ -149,7 +147,6 @@ const CreateCharacter = () => {
       publicProfile,
       trainingDescription,
       greeting,
-      longDescription,
       advancedDefinition
     });
 
@@ -179,8 +176,7 @@ const CreateCharacter = () => {
         greeting: greeting.trim() || null,
         advanced_definition: advancedDefinition.trim() || null,
         creation_mode: creationMode,
-        suggested_starters: suggestedStarters.filter(s => s.trim()),
-        long_description: longDescription.trim() || null
+        suggested_starters: suggestedStarters.filter(s => s.trim())
       };
 
       const trainingData = {
@@ -616,24 +612,6 @@ const CreateCharacter = () => {
                       ))}
                     </div>
 
-                    {/* Long Description */}
-                    <div className="space-y-2">
-                      <Label htmlFor="longDescription">Extended Description</Label>
-                      <Textarea 
-                        id="longDescription" 
-                        value={longDescription} 
-                        onChange={e => setLongDescription(e.target.value)} 
-                        placeholder="Additional details about your cat's background, environment, or special traits." 
-                        rows={4} 
-                        maxLength={500}
-                      />
-                      <p className="text-sm text-muted-foreground">
-                        <span className={longDescription.length > 500 ? "text-destructive font-medium" : ""}>
-                          {longDescription.length}/500 characters
-                        </span>
-                        {" - Extended background information"}
-                      </p>
-                    </div>
                   </>
                 )}
 
