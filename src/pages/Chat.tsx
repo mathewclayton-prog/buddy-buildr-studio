@@ -132,14 +132,32 @@ const Chat = () => {
         // Track chat started event
         trackEvent('chat_started', {}, catbotId);
 
-        // Generate and save opening message
-        const openingContent = OpeningMessageGenerator.generateOpening(char, {
-          includeQuestion: true,
-          maxLength: 250
-        });
-
-        const greeting = await ChatService.saveMessage(currentSessionId, openingContent, false);
-        setMessages([greeting]);
+        // Generate AI-powered opening message
+        try {
+          setIsTyping(true);
+          
+          // Request opening greeting from AI with empty conversation history
+          const openingContent = await localLLM.generateResponse(
+            catbotId, 
+            "START_CONVERSATION", // Special trigger message
+            [], // Empty history signals opening greeting
+            user.id
+          );
+          
+          const greeting = await ChatService.saveMessage(currentSessionId, openingContent, false);
+          setMessages([greeting]);
+        } catch (error) {
+          console.error('Error generating opening:', error);
+          // Fallback to old generator if AI fails
+          const fallbackContent = OpeningMessageGenerator.generateOpening(char, {
+            includeQuestion: true,
+            maxLength: 250
+          });
+          const greeting = await ChatService.saveMessage(currentSessionId, fallbackContent, false);
+          setMessages([greeting]);
+        } finally {
+          setIsTyping(false);
+        }
       }
       
       setSessionId(currentSessionId);

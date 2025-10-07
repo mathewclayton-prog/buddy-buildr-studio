@@ -652,6 +652,9 @@ serve(async (req) => {
     // Get spontaneous thought
     const spontaneousThought = await getSpontaneousThought(catbotId);
 
+    // Check if this is an opening greeting request (no conversation history)
+    const isOpeningGreeting = conversationHistory.length === 0;
+
     // Extract core identity that's always included (first 600 characters)
     const trainingDescription = catbot.training_description || '';
     const coreIdentity = trainingDescription.slice(0, 600);
@@ -673,10 +676,42 @@ serve(async (req) => {
     const memoryContext = buildFastMemoryContext(userMemory, conversationThreads || [], spontaneousThought);
 
     // Build system prompt with both core identity and optimized context
-    const systemPrompt = buildFastPersonalityPrompt(catbot, coreIdentity, optimizedContext, emotionalContext, memoryContext);
+    let systemPrompt: string;
+    if (isOpeningGreeting) {
+      // Special system prompt for opening greetings
+      systemPrompt = `You are ${catbot.name}, an AI character with the following identity:
+
+${coreIdentity}
+
+${catbot.greeting ? `OPENING STYLE: ${catbot.greeting}
+- This is your FIRST message to a new user
+- Set the tone and make a welcoming first impression
+- Keep it brief (2-3 sentences maximum)
+- Be natural and authentic to your character
+` : ''}
+
+${catbot.suggested_starters && catbot.suggested_starters.length > 0 ? `You can mention these topics naturally if it fits:
+${catbot.suggested_starters.map((s: string) => `- ${s}`).join('\n')}
+` : ''}
+
+Generate a warm, character-authentic opening greeting. Do NOT be overly formal or verbose.`;
+    } else {
+      // Regular conversation system prompt
+      systemPrompt = buildFastPersonalityPrompt(catbot, coreIdentity, optimizedContext, emotionalContext, memoryContext);
+    }
 
     // Build conversation messages
-    const messages = buildConversationMessages(systemPrompt, conversationHistory, userMessage);
+    let messages: any[];
+    if (isOpeningGreeting && userMessage === "START_CONVERSATION") {
+      // For opening greetings, just ask the AI to introduce itself
+      messages = [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: 'Please introduce yourself and start our conversation.' }
+      ];
+    } else {
+      // Regular conversation flow
+      messages = buildConversationMessages(systemPrompt, conversationHistory, userMessage);
+    }
 
     console.log('🚀 Calling OpenAI API...');
 
