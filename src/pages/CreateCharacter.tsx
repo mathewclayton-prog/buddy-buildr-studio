@@ -542,7 +542,7 @@ const CreateCharacter = () => {
                   </div>
                   <p className="text-sm text-muted-foreground">
                     {creationMode === "standard" 
-                      ? "Standard mode provides essential fields for creating your cat." 
+                      ? "Click here if you would like to access enhanced creation features." 
                       : "Enhanced mode includes advanced features like dialog examples and conversation starters."}
                   </p>
                 </div>
