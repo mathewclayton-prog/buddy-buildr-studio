@@ -39,12 +39,12 @@ export const CatbotAvatar = ({
     );
   }
 
-  // Always use orange gradient for all default icons
-  const orangeGradient = "from-orange-400 to-orange-500";
+  // Always use gold gradient for all default icons to match site theme
+  const goldGradient = "from-[hsl(48,73%,66%)] to-[hsl(35,100%,60%)]";
 
   return (
     <div 
-      className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br ${orangeGradient} flex items-center justify-center shadow-soft animate-pulse hover:animate-purr cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}
+      className={`${sizeClasses[size]} rounded-lg bg-gradient-to-br ${goldGradient} flex items-center justify-center shadow-soft animate-pulse hover:animate-purr cursor-pointer transition-transform duration-300 hover:scale-105 ${className}`}
       style={{ animationDuration: '3s' }}
     >
       <Bot className={`${iconSizes[size]} text-white`} />
