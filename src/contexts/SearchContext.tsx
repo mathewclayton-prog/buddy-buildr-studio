@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { PREDEFINED_TAGS } from '@/constants/tags';
 
 interface Catbot {
   id: string;
@@ -58,10 +59,8 @@ export const SearchProvider: React.FC<SearchProviderProps> = ({ children }) => {
       const catbots = data || [];
       setAllCatbots(catbots);
       
-      // Extract all available tags
-      const allTags = catbots.flatMap(catbot => catbot.tags || []);
-      const uniqueTags = Array.from(new Set(allTags)).sort();
-      setAvailableTags(uniqueTags);
+      // Use predefined tags instead of extracting from catbots
+      setAvailableTags([...PREDEFINED_TAGS]);
     } catch (error) {
       console.error('Error loading catbots:', error);
     } finally {

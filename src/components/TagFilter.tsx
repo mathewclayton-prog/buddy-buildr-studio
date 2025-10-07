@@ -5,7 +5,7 @@ import { X, Filter } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 interface TagFilterProps {
-  availableTags: string[];
+  availableTags: readonly string[];
   selectedTags: string[];
   onTagsChange: (tags: string[]) => void;
   className?: string;
