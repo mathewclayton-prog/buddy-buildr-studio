@@ -51,7 +51,7 @@ export class CharacterContextOptimizer {
     structuredData: StructuredCharacterData,
     userMessage: string,
     conversationHistory: Array<{role: string; content: string}> = [],
-    maxTokens: number = 200
+    maxTokens: number = 800
   ): ContextSelectionResult {
     const messageLower = userMessage.toLowerCase();
     const recentHistory = conversationHistory.slice(-4).map(m => m.content.toLowerCase()).join(' ');

@@ -361,6 +361,7 @@ async function getSpontaneousThought(catbotId: string): Promise<string | null> {
 
 function buildFastPersonalityPrompt(
   catbot: any,
+  coreIdentity: string,
   optimizedContext: string,
   emotionalContext: string,
   memoryContext: string
@@ -377,8 +378,33 @@ CONVERSATION STYLE: ${personalityGuidance}
 
 COMMUNICATION PATTERNS: ${personalityPatterns}
 
-CHARACTER CONTEXT:
+CORE IDENTITY (Always Active):
+${coreIdentity}
+
+RELEVANT CONTEXT (Based on Current Conversation):
 ${optimizedContext}
+
+${catbot.greeting ? `GREETING STYLE: ${catbot.greeting}
+- This represents your natural conversation opening style and tone
+- Use this as guidance for how you greet and engage with users
+` : ''}
+
+${catbot.advanced_definition ? `ADVANCED CHARACTER DETAILS:
+${catbot.advanced_definition}
+` : ''}
+
+${catbot.public_profile ? `PUBLIC PERSONA:
+${catbot.public_profile}
+` : ''}
+
+${catbot.suggested_starters && catbot.suggested_starters.length > 0 ? `PREFERRED CONVERSATION TOPICS:
+${catbot.suggested_starters.map((s: string) => `- ${s}`).join('\n')}
+- These topics align well with your character and expertise
+` : ''}
+
+${catbot.tags && catbot.tags.length > 0 ? `CHARACTER CATEGORIES: ${catbot.tags.join(', ')}
+- Use these as thematic guidance for your responses
+` : ''}
 
 EMOTIONAL AWARENESS: ${emotionalContext}
 
@@ -595,10 +621,10 @@ serve(async (req) => {
 
     console.log('🤖 Processing chat request for catbot:', catbotId);
 
-    // Get catbot data
+    // Get catbot data with all necessary fields
     const { data: catbot, error: catbotError } = await supabase
       .from('catbots')
-      .select('*')
+      .select('id, name, personality, training_description, greeting, advanced_definition, suggested_starters, public_profile, tags')
       .eq('id', catbotId)
       .single();
 
@@ -626,10 +652,19 @@ serve(async (req) => {
     // Get spontaneous thought
     const spontaneousThought = await getSpontaneousThought(catbotId);
 
-    // Optimize character context using user message
-    const structuredData = CharacterContextOptimizer.analyzeTrainingDescription(catbot.training_description || '');
-    const contextResult = CharacterContextOptimizer.selectRelevantContext(structuredData, userMessage, conversationHistory);
-    const optimizedContext = CharacterContextOptimizer.buildOptimizedCharacterContext(contextResult);
+    // Extract core identity that's always included (first 600 characters)
+    const trainingDescription = catbot.training_description || '';
+    const coreIdentity = trainingDescription.slice(0, 600);
+
+    // Optimize character context using user message (with increased token budget)
+    const structuredData = CharacterContextOptimizer.analyzeTrainingDescription(trainingDescription);
+    const contextResult = CharacterContextOptimizer.selectRelevantContext(
+      structuredData, 
+      userMessage, 
+      conversationHistory,
+      800 // Increased from default 200
+    );
+    const optimizedContext = CharacterContextOptimizer.buildOptimizedContext(contextResult, catbot.name);
 
     // Build quick emotional context
     const emotionalContext = getQuickEmotionalContext(userMessage, conversationHistory);
@@ -637,8 +672,8 @@ serve(async (req) => {
     // Build memory context
     const memoryContext = buildFastMemoryContext(userMemory, conversationThreads || [], spontaneousThought);
 
-    // Build system prompt
-    const systemPrompt = buildFastPersonalityPrompt(catbot, optimizedContext, emotionalContext, memoryContext);
+    // Build system prompt with both core identity and optimized context
+    const systemPrompt = buildFastPersonalityPrompt(catbot, coreIdentity, optimizedContext, emotionalContext, memoryContext);
 
     // Build conversation messages
     const messages = buildConversationMessages(systemPrompt, conversationHistory, userMessage);
