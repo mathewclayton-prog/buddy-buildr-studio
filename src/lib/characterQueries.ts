@@ -18,7 +18,6 @@ export interface PublicCharacter {
 // Interface for private training data (owner only)
 export interface CharacterTrainingData {
   training_description?: string | null;
-  personality?: string | null;
 }
 
 // Interface for chat functionality (combines public + training data)
@@ -28,7 +27,6 @@ export interface CharacterForChat {
   description?: string | null; // legacy field for backward compatibility
   public_profile?: string | null;
   training_description?: string | null;
-  personality?: string | null;
   avatar_url: string | null;
   created_at: string;
 }
@@ -40,7 +38,6 @@ export interface CharacterForEdit {
   description?: string | null; // legacy field for backward compatibility
   public_profile?: string | null;
   training_description?: string | null;
-  personality?: string | null;
   avatar_url: string | null;
   is_public: boolean;
   tags?: string[] | null;
@@ -97,7 +94,7 @@ export async function getUserCharacters(userId: string): Promise<PublicCharacter
 export async function getCharacterTrainingData(characterId: string): Promise<CharacterTrainingData | null> {
   const { data, error } = await supabase
     .from('catbot_training_data')
-    .select('training_description, personality')
+    .select('training_description')
     .eq('catbot_id', characterId)
     .maybeSingle();
 
@@ -136,7 +133,6 @@ export async function getCharacterForChat(characterId: string): Promise<Characte
   return {
     ...publicData,
     training_description: trainingData?.training_description || null,
-    personality: trainingData?.personality || null,
   };
 }
 
@@ -168,7 +164,6 @@ export async function getCharacterForEdit(characterId: string, userId: string): 
   return {
     ...publicData,
     training_description: trainingData?.training_description || null,
-    personality: trainingData?.personality || null,
   };
 }
 
@@ -184,7 +179,6 @@ export async function upsertCharacterTrainingData(
     .upsert({
       catbot_id: characterId,
       training_description: trainingData.training_description,
-      personality: trainingData.personality,
     }, {
       onConflict: 'catbot_id'
     });

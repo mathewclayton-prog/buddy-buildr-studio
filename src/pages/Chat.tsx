@@ -85,7 +85,7 @@ const Chat = () => {
             name: data.name,
             publicProfile: data.public_profile || (data.description ? data.description.substring(0, 250) : ''),
             trainingDescription: data.training_description || data.description || '',
-            personalityTraits: data.personality ? [data.personality] : ['friendly'],
+            personalityTraits: [], // Personality is now derived from trainingDescription
             avatar: data.avatar_url || undefined,
             createdAt: new Date(data.created_at),
           };
