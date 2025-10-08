@@ -176,7 +176,6 @@ export type Database = {
           catbot_id: string
           created_at: string
           id: string
-          personality: string | null
           training_description: string | null
           updated_at: string
         }
@@ -184,7 +183,6 @@ export type Database = {
           catbot_id: string
           created_at?: string
           id?: string
-          personality?: string | null
           training_description?: string | null
           updated_at?: string
         }
@@ -192,7 +190,6 @@ export type Database = {
           catbot_id?: string
           created_at?: string
           id?: string
-          personality?: string | null
           training_description?: string | null
           updated_at?: string
         }
