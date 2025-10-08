@@ -76,7 +76,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error('Error during sign out:', error);
+    } finally {
+      // ALWAYS clear local state, even if server sign-out fails
+      setSession(null);
+      setUser(null);
+      
+      // Force clear localStorage to remove any stale session data
+      localStorage.removeItem('sb-akbmcsjeityrozgsibng-auth-token');
+    }
   };
 
   const resetPassword = async (email: string) => {
