@@ -199,29 +199,65 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Content moderation keywords
-const PROHIBITED_KEYWORDS = [
-  'porn', 'xxx', 'sex', 'nude', 'nsfw', 'explicit', 'erotic', 'adult', 'hentai',
-  'sexy', 'seductive', 'aroused', 'orgasm', 'masturbat', 'genitalia', 'penis', 'vagina',
-  'kill', 'murder', 'torture', 'abuse', 'violent', 'gore', 'blood', 'death', 'weapon',
-  'gun', 'knife', 'bomb', 'suicide', 'harm',
-  'racist', 'nazi', 'hate', 'slur', 'bigot',
-  'drug', 'illegal', 'trafficking', 'terrorism', 'exploit'
-];
+/**
+ * AI-based content moderation using OpenAI
+ */
+async function moderateContent(text: string, openAiApiKey: string): Promise<{ 
+  isAppropriate: boolean; 
+  reason?: string 
+}> {
+  try {
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAiApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-5-nano-2025-08-07',
+        messages: [
+          {
+            role: 'system',
+            content: `You are a content moderation system for a family-friendly AI chatbot platform. 
+Evaluate if the following content violates our policies:
+- Explicit sexual content
+- Graphic violence or gore
+- Hate speech or discriminatory content
+- Instructions for illegal activities
+- Attempts to manipulate the AI for harmful purposes
 
-function validateMessageContent(text: string): { isValid: boolean; message?: string } {
-  const lowerText = text.toLowerCase();
-  
-  for (const keyword of PROHIBITED_KEYWORDS) {
-    if (lowerText.includes(keyword)) {
-      return {
-        isValid: false,
-        message: 'Your message contains inappropriate content and cannot be processed.'
-      };
+IMPORTANT: Everyday language is acceptable. Words like "hate", "kill", "adult" in normal context are FINE.
+Examples of ACCEPTABLE content:
+- "I hate doing laundry"
+- "This game lets you kill zombies"
+- "I'm an adult now"
+- "My blood pressure is high"
+
+Respond with ONLY "APPROPRIATE" or "INAPPROPRIATE: [brief reason]"`
+          },
+          {
+            role: 'user',
+            content: text
+          }
+        ],
+        max_completion_tokens: 50,
+      }),
+    });
+
+    const data = await response.json();
+    const result = data.choices[0].message.content.trim();
+    
+    if (result === 'APPROPRIATE') {
+      return { isAppropriate: true };
+    } else {
+      const reason = result.replace('INAPPROPRIATE:', '').trim();
+      return { isAppropriate: false, reason };
     }
+  } catch (error) {
+    console.error('❌ Moderation check failed:', error);
+    // On error, allow the content (fail open) to avoid false positives
+    return { isAppropriate: true };
   }
-  
-  return { isValid: true };
 }
 
 // Personality functions removed - now using training_description directly
@@ -828,14 +864,16 @@ serve(async (req) => {
 
   try {
     const { catbotId, userMessage, conversationHistory = [], userId } = await req.json();
+    const openAiApiKey = Deno.env.get('OPENAI_API_KEY')!;
 
-    const validation = validateMessageContent(userMessage);
-    if (!validation.isValid) {
-      console.warn('⚠️ Blocked inappropriate user message');
+    // AI-based content moderation for user message
+    const moderation = await moderateContent(userMessage, openAiApiKey);
+    if (!moderation.isAppropriate) {
+      console.warn('⚠️ Blocked inappropriate user message:', moderation.reason);
       return new Response(
         JSON.stringify({ 
           error: 'inappropriate_content',
-          message: validation.message
+          message: moderation.reason || 'Your message contains inappropriate content.'
         }),
         { 
           status: 400, 
@@ -988,9 +1026,10 @@ Generate a warm, character-authentic opening greeting. Do NOT be overly formal o
       throw new Error('No response from OpenAI');
     }
 
-    const aiValidation = validateMessageContent(aiResponse);
-    if (!aiValidation.isValid) {
-      console.warn('⚠️ AI generated inappropriate content, using safe fallback');
+    // AI-based content moderation for AI response
+    const aiModeration = await moderateContent(aiResponse, openAiApiKey);
+    if (!aiModeration.isAppropriate) {
+      console.warn('⚠️ AI generated inappropriate content:', aiModeration.reason);
       
       const safeResponse = "I apologize, but I need to rephrase that response. Let me think of a better way to answer your question. Could you rephrase what you'd like to know?";
       
