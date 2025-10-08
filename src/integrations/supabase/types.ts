@@ -217,6 +217,7 @@ export type Database = {
           suggested_starters: string[] | null
           tags: string[] | null
           updated_at: string
+          use_new_prompt: boolean | null
           user_id: string
           voice_id: string | null
         }
@@ -238,6 +239,7 @@ export type Database = {
           suggested_starters?: string[] | null
           tags?: string[] | null
           updated_at?: string
+          use_new_prompt?: boolean | null
           user_id: string
           voice_id?: string | null
         }
@@ -259,6 +261,7 @@ export type Database = {
           suggested_starters?: string[] | null
           tags?: string[] | null
           updated_at?: string
+          use_new_prompt?: boolean | null
           user_id?: string
           voice_id?: string | null
         }
