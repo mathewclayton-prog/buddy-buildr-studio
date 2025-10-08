@@ -199,29 +199,62 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Content moderation keywords
-const PROHIBITED_KEYWORDS = [
-  'porn', 'xxx', 'sex', 'nude', 'nsfw', 'explicit', 'erotic', 'adult', 'hentai',
-  'sexy', 'seductive', 'aroused', 'orgasm', 'masturbat', 'genitalia', 'penis', 'vagina',
-  'kill', 'murder', 'torture', 'abuse', 'violent', 'gore', 'blood', 'death', 'weapon',
-  'gun', 'knife', 'bomb', 'suicide', 'harm',
-  'racist', 'nazi', 'hate', 'slur', 'bigot',
-  'drug', 'illegal', 'trafficking', 'terrorism', 'exploit'
-];
-
-function validateMessageContent(text: string): { isValid: boolean; message?: string } {
-  const lowerText = text.toLowerCase();
+// ChatGPT-based content moderation
+async function moderateWithChatGPT(text: string): Promise<{ isAppropriate: boolean; reason?: string }> {
+  const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
   
-  for (const keyword of PROHIBITED_KEYWORDS) {
-    if (lowerText.includes(keyword)) {
-      return {
-        isValid: false,
-        message: 'Your message contains inappropriate content and cannot be processed.'
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAIApiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [{
+          role: 'system',
+          content: 'You are a content moderator. Analyze if the message contains explicit sexual content, graphic violence, hate speech, or illegal activities. Respond with ONLY "SAFE" or "UNSAFE: [brief reason]". Context: casual AI character chat app.'
+        }, {
+          role: 'user',
+          content: text
+        }],
+        max_tokens: 50,
+        temperature: 0.3
+      }),
+      signal: controller.signal
+    });
+    
+    clearTimeout(timeoutId);
+    
+    if (!response.ok) {
+      console.error('Moderation API error:', response.status);
+      // Fail open - allow message if moderation fails
+      return { isAppropriate: true };
+    }
+    
+    const data = await response.json();
+    const result = data.choices?.[0]?.message?.content?.trim() || 'SAFE';
+    
+    console.log('🛡️ Moderation result:', result);
+    
+    if (result.startsWith('UNSAFE:')) {
+      return { 
+        isAppropriate: false, 
+        reason: result.substring(7).trim() 
       };
     }
+    
+    return { isAppropriate: true };
+    
+  } catch (error) {
+    console.error('⚠️ Moderation function error:', error);
+    // Fail open - allow message if moderation crashes
+    return { isAppropriate: true };
   }
-  
-  return { isValid: true };
 }
 
 // Personality functions removed - now using training_description directly
@@ -829,13 +862,13 @@ serve(async (req) => {
   try {
     const { catbotId, userMessage, conversationHistory = [], userId } = await req.json();
 
-    const validation = validateMessageContent(userMessage);
-    if (!validation.isValid) {
+    const moderation = await moderateWithChatGPT(userMessage);
+    if (!moderation.isAppropriate) {
       console.warn('⚠️ Blocked inappropriate user message');
       return new Response(
         JSON.stringify({ 
           error: 'inappropriate_content',
-          message: validation.message
+          message: moderation.reason || 'Your message contains inappropriate content and cannot be processed.'
         }),
         { 
           status: 400, 
@@ -988,8 +1021,8 @@ Generate a warm, character-authentic opening greeting. Do NOT be overly formal o
       throw new Error('No response from OpenAI');
     }
 
-    const aiValidation = validateMessageContent(aiResponse);
-    if (!aiValidation.isValid) {
+    const aiModeration = await moderateWithChatGPT(aiResponse);
+    if (!aiModeration.isAppropriate) {
       console.warn('⚠️ AI generated inappropriate content, using safe fallback');
       
       const safeResponse = "I apologize, but I need to rephrase that response. Let me think of a better way to answer your question. Could you rephrase what you'd like to know?";
