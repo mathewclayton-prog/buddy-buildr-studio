@@ -17,7 +17,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCharacterForChat } from "@/lib/characterQueries";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
-import { validateContent } from "@/utils/contentModeration";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Chat = () => {
@@ -252,17 +251,6 @@ const Chat = () => {
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || newMessage.trim();
     if (!textToSend || !character || !sessionId || !user) return;
-
-    // Validate message content before sending
-    const validation = validateContent(textToSend);
-    if (!validation.isValid) {
-      toast({
-        title: "Message Not Allowed",
-        description: validation.message,
-        variant: "destructive",
-      });
-      return;
-    }
 
     try {
       // Save user message to database

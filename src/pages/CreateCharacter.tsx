@@ -18,7 +18,6 @@ import ReactCrop, { Crop, PixelCrop } from 'react-image-crop';
 import 'react-image-crop/dist/ReactCrop.css';
 import { uploadImage, validateImageFile } from "@/lib/imageStorage";
 import { getCharacterForEdit, upsertCharacterTrainingData } from "@/lib/characterQueries";
-import { validateCharacterContent } from "@/utils/contentModeration";
 import { useAnalytics } from "@/hooks/useAnalytics";
 import { PREDEFINED_TAGS } from "@/constants/tags";
 // Constants removed - personality dropdown and color options no longer needed
@@ -136,24 +135,6 @@ const CreateCharacter = () => {
       toast({
         title: "Validation Error",
         description: "Personality & History must be 10000 characters or less.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Content moderation check
-    const contentValidation = validateCharacterContent({
-      name,
-      publicProfile,
-      trainingDescription,
-      greeting,
-      advancedDefinition
-    });
-
-    if (!contentValidation.isValid) {
-      toast({
-        title: "Content Policy Violation",
-        description: contentValidation.message || "Your content violates our community guidelines. Please review and revise.",
         variant: "destructive"
       });
       return;
