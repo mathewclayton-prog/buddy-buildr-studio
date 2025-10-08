@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { getCharacterForChat } from "@/lib/characterQueries";
 import { OpeningMessageGenerator } from "@/utils/openingMessageGenerator";
 import MemoryIndicator from "@/components/MemoryIndicator";
+import { validateContent } from "@/utils/contentModeration";
 import { useAnalytics } from "@/hooks/useAnalytics";
 
 const Chat = () => {
@@ -195,10 +196,10 @@ const Chat = () => {
       console.error("LLM generation failed:", error);
       
       // Check if it's a moderation error
-      if (error.name === 'inappropriate_content' || error.message.includes('inappropriate content')) {
+      if (error.message === 'inappropriate_content') {
         toast({
           title: "Message Blocked",
-          description: error.message || "Your message was blocked by our content filter.",
+          description: "Your message was blocked by our content filter.",
           variant: "destructive",
         });
         throw error;
@@ -251,6 +252,17 @@ const Chat = () => {
   const sendMessage = async (messageText?: string) => {
     const textToSend = messageText || newMessage.trim();
     if (!textToSend || !character || !sessionId || !user) return;
+
+    // Validate message content before sending
+    const validation = validateContent(textToSend);
+    if (!validation.isValid) {
+      toast({
+        title: "Message Not Allowed",
+        description: validation.message,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       // Save user message to database

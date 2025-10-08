@@ -69,8 +69,7 @@ class LocalLLMService {
 
       // Check if response contains moderation error
       if (data?.error === 'inappropriate_content') {
-        const moderationError = new Error(data.message || 'Your message contains inappropriate content.');
-        moderationError.name = 'inappropriate_content';
+        const moderationError = new Error('inappropriate_content');
         throw moderationError;
       }
 
