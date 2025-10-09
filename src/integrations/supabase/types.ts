@@ -459,6 +459,98 @@ export type Database = {
         }
         Relationships: []
       }
+      test_responses: {
+        Row: {
+          catbot_id: string
+          created_at: string
+          id: string
+          metadata: Json | null
+          question_index: number
+          question_text: string
+          response_text: string
+          response_time_ms: number | null
+          test_run_id: string
+          tokens_used: number | null
+          variant_name: string | null
+        }
+        Insert: {
+          catbot_id: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          question_index: number
+          question_text: string
+          response_text: string
+          response_time_ms?: number | null
+          test_run_id: string
+          tokens_used?: number | null
+          variant_name?: string | null
+        }
+        Update: {
+          catbot_id?: string
+          created_at?: string
+          id?: string
+          metadata?: Json | null
+          question_index?: number
+          question_text?: string
+          response_text?: string
+          response_time_ms?: number | null
+          test_run_id?: string
+          tokens_used?: number | null
+          variant_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_responses_test_run_id_fkey"
+            columns: ["test_run_id"]
+            isOneToOne: false
+            referencedRelation: "test_runs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_runs: {
+        Row: {
+          catbot_ids: string[]
+          completed_at: string | null
+          configuration_snapshots: Json | null
+          created_at: string
+          created_by: string
+          id: string
+          prompt_version: string
+          status: string | null
+          test_name: string
+          test_questions: Json
+          test_type: string
+        }
+        Insert: {
+          catbot_ids: string[]
+          completed_at?: string | null
+          configuration_snapshots?: Json | null
+          created_at?: string
+          created_by: string
+          id?: string
+          prompt_version: string
+          status?: string | null
+          test_name: string
+          test_questions: Json
+          test_type: string
+        }
+        Update: {
+          catbot_ids?: string[]
+          completed_at?: string | null
+          configuration_snapshots?: Json | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          prompt_version?: string
+          status?: string | null
+          test_name?: string
+          test_questions?: Json
+          test_type?: string
+        }
+        Relationships: []
+      }
       user_memory_profiles: {
         Row: {
           catbot_id: string

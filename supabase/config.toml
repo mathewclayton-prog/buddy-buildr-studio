@@ -3,6 +3,9 @@ project_id = "akbmcsjeityrozgsibng"
 [functions.chat-ai]
 verify_jwt = false
 
+[functions.test-chat]
+verify_jwt = false
+
 [functions.generate-avatar]
 verify_jwt = false
 

@@ -25,6 +25,7 @@ import Help from "./pages/Help";
 import FAQ from "./pages/FAQ";
 import NotFound from "./pages/NotFound";
 import AdminDashboard from "./pages/AdminDashboard";
+import AdminTesting from "./pages/AdminTesting";
 
 const queryClient = new QueryClient();
 
@@ -91,6 +92,7 @@ const App = () => {
                 <Route path="/help" element={<Help />} />
                 <Route path="/faq" element={<FAQ />} />
                 <Route path="/admin" element={<AdminDashboard />} />
+                <Route path="/admin/testing" element={<AdminTesting />} />
 
                 {/* Dev routes - for accessing full app during Coming Soon mode */}
                 <Route path="/dev" element={<Index />} />
@@ -111,6 +113,7 @@ const App = () => {
                 <Route path="/dev/help" element={<Help />} />
                 <Route path="/dev/faq" element={<FAQ />} />
                 <Route path="/dev/admin" element={<AdminDashboard />} />
+                <Route path="/dev/admin/testing" element={<AdminTesting />} />
 
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />

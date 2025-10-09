@@ -6,6 +6,7 @@ import Navigation from "@/components/Navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import { 
   Users, 
   MessageSquare, 
@@ -13,7 +14,8 @@ import {
   Activity,
   BarChart3,
   Globe,
-  Clock
+  Clock,
+  Beaker
 } from "lucide-react";
 import {
   LineChart,
@@ -577,6 +579,22 @@ const AdminDashboard = () => {
             <p className="text-muted-foreground mt-2">Analytics and insights for your platform</p>
           </div>
         </div>
+
+        {/* Quick Actions */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Beaker className="h-5 w-5" />
+              Testing Tools
+            </CardTitle>
+            <CardDescription>Test and compare chatbot responses</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button onClick={() => navigate('/admin/testing')} className="w-full sm:w-auto">
+              Go to Testing Dashboard
+            </Button>
+          </CardContent>
+        </Card>
 
         {/* Overview Stats */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
