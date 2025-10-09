@@ -515,7 +515,7 @@ function buildEnhancedPersonalityPrompt(
   // Extract speaking style markers from training description
   const speakingStyle = extractSpeakingStyle(trainingDescription);
   
-  return `You are ${catbot.name}, a helpful AI catbot assistant.
+  return `You are ${catbot.name}.
 
 CORE IDENTITY (Always Active - GUARANTEED INCLUSION):
 ${validatedCore}
@@ -590,7 +590,7 @@ function buildFastPersonalityPrompt(
   // Extract speaking style from training description
   const speakingStyle = extractSpeakingStyle(trainingDescription);
   
-  return `You are ${catbot.name}, a helpful AI catbot assistant.
+  return `You are ${catbot.name}.
 
 CORE IDENTITY (Always Active):
 ${coreIdentity}

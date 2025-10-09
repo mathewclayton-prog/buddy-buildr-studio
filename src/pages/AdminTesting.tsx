@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Slider } from "@/components/ui/slider";
 import { toast } from "@/hooks/use-toast";
 import { Play, Loader2, Download, ChevronLeft } from "lucide-react";
 
@@ -31,6 +32,13 @@ interface TestResult {
   tokensUsed: number;
   status: 'pending' | 'success' | 'error';
   error?: string;
+  openaiParams?: {
+    model: string;
+    temperature: number;
+    max_tokens: number;
+    presence_penalty: number;
+    frequency_penalty: number;
+  };
 }
 
 interface ConfigVariant {
@@ -67,6 +75,15 @@ export default function AdminTesting() {
   const [isRunning, setIsRunning] = useState(false);
   const [results, setResults] = useState<TestResult[]>([]);
   const [testHistory, setTestHistory] = useState<any[]>([]);
+  
+  // OpenAI parameters
+  const [testOpenAIParams, setTestOpenAIParams] = useState({
+    model: 'gpt-4o-mini',
+    temperature: 0.8,
+    max_tokens: 300,
+    presence_penalty: 0.1,
+    frequency_penalty: 0.1
+  });
 
   useEffect(() => {
     if (!authLoading && !isAdmin) {
@@ -270,7 +287,8 @@ export default function AdminTesting() {
               catbotId: combo.catbotId,
               question: combo.question,
               promptVersion: promptVersion,
-              configOverride: combo.configOverride
+              configOverride: combo.configOverride,
+              openaiParams: testOpenAIParams
             }
           });
 
@@ -279,6 +297,7 @@ export default function AdminTesting() {
           result.response = data.response;
           result.responseTime = data.responseTimeMs;
           result.tokensUsed = data.tokensUsed;
+          result.openaiParams = data.openaiParams;
           result.status = 'success';
 
           // Save to database
@@ -290,7 +309,8 @@ export default function AdminTesting() {
             question_text: combo.question,
             response_text: data.response,
             response_time_ms: data.responseTimeMs,
-            tokens_used: data.tokensUsed
+            tokens_used: data.tokensUsed,
+            openai_params: data.openaiParams
           });
 
         } catch (error: any) {
@@ -559,6 +579,104 @@ export default function AdminTesting() {
                 Run Tests
               </>
             )}
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>OpenAI Parameters</CardTitle>
+          <CardDescription>
+            Test different OpenAI API parameters to optimize response quality
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label>Model</Label>
+              <Select
+                value={testOpenAIParams.model}
+                onValueChange={(value) => setTestOpenAIParams(prev => ({...prev, model: value}))}
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4o-mini">GPT-4o Mini (Production Default)</SelectItem>
+                  <SelectItem value="gpt-4o">GPT-4o</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Max Tokens: {testOpenAIParams.max_tokens}</Label>
+              <Slider
+                value={[testOpenAIParams.max_tokens]}
+                onValueChange={([value]) => setTestOpenAIParams(prev => ({...prev, max_tokens: value}))}
+                min={50}
+                max={1000}
+                step={50}
+              />
+              <p className="text-xs text-muted-foreground">Controls response length</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label>Temperature: {testOpenAIParams.temperature.toFixed(1)}</Label>
+              <Slider
+                value={[testOpenAIParams.temperature]}
+                onValueChange={([value]) => setTestOpenAIParams(prev => ({...prev, temperature: value}))}
+                min={0}
+                max={2}
+                step={0.1}
+              />
+              <p className="text-xs text-muted-foreground">
+                Lower = focused, Higher = creative
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Presence Penalty: {testOpenAIParams.presence_penalty.toFixed(1)}</Label>
+              <Slider
+                value={[testOpenAIParams.presence_penalty]}
+                onValueChange={([value]) => setTestOpenAIParams(prev => ({...prev, presence_penalty: value}))}
+                min={-2}
+                max={2}
+                step={0.1}
+              />
+              <p className="text-xs text-muted-foreground">
+                Encourages new topics
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Frequency Penalty: {testOpenAIParams.frequency_penalty.toFixed(1)}</Label>
+              <Slider
+                value={[testOpenAIParams.frequency_penalty]}
+                onValueChange={([value]) => setTestOpenAIParams(prev => ({...prev, frequency_penalty: value}))}
+                min={-2}
+                max={2}
+                step={0.1}
+              />
+              <p className="text-xs text-muted-foreground">
+                Reduces repetition
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            onClick={() => setTestOpenAIParams({
+              model: 'gpt-4o-mini',
+              temperature: 0.8,
+              max_tokens: 300,
+              presence_penalty: 0.1,
+              frequency_penalty: 0.1
+            })}
+          >
+            Reset to Production Defaults
           </Button>
         </CardContent>
       </Card>

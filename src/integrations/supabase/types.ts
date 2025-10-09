@@ -465,6 +465,7 @@ export type Database = {
           created_at: string
           id: string
           metadata: Json | null
+          openai_params: Json | null
           question_index: number
           question_text: string
           response_text: string
@@ -478,6 +479,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          openai_params?: Json | null
           question_index: number
           question_text: string
           response_text: string
@@ -491,6 +493,7 @@ export type Database = {
           created_at?: string
           id?: string
           metadata?: Json | null
+          openai_params?: Json | null
           question_index?: number
           question_text?: string
           response_text?: string

@@ -19,7 +19,7 @@ serve(async (req) => {
   const startTime = Date.now();
 
   try {
-    const { catbotId, question, promptVersion = 'enhanced', configOverride } = await req.json();
+    const { catbotId, question, promptVersion = 'enhanced', configOverride, openaiParams = {} } = await req.json();
 
     if (!catbotId || !question) {
       throw new Error('catbotId and question are required');
@@ -65,6 +65,15 @@ serve(async (req) => {
       systemPrompt = buildLegacyPrompt(effectiveConfig);
     }
 
+    // Apply OpenAI parameter overrides with defaults
+    const effectiveParams = {
+      model: openaiParams.model ?? 'gpt-4o-mini',
+      max_tokens: openaiParams.max_tokens ?? 300,
+      temperature: openaiParams.temperature ?? 0.8,
+      presence_penalty: openaiParams.presence_penalty ?? 0.1,
+      frequency_penalty: openaiParams.frequency_penalty ?? 0.1,
+    };
+
     // Call OpenAI
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -73,12 +82,15 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'gpt-4o-mini',
+        model: effectiveParams.model,
         messages: [
           { role: 'system', content: systemPrompt },
           { role: 'user', content: question }
         ],
-        max_tokens: 500,
+        max_tokens: effectiveParams.max_tokens,
+        temperature: effectiveParams.temperature,
+        presence_penalty: effectiveParams.presence_penalty,
+        frequency_penalty: effectiveParams.frequency_penalty,
       }),
     });
 
@@ -98,7 +110,8 @@ serve(async (req) => {
       response: aiResponse,
       responseTimeMs: responseTime,
       tokensUsed: tokensUsed,
-      promptVersion: promptVersion
+      promptVersion: promptVersion,
+      openaiParams: effectiveParams
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
