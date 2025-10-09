@@ -599,7 +599,7 @@ export default function AdminTesting() {
                     <TableCell>{result.variantName}</TableCell>
                     <TableCell className="max-w-xs truncate">{result.question}</TableCell>
                     <TableCell className="max-w-md">
-                      <div className="line-clamp-2 text-sm">{result.response || '...'}</div>
+                      <div className="text-sm whitespace-pre-wrap">{result.response || '...'}</div>
                     </TableCell>
                     <TableCell>{result.responseTime || '-'}</TableCell>
                     <TableCell>{result.tokensUsed || '-'}</TableCell>
