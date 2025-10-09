@@ -174,19 +174,24 @@ const AdminDashboard = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (!user) {
+        console.log('No user found, redirecting to auth');
         navigate("/auth");
         return;
       }
 
       try {
+        console.log('Checking admin status for user:', user.id);
         const { data, error } = await supabase.rpc('has_role', {
           _user_id: user.id,
           _role: 'admin'
         });
 
+        console.log('has_role response:', { data, error });
+
         if (error) throw error;
 
         if (!data) {
+          console.log('User is not an admin');
           toast({
             title: "Access Denied",
             description: "You don't have permission to access the admin dashboard.",
@@ -196,10 +201,16 @@ const AdminDashboard = () => {
           return;
         }
 
+        console.log('User is admin, loading analytics');
         setIsAdmin(true);
         await loadAnalyticsData();
       } catch (error) {
         console.error('Error checking admin status:', error);
+        toast({
+          title: "Error",
+          description: "Failed to verify admin access. Please try again.",
+          variant: "destructive"
+        });
         navigate("/");
       } finally {
         setLoading(false);
