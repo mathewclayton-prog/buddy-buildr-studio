@@ -416,48 +416,68 @@ export default function AdminTesting() {
               <CardDescription>Test the same questions across different catbots</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label>Select Catbots (up to 5)</Label>
-                <Input
-                  type="text"
-                  placeholder="Search catbots by name..."
-                  value={catbotSearchQuery}
-                  onChange={(e) => setCatbotSearchQuery(e.target.value)}
-                  className="mb-3"
-                />
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {availableCatbots
-                    .filter(catbot => 
-                      catbot.name.toLowerCase().includes(catbotSearchQuery.toLowerCase())
-                    )
-                    .map(catbot => (
-                    <div
-                      key={catbot.id}
-                      className={`p-3 border rounded-lg cursor-pointer transition ${
-                        selectedCatbots.includes(catbot.id)
-                          ? 'border-primary bg-primary/5'
-                          : 'border-border hover:border-primary/50'
-                      }`}
-                      onClick={() => {
-                        if (selectedCatbots.includes(catbot.id)) {
-                          setSelectedCatbots(selectedCatbots.filter(id => id !== catbot.id));
-                        } else if (selectedCatbots.length < 5) {
-                          setSelectedCatbots([...selectedCatbots, catbot.id]);
-                        }
-                      }}
-                    >
-                      <div className="font-medium text-sm">{catbot.name}</div>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Add Catbot to Comparison</Label>
+                  <Select
+                    value=""
+                    onValueChange={(value) => {
+                      if (!selectedCatbots.includes(value) && selectedCatbots.length < 5) {
+                        setSelectedCatbots([...selectedCatbots, value]);
+                      }
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a catbot to add..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <div className="p-2">
+                        <Input
+                          type="text"
+                          placeholder="Search catbots..."
+                          value={catbotSearchQuery}
+                          onChange={(e) => setCatbotSearchQuery(e.target.value)}
+                          className="mb-2"
+                        />
+                      </div>
+                      {availableCatbots
+                        .filter(catbot => 
+                          !selectedCatbots.includes(catbot.id) &&
+                          catbot.name.toLowerCase().includes(catbotSearchQuery.toLowerCase())
+                        )
+                        .map(catbot => (
+                          <SelectItem key={catbot.id} value={catbot.id}>
+                            {catbot.name}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Selected: {selectedCatbots.length}/5 catbots
+                  </p>
+                </div>
+
+                {selectedCatbots.length > 0 && (
+                  <div className="space-y-2">
+                    <Label>Selected Catbots</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedCatbots.map(catbotId => {
+                        const catbot = availableCatbots.find(c => c.id === catbotId);
+                        return catbot ? (
+                          <Badge key={catbotId} variant="secondary" className="gap-1">
+                            {catbot.name}
+                            <button
+                              onClick={() => setSelectedCatbots(selectedCatbots.filter(id => id !== catbotId))}
+                              className="ml-1 hover:text-destructive"
+                            >
+                              ×
+                            </button>
+                          </Badge>
+                        ) : null;
+                      })}
                     </div>
-                  ))}
-                </div>
-                <div className="flex items-center justify-between text-sm text-muted-foreground">
-                  <span>
-                    Showing {availableCatbots.filter(catbot => 
-                      catbot.name.toLowerCase().includes(catbotSearchQuery.toLowerCase())
-                    ).length} of {availableCatbots.length} catbots
-                  </span>
-                  <span>Selected: {selectedCatbots.length}/5</span>
-                </div>
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
