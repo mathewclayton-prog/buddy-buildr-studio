@@ -86,6 +86,7 @@ const Navigation = () => {
       <div className="container mx-auto px-4 py-2 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2 hover:opacity-70 transition-opacity text-black">
           <span className="font-bold text-black" style={{fontSize: '25px'}}>MiCat.Online</span>
+          <span className="text-muted-foreground text-sm font-normal">beta</span>
         </Link>
 
         <nav className="flex items-center gap-4">
