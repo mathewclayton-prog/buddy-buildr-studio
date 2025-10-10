@@ -68,7 +68,7 @@ serve(async (req) => {
     // Apply OpenAI parameter overrides with defaults
     const effectiveParams = {
       model: openaiParams.model ?? 'gpt-4o-mini',
-      max_tokens: openaiParams.max_tokens ?? 300,
+      max_tokens: openaiParams.max_tokens ?? 60,
       temperature: openaiParams.temperature ?? 0.8,
       presence_penalty: openaiParams.presence_penalty ?? 0.1,
       frequency_penalty: openaiParams.frequency_penalty ?? 0.1,
@@ -152,6 +152,10 @@ function buildEnhancedPrompt(config: any): string {
   }
 
   prompt += '\n\nRespond naturally in character. Keep your responses engaging and true to your personality.';
+  prompt += '\n\nCRITICAL: Responses must be complete and self-contained within 2-4 sentences (about 50 words).';
+  prompt += '\nNever begin numbered lists or multi-part explanations that extend beyond this limit.';
+  prompt += '\nIf the user asks a complex question, give a concise summary and offer to dive deeper into specific parts.';
+  prompt += '\nEnd every response with a complete thought. Do not leave sentences unfinished.';
 
   return prompt;
 }
@@ -168,6 +172,9 @@ function buildLegacyPrompt(config: any): string {
   }
 
   prompt += ' Respond as this character would.';
+  prompt += ' CRITICAL: Give complete, self-contained responses in 2-4 sentences. Never start a long answer that continues beyond this limit.';
+  prompt += ' If a topic requires more detail, briefly acknowledge that and offer to elaborate on specific aspects.';
+  prompt += ' End every response with a complete thought. Do not leave sentences unfinished.';
 
   return prompt;
 }
