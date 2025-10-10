@@ -103,6 +103,8 @@ serve(async (req) => {
     const data = await response.json();
     const aiResponse = data.choices[0].message.content;
     const tokensUsed = data.usage?.total_tokens || 0;
+    const promptTokens = data.usage?.prompt_tokens || 0;
+    const completionTokens = data.usage?.completion_tokens || 0;
 
     const responseTime = Date.now() - startTime;
 
@@ -110,6 +112,8 @@ serve(async (req) => {
       response: aiResponse,
       responseTimeMs: responseTime,
       tokensUsed: tokensUsed,
+      promptTokens: promptTokens,
+      completionTokens: completionTokens,
       promptVersion: promptVersion,
       openaiParams: effectiveParams
     }), {

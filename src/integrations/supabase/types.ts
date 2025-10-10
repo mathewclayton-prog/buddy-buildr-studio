@@ -462,10 +462,12 @@ export type Database = {
       test_responses: {
         Row: {
           catbot_id: string
+          completion_tokens: number | null
           created_at: string
           id: string
           metadata: Json | null
           openai_params: Json | null
+          prompt_tokens: number | null
           question_index: number
           question_text: string
           response_text: string
@@ -476,10 +478,12 @@ export type Database = {
         }
         Insert: {
           catbot_id: string
+          completion_tokens?: number | null
           created_at?: string
           id?: string
           metadata?: Json | null
           openai_params?: Json | null
+          prompt_tokens?: number | null
           question_index: number
           question_text: string
           response_text: string
@@ -490,10 +494,12 @@ export type Database = {
         }
         Update: {
           catbot_id?: string
+          completion_tokens?: number | null
           created_at?: string
           id?: string
           metadata?: Json | null
           openai_params?: Json | null
+          prompt_tokens?: number | null
           question_index?: number
           question_text?: string
           response_text?: string

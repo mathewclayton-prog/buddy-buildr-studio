@@ -30,6 +30,8 @@ interface TestResult {
   response: string;
   responseTime: number;
   tokensUsed: number;
+  promptTokens?: number;
+  completionTokens?: number;
   status: 'pending' | 'success' | 'error';
   error?: string;
   openaiParams?: {
@@ -297,6 +299,8 @@ export default function AdminTesting() {
           result.response = data.response;
           result.responseTime = data.responseTimeMs;
           result.tokensUsed = data.tokensUsed;
+          result.promptTokens = data.promptTokens;
+          result.completionTokens = data.completionTokens;
           result.openaiParams = data.openaiParams;
           result.status = 'success';
 
@@ -310,6 +314,8 @@ export default function AdminTesting() {
             response_text: data.response,
             response_time_ms: data.responseTimeMs,
             tokens_used: data.tokensUsed,
+            prompt_tokens: data.promptTokens,
+            completion_tokens: data.completionTokens,
             openai_params: data.openaiParams
           });
 
@@ -353,7 +359,7 @@ export default function AdminTesting() {
 
   const exportResults = () => {
     const csv = [
-      ['Catbot', 'Variant', 'Question Index', 'Question', 'Response', 'Response Time (ms)', 'Tokens Used', 'Status'].join(','),
+      ['Catbot', 'Variant', 'Question Index', 'Question', 'Response', 'Response Time (ms)', 'Input Tokens', 'Output Tokens', 'Total Tokens', 'Status'].join(','),
       ...results.map(r => [
         r.catbotName,
         r.variantName,
@@ -361,6 +367,8 @@ export default function AdminTesting() {
         `"${r.question.replace(/"/g, '""')}"`,
         `"${r.response.replace(/"/g, '""')}"`,
         r.responseTime,
+        r.promptTokens || '',
+        r.completionTokens || '',
         r.tokensUsed,
         r.status
       ].join(','))
@@ -706,7 +714,9 @@ export default function AdminTesting() {
                   <TableHead>Question</TableHead>
                   <TableHead>Response</TableHead>
                   <TableHead>Time (ms)</TableHead>
-                  <TableHead>Tokens</TableHead>
+                  <TableHead>Input</TableHead>
+                  <TableHead>Output</TableHead>
+                  <TableHead>Total</TableHead>
                   <TableHead>Status</TableHead>
                 </TableRow>
               </TableHeader>
@@ -720,6 +730,8 @@ export default function AdminTesting() {
                       <div className="text-sm whitespace-pre-wrap">{result.response || '...'}</div>
                     </TableCell>
                     <TableCell>{result.responseTime || '-'}</TableCell>
+                    <TableCell>{result.promptTokens || '-'}</TableCell>
+                    <TableCell>{result.completionTokens || '-'}</TableCell>
                     <TableCell>{result.tokensUsed || '-'}</TableCell>
                     <TableCell>
                       <Badge variant={
