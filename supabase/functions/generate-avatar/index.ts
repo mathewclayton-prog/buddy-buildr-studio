@@ -38,8 +38,9 @@ serve(async (req) => {
 
     // Construct intelligent prompt from catbot details
     const personalityDescriptor = getPersonalityDescriptor(personality);
-    const sanitizedDescription = buildShortDescription(description, 800);
-    let prompt = `A portrait of ${name}, a ${personalityDescriptor} cat character. ${sanitizedDescription}. Digital art style, friendly expression, clear background, high quality, detailed fur texture, expressive eyes. Professional character illustration.`;
+    const visualDescription = extractVisualCharacteristics(description);
+    const visualStyle = visualDescription || generateDefaultVisualStyle(personality, name);
+    let prompt = `A portrait of ${name}, a ${personalityDescriptor} cat character. ${visualStyle}. Digital art style, friendly expression, clear background, high quality, detailed fur texture, expressive eyes. Professional character illustration.`;
 
     // Absolute safety cap under DALL·E 3's 4000-char limit
     if (prompt.length > 3800) {
@@ -192,4 +193,77 @@ function truncateText(text: string, maxLen: number): string {
   const slice = text.slice(0, maxLen);
   const lastSpace = slice.lastIndexOf(' ');
   return (lastSpace > 0 ? slice.slice(0, lastSpace) : slice).trim() + '...';
+}
+
+function extractVisualCharacteristics(text: string): string {
+  if (!text) return '';
+  
+  // Keywords that indicate visual/physical descriptions
+  const visualKeywords = [
+    'color', 'wearing', 'looks like', 'appears', 'dressed',
+    'fur', 'eyes', 'tail', 'ears', 'paws',
+    'hat', 'glasses', 'scarf', 'bow', 'collar',
+    'orange', 'black', 'white', 'gray', 'tabby', 'calico',
+    'fluffy', 'sleek', 'spotted', 'striped'
+  ];
+  
+  // Keywords that indicate behavioral/instructional text (to filter out)
+  const behavioralKeywords = [
+    'you are', 'you will', 'your role', 'your job',
+    'help', 'assist', 'provide', 'explain', 'teach',
+    'answer', 'respond', 'chat', 'conversation'
+  ];
+  
+  const lowerText = text.toLowerCase();
+  
+  // If text is primarily behavioral, return empty
+  const hasBehavioral = behavioralKeywords.some(keyword => lowerText.includes(keyword));
+  const hasVisual = visualKeywords.some(keyword => lowerText.includes(keyword));
+  
+  if (hasBehavioral && !hasVisual) {
+    return ''; // This is clearly behavioral text, not visual
+  }
+  
+  // Extract sentences that contain visual keywords
+  const sentences = text.split(/[.!?]+/);
+  const visualSentences = sentences.filter(sentence => {
+    const lower = sentence.toLowerCase();
+    return visualKeywords.some(keyword => lower.includes(keyword));
+  });
+  
+  if (visualSentences.length > 0) {
+    return visualSentences.join('. ').trim();
+  }
+  
+  return '';
+}
+
+function generateDefaultVisualStyle(personality: string, name: string): string {
+  const styles: Record<string, string> = {
+    'Playful': 'vibrant orange tabby with bright, energetic eyes and a playful pose',
+    'Affectionate': 'soft cream-colored cat with warm, loving eyes and gentle demeanor',
+    'Independent': 'sleek gray cat with confident posture and intelligent gaze',
+    'Curious': 'bright-eyed calico cat with alert, inquisitive expression',
+    'Calm': 'serene white cat with peaceful blue eyes and relaxed posture',
+    'Mischievous': 'sleek black cat with clever amber eyes and sly expression',
+    'Lazy': 'fluffy Persian cat with relaxed expression, looking comfortable',
+    'Protective': 'strong brown tabby with alert, watchful eyes',
+    'Social': 'friendly ginger cat with warm, welcoming expression',
+    'Shy': 'gentle gray and white cat with soft, timid eyes'
+  };
+  
+  // For professional/educational catbots, add subtle accessories
+  const nameLower = name.toLowerCase();
+  const isProfessional = nameLower.includes('tutor') || 
+                         nameLower.includes('teacher') || 
+                         nameLower.includes('professor') ||
+                         nameLower.includes('study');
+  
+  let baseStyle = styles[personality] || 'charming domestic cat with friendly appearance';
+  
+  if (isProfessional) {
+    baseStyle += ', wearing small reading glasses';
+  }
+  
+  return baseStyle;
 }
