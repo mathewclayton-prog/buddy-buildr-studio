@@ -62,6 +62,7 @@ export default function AdminTesting() {
   // Multi-catbot test state
   const [availableCatbots, setAvailableCatbots] = useState<Catbot[]>([]);
   const [selectedCatbots, setSelectedCatbots] = useState<string[]>([]);
+  const [catbotSearchQuery, setCatbotSearchQuery] = useState<string>('');
   
   // Config variation test state
   const [selectedCatbot, setSelectedCatbot] = useState<string>('');
@@ -417,8 +418,19 @@ export default function AdminTesting() {
             <CardContent className="space-y-4">
               <div className="space-y-2">
                 <Label>Select Catbots (up to 5)</Label>
+                <Input
+                  type="text"
+                  placeholder="Search catbots by name..."
+                  value={catbotSearchQuery}
+                  onChange={(e) => setCatbotSearchQuery(e.target.value)}
+                  className="mb-3"
+                />
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                  {availableCatbots.slice(0, 10).map(catbot => (
+                  {availableCatbots
+                    .filter(catbot => 
+                      catbot.name.toLowerCase().includes(catbotSearchQuery.toLowerCase())
+                    )
+                    .map(catbot => (
                     <div
                       key={catbot.id}
                       className={`p-3 border rounded-lg cursor-pointer transition ${
@@ -438,9 +450,14 @@ export default function AdminTesting() {
                     </div>
                   ))}
                 </div>
-                <p className="text-sm text-muted-foreground">
-                  Selected: {selectedCatbots.length}/5
-                </p>
+                <div className="flex items-center justify-between text-sm text-muted-foreground">
+                  <span>
+                    Showing {availableCatbots.filter(catbot => 
+                      catbot.name.toLowerCase().includes(catbotSearchQuery.toLowerCase())
+                    ).length} of {availableCatbots.length} catbots
+                  </span>
+                  <span>Selected: {selectedCatbots.length}/5</span>
+                </div>
               </div>
             </CardContent>
           </Card>
