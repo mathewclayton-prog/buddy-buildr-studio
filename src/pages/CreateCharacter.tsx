@@ -550,14 +550,14 @@ const CreateCharacter = () => {
                 {/* Enhanced Mode Fields */}
                 {creationMode === "enhanced" && (
                   <>
-                    {/* Advanced Definition */}
+                    {/* Dialog Examples */}
                     <div className="space-y-2">
-                      <Label htmlFor="advancedDefinition">Advanced Definition</Label>
+                      <Label htmlFor="advancedDefinition">Dialog Examples</Label>
                       <Textarea 
                         id="advancedDefinition" 
                         value={advancedDefinition} 
                         onChange={e => setAdvancedDefinition(e.target.value)} 
-                        placeholder="Use dialog examples to show your cat's speaking style. Use {{char}} for your cat's name and {{user}} for the user. Example:&#10;{{user}}: Hello!&#10;{{char}}: *purrs softly* Well hello there! I was just lounging in the sunbeam by the window." 
+                        placeholder="Add 3-5 sample exchanges showing how your cat responds. Use any format you like:&#10;&#10;Q: What's your favorite hobby?&#10;A: *stretches lazily* Honestly? Finding the perfect sunbeam and claiming it as my kingdom.&#10;&#10;Q: Tell me about your day.&#10;A: Well, I napped for 3 hours, judged the neighbors, then napped some more. Living my best life!" 
                         rows={8} 
                         maxLength={32000}
                       />
@@ -565,7 +565,7 @@ const CreateCharacter = () => {
                         <span className={advancedDefinition.length > 32000 ? "text-destructive font-medium" : ""}>
                           {advancedDefinition.length}/32000 characters
                         </span>
-                        {" - Dialog examples with variables like {{char}} and {{user}}"}
+                        {" - Add 3-5 sample exchanges showing how your cat responds. Use any format (Q&A, natural dialog, etc.). These examples teach the AI your cat's tone, style, and personality."}
                       </p>
                     </div>
 
