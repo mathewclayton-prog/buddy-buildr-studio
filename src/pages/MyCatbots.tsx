@@ -346,12 +346,22 @@ const MyCatbots = () => {
               {isAdmin ? "Manage your AI companions and oversee the platform" : "Manage your AI companions and see how they're performing"}
             </p>
           </div>
-          <Button asChild>
-            <Link to="/create" className="flex items-center gap-2">
-              <Plus className="h-4 w-4" />
-              Create New Catbot
-            </Link>
-          </Button>
+          <div className="flex items-center gap-3">
+            {isAdmin && (
+              <Button variant="outline" asChild>
+                <Link to="/admin" className="flex items-center gap-2">
+                  <BarChart3 className="h-4 w-4" />
+                  Admin Dashboard
+                </Link>
+              </Button>
+            )}
+            <Button asChild>
+              <Link to="/create" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />
+                Create New Catbot
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="private" className="space-y-6">
