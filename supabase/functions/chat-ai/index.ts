@@ -557,6 +557,7 @@ MEMORY CONTEXT:
 ${memoryContext}
 
 INSTRUCTIONS:
+- Keep responses brief - aim for 2-4 sentences maximum
 - Speak authentically based on your character description and training
 - Let your unique voice emerge naturally from your backstory and traits
 - Respond directly to what the user shares - statements are often better than questions
@@ -1001,7 +1002,7 @@ Generate a warm, character-authentic opening greeting. Do NOT be overly formal o
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages,
-        max_tokens: 300,
+        max_tokens: 60,
         temperature: 0.8,
         presence_penalty: 0.1,
         frequency_penalty: 0.1,
