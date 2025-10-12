@@ -311,10 +311,10 @@ const Chat = () => {
     if (character.avatarColor) {
       return (
         <div 
-          className="h-8 w-8 rounded-full flex items-center justify-center"
+          className="h-16 w-16 rounded-full flex items-center justify-center"
           style={{ backgroundColor: character.avatarColor }}
         >
-          <Bot className="h-4 w-4 text-white" />
+          <Bot className="h-8 w-8 text-white" />
         </div>
       );
     }
@@ -329,8 +329,8 @@ const Chat = () => {
     ];
     const colorIndex = character.name.charCodeAt(0) % colors.length;
     return (
-      <div className={`h-8 w-8 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
-        <Bot className="h-4 w-4 text-white" />
+      <div className={`h-16 w-16 rounded-full bg-gradient-to-br ${colors[colorIndex]} flex items-center justify-center`}>
+        <Bot className="h-8 w-8 text-white" />
       </div>
     );
   };
@@ -390,14 +390,14 @@ const Chat = () => {
             <img
               src={character.avatar}
               alt={character.name}
-              className="h-10 w-10 rounded-full object-cover"
+              className="h-20 w-20 rounded-full object-cover"
             />
           ) : (
             <div 
-              className="h-10 w-10 rounded-full flex items-center justify-center"
+              className="h-20 w-20 rounded-full flex items-center justify-center"
               style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
             >
-              <Bot className="h-5 w-5 text-white" />
+              <Bot className="h-10 w-10 text-white" />
             </div>
           )}
           
@@ -438,14 +438,14 @@ const Chat = () => {
                         <img
                           src={character.avatar}
                           alt={character.name}
-                          className="h-10 w-10 rounded-full object-cover hover:animate-purr cursor-pointer"
+                          className="h-20 w-20 rounded-full object-cover hover:animate-purr cursor-pointer"
                         />
                       ) : (
                         <div 
-                          className="h-10 w-10 rounded-full flex items-center justify-center hover:animate-purr cursor-pointer"
+                          className="h-20 w-20 rounded-full flex items-center justify-center hover:animate-purr cursor-pointer"
                           style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
                         >
-                          <Bot className="h-5 w-5 text-white" />
+                          <Bot className="h-10 w-10 text-white" />
                         </div>
                       )}
                     </div>
@@ -453,10 +453,10 @@ const Chat = () => {
                   
                   {message.isUser && (
                     <div className="flex-shrink-0 mb-1">
-                      <Avatar className="h-10 w-10">
+                      <Avatar className="h-20 w-20">
                         <AvatarImage src={userAvatarUrl || undefined} />
                         <AvatarFallback className="bg-primary text-primary-foreground">
-                          <User className="h-5 w-5" />
+                          <User className="h-10 w-10" />
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -491,14 +491,14 @@ const Chat = () => {
                       <img
                         src={character.avatar}
                         alt={character.name}
-                        className="h-6 w-6 rounded-full object-cover animate-pulse"
+                        className="h-12 w-12 rounded-full object-cover animate-pulse"
                       />
                     ) : (
                       <div 
-                        className="h-6 w-6 rounded-full flex items-center justify-center animate-pulse"
+                        className="h-12 w-12 rounded-full flex items-center justify-center animate-pulse"
                         style={{ backgroundColor: character.avatarColor || "#8B5CF6" }}
                       >
-                        <Bot className="h-3 w-3 text-white" />
+                        <Bot className="h-6 w-6 text-white" />
                       </div>
                     )}
                   </div>
