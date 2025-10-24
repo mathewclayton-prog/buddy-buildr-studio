@@ -1005,7 +1005,7 @@ Generate a warm, character-authentic opening greeting. Do NOT be overly formal o
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages,
-        max_tokens: 60,
+        max_tokens: 100,
         temperature: 0.8,
         presence_penalty: 0.1,
         frequency_penalty: 0.1,

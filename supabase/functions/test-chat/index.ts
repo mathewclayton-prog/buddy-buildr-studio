@@ -68,7 +68,7 @@ serve(async (req) => {
     // Apply OpenAI parameter overrides with defaults
     const effectiveParams = {
       model: openaiParams.model ?? 'gpt-4o-mini',
-      max_tokens: openaiParams.max_tokens ?? 60,
+      max_tokens: openaiParams.max_tokens ?? 100,
       temperature: openaiParams.temperature ?? 0.8,
       presence_penalty: openaiParams.presence_penalty ?? 0.1,
       frequency_penalty: openaiParams.frequency_penalty ?? 0.1,
