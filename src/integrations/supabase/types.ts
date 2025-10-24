@@ -712,7 +712,7 @@ export type Database = {
         }[]
       }
       get_active_hours_heatmap: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           activity_count: number
           day_of_week: number
@@ -747,7 +747,7 @@ export type Database = {
         }[]
       }
       get_live_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           active_now: number
           messages_last_hour: number
@@ -756,7 +756,7 @@ export type Database = {
         }[]
       }
       get_messages_per_session_stats: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_messages: number
           median_messages: number
@@ -781,7 +781,7 @@ export type Database = {
         }[]
       }
       get_time_to_first_message: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           avg_hours: number
           median_hours: number
