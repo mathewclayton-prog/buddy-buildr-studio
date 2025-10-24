@@ -68,7 +68,7 @@ serve(async (req) => {
     // Apply OpenAI parameter overrides with defaults
     const effectiveParams = {
       model: openaiParams.model ?? 'gpt-4o-mini',
-      max_tokens: openaiParams.max_tokens ?? 100,
+      max_tokens: openaiParams.max_tokens ?? 150,
       temperature: openaiParams.temperature ?? 0.8,
       presence_penalty: openaiParams.presence_penalty ?? 0.1,
       frequency_penalty: openaiParams.frequency_penalty ?? 0.1,
@@ -152,10 +152,10 @@ function buildEnhancedPrompt(config: any): string {
   }
 
   prompt += '\n\nRespond naturally in character. Keep your responses engaging and true to your personality.';
-  prompt += '\n\nCRITICAL: Responses must be complete and self-contained within 2-4 sentences (about 50 words).';
-  prompt += '\nNever begin numbered lists or multi-part explanations that extend beyond this limit.';
-  prompt += '\nIf the user asks a complex question, give a concise summary and offer to dive deeper into specific parts.';
-  prompt += '\nEnd every response with a complete thought. Do not leave sentences unfinished.';
+  prompt += '\n\nCRITICAL: Keep responses brief and conversational - typically 2-4 sentences.';
+  prompt += '\nAlways complete your thoughts. Never end mid-sentence.';
+  prompt += '\nAvoid numbered lists or lengthy explanations. If a topic needs more depth, offer to elaborate on specific aspects.';
+  prompt += '\nStay concise but natural - prioritize finishing thoughts over hitting exact word counts.';
 
   return prompt;
 }

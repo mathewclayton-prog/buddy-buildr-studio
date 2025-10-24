@@ -557,10 +557,10 @@ MEMORY CONTEXT:
 ${memoryContext}
 
 INSTRUCTIONS:
-- CRITICAL: Responses must be complete and self-contained within 2-4 sentences (about 50 words).
-- Never begin numbered lists or multi-part explanations that extend beyond this limit.
-- If the user asks a complex question, give a concise summary and offer to dive deeper into specific parts.
-- End every response with a complete thought. Do not leave sentences unfinished.
+- CRITICAL: Keep responses brief and conversational - typically 2-4 sentences.
+- Always complete your thoughts. Never end mid-sentence.
+- Avoid numbered lists or lengthy explanations. If a topic needs more depth, offer to elaborate on specific aspects.
+- Stay concise but natural - prioritize finishing thoughts over hitting exact word counts.
 - Speak authentically based on your character description and training
 - Let your unique voice emerge naturally from your backstory and traits
 - Respond directly to what the user shares - statements are often better than questions
@@ -1005,7 +1005,7 @@ Generate a warm, character-authentic opening greeting. Do NOT be overly formal o
       body: JSON.stringify({
         model: 'gpt-4o-mini',
         messages,
-        max_tokens: 100,
+        max_tokens: 150,
         temperature: 0.8,
         presence_penalty: 0.1,
         frequency_penalty: 0.1,
