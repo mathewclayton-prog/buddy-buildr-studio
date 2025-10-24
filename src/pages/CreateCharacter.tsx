@@ -157,7 +157,8 @@ const CreateCharacter = () => {
         greeting: greeting.trim() || null,
         advanced_definition: advancedDefinition.trim() || null,
         creation_mode: creationMode,
-        suggested_starters: suggestedStarters.filter(s => s.trim())
+        suggested_starters: suggestedStarters.filter(s => s.trim()),
+        use_new_prompt: true
       };
 
       const trainingData = {
