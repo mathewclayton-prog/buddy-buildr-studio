@@ -376,30 +376,22 @@ const Profile = () => {
 
     setIsDeleting(true);
     try {
-      // Delete user's catbots first
-      const { error: catbotsError } = await supabase
-        .from('catbots')
-        .delete()
-        .eq('user_id', user?.id);
+      // Use the comprehensive GDPR-compliant deletion function
+      // This will delete ALL user data from all tables including:
+      // - catbots, catbot_likes, catbot_training_data, catbot_spontaneous_thoughts
+      // - chat_messages, chat_sessions
+      // - user_memory_profiles, conversation_contexts
+      // - analytics_events, page_views, user_sessions
+      // - user_roles, profiles, and auth.users
+      const { error } = await supabase.rpc('delete_user_data', {
+        p_user_id: user?.id
+      });
 
-      if (catbotsError) throw catbotsError;
-
-      // Delete profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('user_id', user?.id);
-
-      if (profileError) throw profileError;
-
-      // Delete user account
-      const { error: userError } = await supabase.auth.admin.deleteUser(user?.id || "");
-
-      if (userError) throw userError;
+      if (error) throw error;
 
       toast({
         title: "Account Deleted",
-        description: "Your account has been permanently deleted"
+        description: "Your account and all associated data have been permanently deleted in compliance with GDPR"
       });
 
       // Sign out and redirect
@@ -408,7 +400,7 @@ const Profile = () => {
       console.error('Error deleting account:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to delete account",
+        description: error.message || "Failed to delete account. Please contact support.",
         variant: "destructive"
       });
     } finally {

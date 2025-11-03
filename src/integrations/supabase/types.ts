@@ -711,6 +711,7 @@ export type Database = {
           stickiness_ratio: number
         }[]
       }
+      delete_user_data: { Args: { p_user_id: string }; Returns: undefined }
       get_active_hours_heatmap: {
         Args: never
         Returns: {
